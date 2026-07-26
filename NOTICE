@@ -1,17 +1,16 @@
-NMRpaint — NOTICE
+NMRPaint — NOTICE
 
-Required Notice: Copyright (c) [FIRST_PUBLICATION_YEAR] [COPYRIGHT_HOLDER].
+Required Notice: Copyright (c) [2026] [Alex van der Ham].
 
-Required Notice: NMRpaint is made available under the NMRpaint Academic and
+Required Notice: NMRPaint is made available under the NMRPaint Academic and
 Public Research License 1.0. Commercial use and private-company internal use,
 including pre-commercial internal R&D, require a separate written license.
 
-Project: NMRpaint
-Original author: [ORIGINAL_AUTHOR_FULL_NAME]
-Copyright holder: [COPYRIGHT_HOLDER]
-Contact: [CONTACT_EMAIL]
-Repository: [REPOSITORY_URL]
-Web application: [WEB_APP_URL]
+Project: NMRPaint
+Original author: [Alex van der Ham]
+Copyright holder: [Alex van der Ham]
+Contact: [alexander.van-der-ham@weizmann.ac.il]
+Web application: [https://potatocobbler.github.io/NMRPaint/]
 
 PERMITTED INSTITUTIONAL COLLABORATION
 
@@ -34,11 +33,11 @@ integration into internal workflows.
 
 CITATION
 
-Scientific users are requested to cite NMRpaint using CITATION.cff and to
+Scientific users are requested to cite NMRPaint using CITATION.cff and to
 acknowledge the software in scientific publications and presentations where
 appropriate.
 
 NO ENDORSEMENT
 
-Use of NMRpaint does not imply endorsement by the copyright holder, authors,
+Use of NMRPaint does not imply endorsement by the copyright holder, authors,
 contributors, or any affiliated organization.
