@@ -1,0 +1,121 @@
+name: Deploy NMRpaint Voici
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and build Voici
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build pytest
+          python -m pip install -e .
+          python -m pip install \
+            "voici-core==0.10.0" \
+            "jupyterlite-core[lab,serve]==0.7.0" \
+            "jupyterlite-pyodide-kernel==0.7.0" \
+            "jupyterlab==4.5.0" \
+            "notebook==7.5.0" \
+            jupyter-server \
+            jupyterlab-server
+
+      - name: Check Python dependencies
+        run: python -m pip check
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Build NMRpaint wheel
+        run: |
+          rm -rf build dist src/*.egg-info
+          python -m build --wheel
+
+      - name: Add wheel to Voici
+        run: |
+          mkdir -p voici/pypi
+          rm -f voici/pypi/nmrpaint-*.whl
+          cp dist/nmrpaint-*.whl voici/pypi/
+
+      - name: Build Voici site
+        run: |
+          rm -rf voici/_output
+          rm -f voici/.jupyterlite.doit.db
+          cd voici
+          voici build \
+            --contents content/NMRpaint.ipynb \
+            --output-dir _output
+
+      - name: Make NMRpaint the site root
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          output = Path("voici/_output")
+          target = "./voici/render/NMRpaint.html"
+
+          (output / "index.html").write_text(
+              f'''<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url={target}">
+            <title>NMRpaint</title>
+            <script>window.location.replace("{target}");</script>
+          </head>
+          <body>
+            <p><a href="{target}">Open NMRpaint</a></p>
+          </body>
+          </html>
+          ''',
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Verify Voici output
+        run: |
+          test -f voici/_output/index.html
+          test -f voici/_output/voici/render/NMRpaint.html
+          test -f voici/_output/jupyter-lite.json
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: voici/_output
+
+  deploy:
+    name: Deploy GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
