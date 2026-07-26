@@ -7,7 +7,7 @@ version: "0.1.0"
 authors:
   - family-names: "van der Ham"
     given-names: "Alexander"
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0000-0002-7423-0090"
 
 abstract: >-
   NMRpaint is an interactive pulse-sequence design tool for creating,
