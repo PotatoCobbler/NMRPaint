@@ -1,0 +1,7 @@
+						;begin CW
+  20u pl14:f2
+  d9 cw:f2 ph29
+  4u do:f2
+  20u pl2:f2
+ 
+						;end CW

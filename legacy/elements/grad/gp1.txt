@@ -1,0 +1,11 @@
+; gradient pulse
+title=
+name=p16
+definition=
+duration=4
+channel=Gz
+power=gp1
+phase=
+random_enabled=False
+random_type=hard
+random_percent=0

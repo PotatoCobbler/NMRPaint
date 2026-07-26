@@ -1,0 +1,11 @@
+; 180-degree pulse on F1
+title=
+name=p2
+definition=p1 * 2
+duration=4
+channel=F1
+power=pl1
+phase=ph1
+random_enabled=False
+random_type=hard
+random_percent=0

@@ -1,0 +1,11 @@
+; composite pulse decoupling on F2
+title=WALTZ16
+name=cpd2
+definition=waltz16
+duration=10
+channel=F2
+power=pl12
+phase=
+random_enabled=False
+random_type=hard
+random_percent=0

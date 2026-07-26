@@ -1,0 +1,11 @@
+; shaped pulse
+title=
+name=p11
+definition=
+duration=4
+channel=F1
+power=pl0
+phase=ph1
+random_enabled=False
+random_type=hard
+random_percent=0

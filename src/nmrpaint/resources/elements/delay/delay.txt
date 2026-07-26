@@ -1,0 +1,8 @@
+; delay
+title=
+name=d20
+definition=
+channel=f1
+random_enabled=False
+random_type=hard
+random_percent=0

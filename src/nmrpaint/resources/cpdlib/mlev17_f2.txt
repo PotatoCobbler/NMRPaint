@@ -1,0 +1,23 @@
+  20u pl15:f2
+
+						;begin MLEV17
+4 (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph22 p6*2 ph23 p6 ph22)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6 ph24 p6*2 ph25 p6 ph24)
+  (p6*.667 ph23)
+  lo to 4 times l1 
+						;end MLEV17
+ 20u pl2:f2

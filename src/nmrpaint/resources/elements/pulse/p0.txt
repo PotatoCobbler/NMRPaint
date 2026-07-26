@@ -1,0 +1,11 @@
+; variable-degree pulse on F1
+title=
+name=p0
+definition=
+duration=2
+channel=F1
+power=pl1
+phase=ph1
+random_enabled=False
+random_type=hard
+random_percent=0

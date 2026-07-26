@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nmrpaint"
+version = "0.1.0"
+description = "Interactive NMR pulse-sequence editor and Bruker pulse-program generator"
+requires-python = ">=3.11"
+
+dependencies = [
+    "ipython",
+    "ipywidgets",
+    "ipycanvas",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ipykernel",
+    "jupyterlab",
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"nmrpaint.resources" = [
+    "elements/*/*.txt",
+    "defs/*.txt",
+    "cpdlib/*.txt",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

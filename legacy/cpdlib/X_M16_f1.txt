@@ -1,0 +1,48 @@
+  d20 pl0:f1
+  50u UNBLKGRAD
+  p16:gp1
+  d16
+                                                ;begin X_M16
+4 (p29:sp0 ph20):f1
+  3u
+  (p29:sp0 ph20):f1
+  3u
+  (p29:sp0 ph22):f1
+  3u
+  (p29:sp0 ph22):f1
+  3u
+
+  (p29:sp0 ph20):f1
+  3u
+  (p29:sp0 ph22):f1
+  3u
+  (p29:sp0 ph22):f1
+  3u
+  (p29:sp0 ph20):f1
+  3u
+
+  (p29:sp0 ph22):f1
+  3u
+  (p29:sp0 ph22):f1
+  3u
+  (p29:sp0 ph20):f1
+  3u
+  (p29:sp0 ph20):f1
+  3u
+
+  (p29:sp0 ph22):f1
+  3u
+  (p29:sp0 ph20):f1
+  3u
+  (p29:sp0 ph20):f1
+  3u
+  (p29:sp0 ph22):f1
+  3u
+
+  lo to 4 times l1
+                                                ;end X_M16
+
+  p16:gp2
+  d16
+  d21 pl1:f1
+ 

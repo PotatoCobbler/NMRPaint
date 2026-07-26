@@ -1,0 +1,39 @@
+;test
+;avance-version (2026-07-26)
+;
+;
+;$CLASS=HighRes
+;$DIM=1D
+;$TYPE=
+;$SUBTYPE=
+;$COMMENT=
+
+#include <Avance.incl>
+
+
+1 ze
+2 30m pl1:f1
+ 30m pl2:f2
+ d1
+ (p3 ph1):f2
+ d20
+ go=2 ph31
+ 30m mc #0 to 2 F0(zd)
+exit
+
+ph1=0
+ph31=0
+
+
+;pl2: f2 channel - power level for pulse (default)                    {all, PL90(F2)}
+
+;p3: f2 channel -  90 degree high power pulse                         {all, PW90(F2)}
+
+;d1: relaxation delay 1-5 * T1
+;d20: for different applications
+
+;ns: 1 * n, total number of scans: NS * TD0
+;ds: 0
+
+;
+;$Id: Generated using NMRpaintv1$

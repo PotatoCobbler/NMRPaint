@@ -1,0 +1,111 @@
+cnst0 : for protein experiments - N chemical shift (offset, in ppm)
+ or     for na experiments - calculated chemical shift (offset, in ppm)
+ or     for na experiments - N(aro) chemical shift (offset, in ppm)         [195 ppm]
+cnst1 : J (HH)
+cnst2 : J (XH)
+cnst3 : J (XX)
+cnst4 : J (YH)
+cnst5 : J (XY)
+cnst6 : J (XH)min
+cnst7 : J (XH)max
+cnst8 : bandwidth of excitation for Dante-z pulse
+cnst9 : for different applications as J
+cnst10: for different applications as J
+cnst11: for multiplicity selection
+cnst12: for multiplicity selection
+cnst13: J (XH) long range
+cnst14: J (XH) long range (min)
+cnst15: J (XH) long range (max)
+cnst16: J-scale factor
+ or     for na experiments - H6/8 and/or H1' chemical shift (offset, in ppm)
+
+cnst17: factor to compensate for coupling evolution during a pulse
+ or     for na experiments - H1' chemical shift (offset, in ppm)
+
+cnst18: for protein experiments - H2O chemical shift (offset, in ppm)
+ or     for na experiments - H2O chemical shift (offset, in ppm)
+
+cnst19: for protein experiments - H(N) chemical shift (offset, in ppm)
+ or    : for na experiments - H(N) chemical shift (offset, in ppm)
+
+cnst20: for protein experiments - Haliphatic chemical shift (offset, in ppm)
+
+cnst21: for protein experiments - CO chemical shift (offset, in ppm)
+ or     for na experiments - C1' chemical shift (offset, in ppm)            [90 ppm]
+
+cnst22: for protein experiments - Calpha chemical shift (offset, in ppm)
+ or     for na experiments - C6/8 chemical shift (offset, in ppm)           [137 ppm]
+
+cnst23: for protein experiments - Caliphatic chemical shift (offset, in ppm)
+ or     for na experiments - C2' chemical shift (offset, in ppm)            [72 ppm]
+
+cnst24: for protein experiments - Caromatic chemical shift (offset, in ppm)
+ or     for na experiments - C4 (C/U) chemical shift (offset, in ppm)       [169 ppm]
+
+cnst25: for protein experiments - flag for cross peak / reference experiments
+ or     for na experiments - C6 (A) chemical shift (offset, in ppm)         [160 ppm]
+
+cnst26: for protein experiments - Call chemical shift (offset, in ppm)
+ or     for na experiments - C5 (G) chemical shift (offset, in ppm)         [119 ppm]
+
+cnst27: for protein experiments - ( Cgamma chemical shift (offset, in ppm) )
+ or     for na experiments - C2/4 chemical shift (offset, in ppm)           [152 ppm]
+
+cnst28: for protein experiments - Haromatic chemical shift (offset, in ppm)
+ or     for na experiments - C5 (C/U) chemical shift (offset, in ppm)       [105 ppm]
+
+cnst29: for protein experiments - N(H) chemical shift (offset, in ppm)
+ or     for na experiments - C(aro) chemical shift (offset, in ppm)         [145 ppm]
+
+cnst30: for protein experiments - Cbeta chemical shift (offset, in ppm)
+ or     for na experiments - N(H) chemical shift (offset, in ppm)           [151 ppm]
+
+cnst31: scaling factor
+ or     for na experiments - N(H2) chemical shift (offset, in ppm)          [81 ppm]
+
+cnst33: power ratio
+cnst34: for music experiments - Cab(Leu) chemical shift (offset, in ppm)    [48.0 ppm]
+cnst35: for music experiments - Cbgd(Leu) chemical shift (offset, in ppm)   [35.0 ppm]
+cnst36: for music experiments - Cgd(Leu) chemical shift (offset, in ppm)    [19.0 ppm]
+cnst37: for music experiments - Cb(Val)/Cg(Ile) chem. shift (offset,in ppm) [27.0 ppm]
+cnst38: for music experiments - Cab(Asp)Cd(Arg) chem. shift (offset,in ppm) [42.0 ppm]
+cnst39: compensation of chemical shift evolution during p39 (sofast)
+ or     for music experiments - Cg(Arg)/Cd(Lys) chem. shift (offset,in ppm) [29 ppm]
+
+cnst40: compensation of chemical shift evolution during p42 (best-)
+ or     for music experiments - Ce(Lys) chemical shift (offset, in ppm)     [44.5 ppm]
+
+cnst41: compensation of chemical shift evolution during p41 (best-)
+ or     for music experiments - Cg(Phe,Tyr,His) chem. shift (offset, in ppm)[136.0 ppm]
+
+cnst42: compensation of chemical shift evolution during p42 (best-)
+ or     for music experiments - Cg(Trp) chemical shift (offset, in ppm)     [104.0 ppm]
+
+cnst43: compensation of chemical shift evolution during p43 (best-)
+ or     for music experiments - Cb(Thr) chemical shift (offset, in ppm)     [68.5 ppm]
+
+cnst44: for music experiments - Cab(Ser) chemical shift (offset, in ppm)    [60.5 ppm]
+cnst45: for music experiments - Cd(Ile) chemical shift (offset, in ppm)     [11.0 ppm]
+cnst46: for music experiments - Cbg(Ile) chemical shift (offset, in ppm)    [33.0 ppm]
+cnst47: for music experiments - N(H) chemical shift (offset, in ppm)        [117.0 ppm]
+cnst48: for music experiments - N(Pro) chemical shift (offset, in ppm)      [134.0 ppm]
+cnst49: for protein experiments - H(methyl) chemical shift (offset, in ppm) [0.5 ppm]
+cnst50: for protein experiments - N off resonance frequency for temp. comp. (in ppm)
+ or     scaling factor to compensate for transition region of shaped pulse
+ or     compensation of chemical shift evolution during p50 (best-)
+
+cnst51: for protein experiments - N off resonance frequency for R2,0 spinlock (in ppm)
+ or     scaling factor to compensate for transition region of shaped pulse
+ or     for protein experiments - Calpha(aro) chemical shift (offset, in ppm)   [59 ppn]
+
+cnst52: for protein experiments - Caromatic chemical shift (offset, in ppm, variable)
+ or     scaling factor to compensate for transition region of shaped pulse
+
+cnst53: for protein experiments - Halpha chemical shift (offset, in ppm)
+ or     scaling factor to compensate for transition region of shaped pulse
+ or     chemical shift for selective pulse (offset, in ppm) in bshd
+
+cnst54: for protein experiments - H(N) chemical shift (offset, in ppm) (=cnst19)
+cnst55: for protein experiments - width of H(N) or HMe region (in ppm)
+cnst56: for protein experiments - Hbeta chemical shift (offset, in ppm)
+cnst57: Cme chemical shift (offset, in ppm)                                 [15.5 ppm]

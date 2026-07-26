@@ -1,0 +1,23 @@
+						;begin gROESY
+  4u pl11:f1
+  p15 ph22
+  50u pl18:f1 UNBLKGRAD
+  p16:gp1
+  d16
+  p27*0.231 ph23
+  d19*2
+  p27*0.692 ph23
+  d19*2
+  p27*1.462 ph23
+  d19*2
+  p27*1.462 ph24
+  d19*2
+  p27*0.692 ph24
+  d19*2
+  p0*0.231 ph24
+  TAU
+  p16:gp2
+  d16 pl1:f1
+  4u BLKGRAD
+ 
+						;end gROESY

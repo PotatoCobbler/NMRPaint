@@ -1,0 +1,13 @@
+l1 : loop for spinlock cycle
+l2 : loop for GARP cycle: l2 * 31.75 * 4 * p9 => AQ
+l3 : loop for phase sensitive 2D or 3D using 
+       States et al. or States-TPPI method: l3 = td1/2
+l4 : for different applications
+l5 : for different applications
+l6 : loop for shaped pulse presaturation during relaxation delay
+l7 : loop for shaped pulse presaturation during mixing time
+l8 : number of frequencies for multiple presaturation
+l11: loop for spinlock cycle 2
+
+vc : variable loop counter, taken from vc-list
+vd : variable delay, taken from vd-list
