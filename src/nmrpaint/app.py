@@ -2030,6 +2030,8 @@ dynamic_canvas.layout = Layout(
     pointer_events="none"
 )
 
+canvas.layout.border = "3px solid red"
+dynamic_canvas.layout.border = "3px solid blue"
 # -----------------------
 # Container
 # -----------------------
