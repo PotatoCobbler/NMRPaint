@@ -1997,14 +1997,14 @@ def get_fid_start_time():
 canvas = Canvas(
     width=canvas_width,
     height=canvas_height,
-    sync_image_data=True
+    sync_image_data=False
 )
 
 # Overlay canvas (used for drag preview)
 dynamic_canvas = Canvas(
     width=canvas_width,
     height=canvas_height,
-    sync_image_data=True
+    sync_image_data=False
 )
 
 dynamic_canvas.layout.position = "absolute"
