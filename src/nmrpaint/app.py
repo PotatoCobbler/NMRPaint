@@ -158,7 +158,7 @@ def apply_placement_defaults(el: 'SequenceElement'):
                 el.power = "pl2"
             
 def pulse_fill_color(el):
-    name = os.path.basename(el.file_path).lower()
+    name = resource_filename(el.file_path).lower()
     if "p90" in name:
         return "white"
     elif "p180" in name:
@@ -380,7 +380,7 @@ def clear_sequence(b):
 
     dash_x = 40 / timeline_scale
     fid_start_time = (canvas.width - 83) / timeline_scale
-    delay_file = os.path.join("defs", "delay.txt")
+    delay_file = DELAY_RESOURCE_ID
 
     delay = SequenceElement(
         kind="delay",
@@ -629,7 +629,7 @@ def generate_pulse_program(filename: str, include_phase_cycle=False):
             title = el.title.strip().lower()
             channel = el.channel.strip().lower()
         
-            cpd_file = os.path.join("cpdlib", f"{title}_{channel}.txt")
+            cpd_filename = f"{title}_{channel}.txt"
         
             if os.path.exists(cpd_file):
         
@@ -2798,7 +2798,7 @@ main_vbox = VBox([
 dash_x = 40
 fid_start_time = (canvas.width - 83) / timeline_scale
 
-delay_file = os.path.join("defs", "delay.txt")
+delay_file = DELAY_RESOURCE_ID
 delay = SequenceElement(
     kind="delay",
     file_path=delay_file,
