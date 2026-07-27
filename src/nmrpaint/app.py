@@ -1993,28 +1993,6 @@ canvas_height = 400
 def get_fid_start_time():
     return (canvas.width - 83) / timeline_scale
 
-# -----------------------
-# Main canvas
-# -----------------------
-
-canvas = Canvas(
-    width=canvas_width,
-    height=canvas_height,
-    sync_image_data=False
-)
-
-canvas.layout = Layout(
-    position="absolute",
-    top="0px",# -----------------------
-# Canvas Setup
-# -----------------------
-
-canvas_width = 670
-canvas_height = 400
-
-def get_fid_start_time():
-    return (canvas.width - 83) / timeline_scale
-
 # Main canvas
 canvas = Canvas(
     width=canvas_width,
