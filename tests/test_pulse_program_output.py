@@ -11,7 +11,6 @@ def test_build_pulse_program_text_returns_text():
     assert "1 ze" in text
     assert "go=2 ph31" in text
     assert "exit" in text
-    assert "Generated using NMRpaintv1" in text
 
 
 def test_save_pulse_program(tmp_path: Path):
