@@ -2007,19 +2007,15 @@ dynamic_canvas = Canvas(
     sync_image_data=False
 )
 
-# Force both canvases to occupy exactly the same location
-canvas.layout = Layout(
-    position="absolute",
-    left="0px",
-    top="0px",
-)
+# Force widget wrappers to overlap
+for c in (canvas, dynamic_canvas):
+    c.layout.position = "absolute"
+    c.layout.left = "0px"
+    c.layout.top = "0px"
+    c.layout.width = f"{canvas_width}px"
+    c.layout.height = f"{canvas_height}px"
 
-dynamic_canvas.layout = Layout(
-    position="absolute",
-    left="0px",
-    top="0px",
-    pointer_events="none",
-)
+dynamic_canvas.layout.pointer_events = "none"
 
 canvas.layout.border = "1px solid black"
 
@@ -2030,6 +2026,7 @@ canvas_container = Box(
         position="relative",
         width=f"{canvas_width}px",
         height=f"{canvas_height}px",
+        display="block",
         overflow="hidden",
     )
 )
@@ -2060,7 +2057,7 @@ def set_canvas_size(new_width: int, new_height: int = None):
     canvas_container.layout.min_width  = f"{canvas_width}px"
     canvas_container.layout.min_height = f"{canvas_height}px"
 
-    canvas_container.layout.width  = "100%"
+    canvas_container.layout.width  = f"{canvas_width}px"
     canvas_container.layout.height = f"{canvas_height}px"
 
     canvas_container.layout.overflow_x = "hidden"
