@@ -39,6 +39,7 @@ from .resource_manager import (
     resource_exists,
 )
 
+
 # -----------------------
 # Internal model
 # -----------------------
@@ -631,10 +632,8 @@ def generate_pulse_program(filename: str, include_phase_cycle=False):
         
             cpd_filename = f"{title}_{channel}.txt"
         
-            if os.path.exists(cpd_file):
-        
-                with open(cpd_file, "r") as cf:
-                    text = cf.read()
+			if resource_exists("cpdlib", cpd_filename):
+				text = read_resource_text("cpdlib", cpd_filename)
         
                 # extract parameters
                 cpd_pulses.update(re.findall(r"\bp\d+\b", text))
@@ -899,18 +898,21 @@ def generate_pulse_program(filename: str, include_phase_cycle=False):
         # -----------------------
         # Power / Pulse / Delay / Shape Definitions
         # -----------------------
-        def load_definitions(def_path):
-            """Load plain-text definitions from a file."""
-            if not os.path.exists(def_path):
-                return {}
-            defs = {}
-            with open(def_path, "r") as df:
-                for line in df:
-                    line = line.strip()
-                    if ":" in line:
-                        key, val = line.split(":", 1)
-                        defs[key.strip()] = val.strip()
-            return defs
+		def load_definitions(filename: str) -> dict[str, str]:
+			"""Load definition mappings from packaged resources."""
+			try:
+				definition_text = read_resource_text("defs", filename)
+			except FileNotFoundError:
+				return {}
+
+			definitions: dict[str, str] = {}
+			for line in definition_text.splitlines():
+				line = line.strip()
+				if ":" in line:
+					key, value = line.split(":", 1)
+					definitions[key.strip()] = value.strip()
+
+			return definitions
         
         # Load definition dictionaries
         power_defs = load_definitions("defs/power_def.txt")
@@ -1930,38 +1932,7 @@ def set_canvas_size(new_width: int, new_height: int = None):
     rebuild_global_delays()
     draw_sequence()
     coherence_label.value = sequence.coherence_summary()
-    
-# -----------------------
-# Elements folder setup
-# -----------------------
-
-elements_folder = "elements"
-
-element_types = [
-    "pulse",
-    "shaped",
-    "grad",
-    "block",
-    "flag"
-]
-
-element_files = {}
-
-def load_element_files():
-
-    for etype in element_types:
-
-        folder = os.path.join(elements_folder, etype)
-
-        os.makedirs(folder, exist_ok=True)
-
-        files = glob.glob(os.path.join(folder, "*.txt"))
-
-        element_files[etype] = files
-
-
-load_element_files()
-    
+       
 # -----------------------
 # Element Button
 # -----------------------
@@ -1996,7 +1967,7 @@ def draw_preview(preview_canvas, kind, file_path):
     
 def create_element_button(kind, file_path):
 
-    base = os.path.basename(file_path).lower()
+    base = resource_filename(file_path).lower()
 
     # --- Display names ---
     display_names = {
@@ -2673,15 +2644,14 @@ buttons_row = HBox(
 # Definitions tabs
 # -----------------------
 
-def load_defs(filename):
-
-    path = f"defs/{filename}"
-
-    if not os.path.exists(path):
-        return HTML(f"<pre>No definition file found: {path}</pre>")
-
-    with open(path, "r") as f:
-        content = f.read()
+def load_defs(filename: str):
+    """Load a definition file from packaged resources for display."""
+    try:
+        content = read_resource_text("defs", filename)
+    except FileNotFoundError:
+        return HTML(
+            f"<pre>No definition file found: defs/{filename}</pre>"
+        )
 
     return HTML(f"<pre>{content}</pre>")
 
@@ -2810,7 +2780,6 @@ delay = SequenceElement(
 
 sequence.add(delay)
 draw_sequence()
-
 
 def create_app():
     """Return the complete NMRpaint widget application."""
