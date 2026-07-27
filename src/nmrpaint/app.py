@@ -1993,39 +1993,61 @@ canvas_height = 400
 def get_fid_start_time():
     return (canvas.width - 83) / timeline_scale
 
+# -----------------------
 # Main canvas
+# -----------------------
+
 canvas = Canvas(
     width=canvas_width,
     height=canvas_height,
     sync_image_data=False
 )
 
-# Overlay canvas (used for drag preview)
+canvas.layout = Layout(
+    position="absolute",
+    top="0px",
+    left="0px",
+    width=f"{canvas_width}px",
+    height=f"{canvas_height}px"
+)
+
+# -----------------------
+# Drag overlay canvas
+# -----------------------
+
 dynamic_canvas = Canvas(
     width=canvas_width,
     height=canvas_height,
     sync_image_data=False
 )
 
-dynamic_canvas.layout.position = "absolute"
-dynamic_canvas.layout.top = "0px"
-dynamic_canvas.layout.left = "0px"
-dynamic_canvas.layout.z_index = "10"
-dynamic_canvas.layout.pointer_events = "none"
+dynamic_canvas.layout = Layout(
+    position="absolute",
+    top="0px",
+    left="0px",
+    width=f"{canvas_width}px",
+    height=f"{canvas_height}px",
+    pointer_events="none"
+)
 
-# Canvas container
+# -----------------------
+# Container
+# -----------------------
+
 canvas_container = Box(
     [canvas, dynamic_canvas],
     layout=Layout(
+        position="relative",
         width=f"{canvas_width}px",
         height=f"{canvas_height}px",
-        position="relative"
+        overflow="hidden",
+        display="block"
     )
 )
+
 canvas.layout.border = "1px solid black"
 
 canvas_box = canvas_container
-
 
 # -----------------------
 # Canvas resizing utility
