@@ -113,7 +113,7 @@ def apply_placement_defaults(el: 'SequenceElement'):
     - grad    -> name p16, shape gp1
     - pulses: p0/p90/p180 rules per channel (as before)
     """
-    base = os.path.basename(el.file_path).lower()
+    base = resource_filename(el.file_path).lower()
     kind = (el.kind or "").lower()
     ch   = (el.channel or "").lower()
 
@@ -266,7 +266,7 @@ def rebuild_global_delays():
 
     dash_x = 40 / timeline_scale
     fid_start_time = (canvas.width - 83) / timeline_scale
-    delay_file = os.path.join("defs", "delay.txt")
+    delay_file = DELAY_RESOURCE_ID
 
     def create_delay(start, duration):
 
@@ -1506,18 +1506,30 @@ def on_dim_change(change):
 exp_dim.observe(on_dim_change, names='value')
 
 # -----------------------
-# Elements folder setup
+# Packaged element resources
 # -----------------------
 
-elements_folder = "elements"
 element_types = ["pulse", "shaped", "grad", "block", "flag"]
-element_files = {}
+element_files: dict[str, list[str]] = {}
 
-for etype in element_types:
-    folder_path = os.path.join(elements_folder, etype)
-    os.makedirs(folder_path, exist_ok=True)
-    files = glob.glob(os.path.join(folder_path, "*.txt"))
-    element_files[etype] = files
+
+def load_element_files() -> None:
+    """Load element resource identifiers from the installed package."""
+    element_files.clear()
+
+    for element_type in element_types:
+        filenames = list_resource_names(
+            "elements",
+            element_type,
+            suffix=".txt",
+        )
+        element_files[element_type] = [
+            f"elements/{element_type}/{filename}"
+            for filename in filenames
+        ]
+
+
+load_element_files()
 
 # -----------------------
 # GUI Components
@@ -2798,6 +2810,7 @@ delay = SequenceElement(
 
 sequence.add(delay)
 draw_sequence()
+
 
 def create_app():
     """Return the complete NMRpaint widget application."""
