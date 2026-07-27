@@ -2005,49 +2005,56 @@ canvas = Canvas(
 
 canvas.layout = Layout(
     position="absolute",
-    top="0px",
-    left="0px",
-    width=f"{canvas_width}px",
-    height=f"{canvas_height}px"
+    top="0px",# -----------------------
+# Canvas Setup
+# -----------------------
+
+canvas_width = 670
+canvas_height = 400
+
+def get_fid_start_time():
+    return (canvas.width - 83) / timeline_scale
+
+# Main canvas
+canvas = Canvas(
+    width=canvas_width,
+    height=canvas_height,
+    sync_image_data=False
 )
 
-# -----------------------
-# Drag overlay canvas
-# -----------------------
-
+# Overlay canvas
 dynamic_canvas = Canvas(
     width=canvas_width,
     height=canvas_height,
     sync_image_data=False
 )
 
-dynamic_canvas.layout = Layout(
+# Force both canvases to occupy exactly the same location
+canvas.layout = Layout(
     position="absolute",
-    top="0px",
     left="0px",
-    width=f"{canvas_width}px",
-    height=f"{canvas_height}px",
-    pointer_events="none"
+    top="0px",
 )
 
-canvas.layout.border = "3px solid red"
-dynamic_canvas.layout.border = "3px solid blue"
-# -----------------------
-# Container
-# -----------------------
+dynamic_canvas.layout = Layout(
+    position="absolute",
+    left="0px",
+    top="0px",
+    pointer_events="none",
+)
 
+canvas.layout.border = "1px solid black"
+
+# IMPORTANT: use a Box that is itself relative-positioned
 canvas_container = Box(
-    [canvas, dynamic_canvas],
+    children=[canvas, dynamic_canvas],
     layout=Layout(
         position="relative",
         width=f"{canvas_width}px",
         height=f"{canvas_height}px",
         overflow="hidden",
-        display="block"
     )
 )
-
-canvas.layout.border = "1px solid black"
 
 canvas_box = canvas_container
 
