@@ -54,7 +54,7 @@ timeline_positions = {"f1": 150, "f2": 250, "Gz": 350}
 
 class SequenceElement:
     def __init__(self, kind, file_path, start, duration, channel="f1",
-                 title=None, name=None, definition="", power=None, phase="ph1", shape=None):
+                 title=None, name=None, definition="", power=None, phase=None, shape=None):
         
         self.kind = kind
         self.file_path = file_path
@@ -71,8 +71,8 @@ class SequenceElement:
                 
         if self.kind == "flag":
             self.duration = 0
-            self.visual_width = 0
-            self.visual_height = 0
+            self.visual_width = 30
+            self.visual_height = 120
             self.flag_number = None
             
         elif self.kind == "delay":
@@ -97,35 +97,14 @@ class PulseSequence:
 # -----------------------
 # Helper functions
 # -----------------------
-DELAY_RESOURCE_ID = "internal/delay"
-
-
-def resource_filename(resource_id: str) -> str:
-    """Return the filename component of a packaged resource identifier."""
-    normalized = str(resource_id).replace("\\", "/")
-    return PurePosixPath(normalized).name
-
-
-def resource_id_to_parts(resource_id: str) -> tuple[str, ...]:
-    """Convert a slash-separated resource identifier to package path parts."""
-    normalized = str(resource_id).replace("\\", "/").strip("/")
-    return tuple(part for part in normalized.split("/") if part)
-
-
-def read_pulse_duration(resource_id: str) -> float:
-    """Read an element duration from a packaged text resource."""
-    if resource_id == DELAY_RESOURCE_ID:
-        return 10.0
-
+def read_pulse_duration(file_path):
     try:
-        resource_text = read_resource_text(*resource_id_to_parts(resource_id))
-        for line in resource_text.splitlines():
-            if "duration" in line:
-                return float(line.split("=", 1)[1].strip())
-    except (FileNotFoundError, ValueError, IndexError):
-        pass
-
-    return 10.0
+        with open(file_path) as f:
+            for line in f:
+                if "duration" in line:
+                    return float(line.split("=")[1].strip())
+    except:
+        return 10
 
 def apply_placement_defaults(el: 'SequenceElement'):
     """
@@ -134,7 +113,7 @@ def apply_placement_defaults(el: 'SequenceElement'):
     - grad    -> name p16, shape gp1
     - pulses: p0/p90/p180 rules per channel (as before)
     """
-    base = resource_filename(el.file_path).lower()
+    base = os.path.basename(el.file_path).lower()
     kind = (el.kind or "").lower()
     ch   = (el.channel or "").lower()
 
@@ -142,16 +121,23 @@ def apply_placement_defaults(el: 'SequenceElement'):
     if base == "sp1.txt":
         el.name = "p11"
         el.shape = "sp1"
+        el.phase = "ph11"
+        el.power = "pl0"
         return
 
     # 2) Gradients: fixed defaults
     if kind == "grad":
         el.name = "p16"
         el.shape = "gp1"
+        el.channel = "Gz"
+        el.power = "0"
+        el.phase = ""
         return
 
-    # 3) Pulse rules
+    # 3) Pulse rules (channel-sensitive)
     if kind == "pulse":
+        el.phase = "ph1" # default phase for all pulses
+        
         if base == "p0.txt":
             el.name = "p0"
         elif base == "p90.txt":
@@ -172,7 +158,7 @@ def apply_placement_defaults(el: 'SequenceElement'):
                 el.power = "pl2"
             
 def pulse_fill_color(el):
-    name = resource_filename(el.file_path).lower()
+    name = os.path.basename(el.file_path).lower()
     if "p90" in name:
         return "white"
     elif "p180" in name:
@@ -280,7 +266,7 @@ def rebuild_global_delays():
 
     dash_x = 40 / timeline_scale
     fid_start_time = (canvas.width - 83) / timeline_scale
-    delay_file = DELAY_RESOURCE_ID
+    delay_file = os.path.join("defs", "delay.txt")
 
     def create_delay(start, duration):
 
@@ -394,7 +380,7 @@ def clear_sequence(b):
 
     dash_x = 40 / timeline_scale
     fid_start_time = (canvas.width - 83) / timeline_scale
-    delay_file = DELAY_RESOURCE_ID
+    delay_file = os.path.join("defs", "delay.txt")
 
     delay = SequenceElement(
         kind="delay",
@@ -468,26 +454,6 @@ export_btn = Button(
     layout=Layout(width="200px")
 )
 
-# Visible status area for generation success and errors.
-generation_output = Output(
-    layout=Layout(
-        border="1px solid #d9d9d9",
-        padding="6px",
-        width="100%",
-        display="none",
-    )
-)
-
-browser_download_button = Button(
-    description="Prepare Download",
-    tooltip="Prepare the pulse program for browser download",
-    icon="download",
-)
-
-browser_download_link = HTML(
-    value="",
-)
-
 def export_png(b):
 
     # redraw everything
@@ -513,6 +479,7 @@ export_btn.on_click(export_png)
 # -----------------------
 # Main Pulse Program Generator
 # -----------------------
+import re
 
 cpd_pulses = set()
 cpd_delays = set()
@@ -520,8 +487,7 @@ cpd_powers = set()
 cpd_phases = set()
 cpd_shapes = set()
 
-def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
-    """Build and return the Bruker pulse-program text."""
+def generate_pulse_program(filename: str, include_phase_cycle=False):
     # Clear previous
     cpd_pulses.clear()
     cpd_delays.clear()
@@ -529,681 +495,607 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     cpd_phases.clear()
     cpd_shapes.clear()
 
-    f = StringIO()
+    with open(filename, 'w') as f:
 
+        # -----------------------
+        # Header section
+        # -----------------------
+        f.write(f";{exp_title.value}\n")
+        f.write(f";avance-version ({datetime.now().strftime('%Y-%m-%d')})\n")
+        f.write(f";{exp_comment.value}\n")
+        f.write(";\n")
+        f.write(f";$CLASS={exp_class.value}\n")
+        f.write(f";$DIM={exp_dim.value}\n")
+        f.write(f";$TYPE={exp_type.value}\n")
+        f.write(f";$SUBTYPE={exp_subtype.value}\n")
+        f.write(f";$COMMENT={exp_comment.value}\n\n")
 
-    # -----------------------
-    # Header section
-    # -----------------------
-    f.write(f";{exp_title.value}\n")
-    f.write(f";avance-version ({datetime.now().strftime('%Y-%m-%d')})\n")
-    f.write(f";{exp_comment.value}\n")
-    f.write(";\n")
-    f.write(f";$CLASS={exp_class.value}\n")
-    f.write(f";$DIM={exp_dim.value}\n")
-    f.write(f";$TYPE={exp_type.value}\n")
-    f.write(f";$SUBTYPE={exp_subtype.value}\n")
-    f.write(f";$COMMENT={exp_comment.value}\n\n")
+        # -----------------------
+        # Include files
+        # -----------------------
+        f.write("#include <Avance.incl>\n")
 
-    # -----------------------
-    # Include files
-    # -----------------------
-    f.write("#include <Avance.incl>\n")
+        if any(el.kind.lower() == "grad" for el in sequence.elements):
+            f.write("#include <Grad.incl>\n")
 
-    if any(el.kind.lower() == "grad" for el in sequence.elements):
-        f.write("#include <Grad.incl>\n")
+        delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon"]
+        if any(
+            el.kind.lower() == "delay" and el.name
+            for el in sequence.elements
+            if any(k in el.name for k in delay_keywords)
+        ):
+            f.write("#include <Delay.incl>\n")
 
-    delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon"]
-    if any(
-        el.kind.lower() == "delay" and el.name
-        for el in sequence.elements
-        if any(k in el.name for k in delay_keywords)
-    ):
-        f.write("#include <Delay.incl>\n")
+        if exp_incl.value.strip():
+            f.write(f"#include <{exp_incl.value.strip()}>\n")
 
-    if exp_incl.value.strip():
-        f.write(f"#include <{exp_incl.value.strip()}>\n")
-
-    f.write("\n")
-    # -----------------------
-    # 2D acquisition parameters
-    # -----------------------
-    if exp_dim.value == "2D" and exp_2d_option.value != "undefined":
-        f.write('"d0=3u"\n')
-        f.write('"in0=inf1/2"\n\n')
-        
-    # -----------------------
-    # Pulse / delay definitions
-    # -----------------------
-    pulses_written = set()
-    delays_written = set()
-
-    for el in sequence.elements:
-
-        desc = el.definition.strip()
-    
-        if el.kind.lower() in ["pulse", "block", "shaped"]:
-
-            if desc and el.name not in pulses_written:
-                f.write(f'"{el.name}={desc}"\n')
-                pulses_written.add(el.name)
-
-        elif el.kind.lower() == "delay":
-
-            if desc and el.name not in delays_written:
-                f.write(f'"{el.name}={desc}"\n')
-                delays_written.add(el.name)
-
-    f.write("\n")
-
-    # -----------------------
-    # vdlist logic
-    # -----------------------
-
-    vdlist_used = any(
-    el.kind.lower() == "delay" and getattr(el, "name", "").lower() == "vd"
-    for el in sequence.elements
-    )
-    
-    if vdlist_used:
-        f.write("define list<delay> vd=<$VDLIST>\n")
         f.write("\n")
-                
-    # -----------------------
-    # ACQT0 correction if last element is a pulse
-    # -----------------------
-    if sequence.elements:
-        last_el = sequence.elements[-1]
-    
-        if last_el.kind.strip().lower() in ["pulse", "shaped"]:
-            p_var = last_el.name
-    
-            if p_var == "p1":
-                f.write("acqt0=-p1*2/3.1416\n\n")
-            else:
-                f.write(f"acqt0=-tan(({p_var}/p1)*(PI/4))*p1*2/3.1416\n\n")
-                f.write("\n")
-    
-    # -----------------------
-    # Pulse program body
-    # -----------------------
-    def write_flag(el):
-        return f" {el.flag_number}" if getattr(el, "flag_number", None) is not None else " <flag>"
-    
-    def write_delay(el):
-        return f" {el.name}"
-    
-    ea_gradients = {
-    dd.value for dd in shape_dropdowns
-    if dd.value
-    }
-    
-    def write_grad(el):
-    
-        shape = el.shape
-    
-        if shape in ea_gradients:
-            shape = f"{shape}*EA"
-    
-        return f" {el.name}:{shape}\n d16"        
-    
-    def write_block(el):
-    
-        title = el.title.strip().lower()
-        channel = el.channel.strip().lower()
-    
-        cpd_filename = f"{title}_{channel}.txt"
-
-        if resource_exists("cpdlib", cpd_filename):
-            text = read_resource_text("cpdlib", cpd_filename)
-
-    
-            # extract parameters
-            cpd_pulses.update(re.findall(r"\bp\d+\b", text))
-            cpd_delays.update(re.findall(r"\bd\d+\b", text))
-            cpd_powers.update(re.findall(r"\bpl\d+\b", text))
-            cpd_phases.update(re.findall(r"\bph\d+\b", text))
-            cpd_shapes.update(re.findall(r":([A-Za-z0-9_]+)", text))        
-            return text.strip()
-    
-        if channel == "f2":
-            text = "\n".join([
-                " 4u pl13",
-                " d19 cpd2:f2",
-                " 4u do:f2",
-                " 4u pl2:f2"
-            ])
-    
-        elif channel == "f1":
-            text = "\n".join([
-                " 4u pl9",
-                " d19 cpd1:f1",
-                " 4u do:f1",
-                " 4u pl1:f1"
-            ])
-    
-        else:
-            return f"; unknown block channel {channel}"
-    
-        # also parse fallback
-        cpd_delays.update(re.findall(r"\bd\d+\b", text))
-        cpd_powers.update(re.findall(r"\bpl\d+\b", text))
-    
-        return text
-    
-    def write_shaped(el):
-        return f" ({el.name}:{el.shape} {el.phase}):{el.channel}"
-        
-    def write_pulse(el):
-        return f" ({el.name} {el.phase}):{el.channel}"
-    
-    
-    def write_center_element(el):
-    
-        kind = el.kind.lower()
-    
-        if kind == "pulse":
-            return f"({el.name} {el.phase}):{el.channel}"
-    
-        if kind == "shaped":
-            return f"({el.name}:{el.shape} {el.phase}):{el.channel}"
-    
-        if kind == "delay":
-            return f"({el.name})"
-    
-        return None
-        
-    # -----------------------
-    # Element dictionary
-    # -----------------------        
-    ELEMENT_WRITERS = {
-        "flag": write_flag,
-        "delay": write_delay,
-        "grad": write_grad,
-        "block": write_block,
-        "shaped": write_shaped,
-        "pulse": write_pulse,
-    }
-    
-    elements_by_start = {}
-
-    # -----------------------
-    # Pulse sequence
-    # -----------------------
-    
-    f.write("1 ze\n")
-    f.write("2 30m pl1:f1\n")
-    fid_start = get_fid_start_time()
-    
-    block_overlaps_fid = any(
-        el.kind.lower() == "block" and
-        (el.start + el.duration) >= fid_start
-        for el in sequence.elements
-    )
-    
-    if block_overlaps_fid:
-        f.write(" 30m do:f2\n")
-        
-    if any(el.kind.lower() == "grad" for el in sequence.elements):
-        f.write(" 30m UNBLKGRAD\n")
-
-    if any(el.channel.lower() == "f2" for el in sequence.elements):
-        f.write(" 30m pl2:f2\n")
-    
-    # group elements by start time
-    for el in sequence.elements:
-        start_key = round(el.start, 6)
-        elements_by_start.setdefault(start_key, []).append(el)
-    
-    # write elements in chronological order
-    for start in sorted(elements_by_start.keys()):
-    
-        els = elements_by_start[start]
-    
-        # remove blocks that start after the FID
-        els = [
-            e for e in els
-            if not (e.kind.lower() == "block" and e.start >= fid_start)
-        ]
-    
-        if not els:
-            continue
-    
         # -----------------------
-        # single element
+        # 2D acquisition parameters
         # -----------------------
-        if len(els) == 1:
-        
-            el = els[0]
-            kind = el.kind.lower()
-        
-            # Skip blocks starting after FID
-            if kind == "block" and el.start >= fid_start:
-                continue
-        
-            writer = ELEMENT_WRITERS.get(kind)
-        
-            if writer:
-                f.write(writer(el) + "\n")
-            else:
-                f.write(f"; unknown element type: {kind}\n")
-        
-        # -----------------------
-        # multiple elements (centered elements)
-        # -----------------------
-          
-        else:
-        
-            flags = [e for e in els if e.kind.lower() == "flag"]
-            if flags:
-                for e in flags:
-                    f.write(write_flag(e) + "\n")
-                continue
-        
-            center_parts = []
-        
-            for e in els:
-                text = write_center_element(e)
-                if text:
-                    center_parts.append(text)
-        
-            if center_parts:
-                line = " (center " + " ".join(center_parts) + " )"
-                f.write(line + "\n")
+        if exp_dim.value == "2D" and exp_2d_option.value != "undefined":
+            f.write('"d0=3u"\n')
+            f.write('"in0=inf1/2"\n\n')
             
-    # -----------------------
-    # Acquisition logic
-    # -----------------------
+        # -----------------------
+        # Pulse / delay definitions
+        # -----------------------
+        pulses_written = set()
+        delays_written = set()
+
+        for el in sequence.elements:
+
+            desc = el.definition.strip()
+        
+            if el.kind.lower() in ["pulse", "block", "shaped"]:
+
+                if desc and el.name not in pulses_written:
+                    f.write(f'"{el.name}={desc}"\n')
+                    pulses_written.add(el.name)
+
+            elif el.kind.lower() == "delay":
+
+                if desc and el.name not in delays_written:
+                    f.write(f'"{el.name}={desc}"\n')
+                    delays_written.add(el.name)
+
+        f.write("\n")
+
+        # -----------------------
+        # vdlist logic
+        # -----------------------
     
-    if any(el.kind.lower() == "grad" for el in sequence.elements):
-        f.write(" 4u BLKGRAD\n")
-    
-    vdlist_used = any(
+        vdlist_used = any(
         el.kind.lower() == "delay" and getattr(el, "name", "").lower() == "vd"
         for el in sequence.elements
-    )
-    
-    # GO line
-    if block_overlaps_fid:
-        f.write(" 10u pl12:f2\n")
-        f.write(" go=2 ph31 cpd2:f2\n")
-    else:
-        f.write(" go=2 ph31\n")
-    
-    # -----------------------
-    # vdlist experiments
-    # -----------------------
-    
-    if vdlist_used:
-    
-        f.write(" d11 wr #0 if #0 vd.inc\n")
-        f.write(" lo to 1 times td1\n")
-    
-        if block_overlaps_fid:
-            f.write(" d11 do:f2\n")
-    
-    # -----------------------
-    # Normal acquisition
-    # -----------------------
-    
-    else:
-    
-        if exp_dim.value == "1D":
-    
-            f.write(" 30m mc #0 to 2 F0(zd)\n")
-    
-        else:
-    
-            if exp_2d_option.value != "undefined":
-    
-                phase_sensitive = ["States", "TPPI", "States-TPPI"]
-    
-                if exp_2d_option.value in phase_sensitive:
-    
-                    pulses = []
-    
-                    for dd in pulse_dropdowns:
-                        if dd.value:
-                            pulses.append(dd.value)
-    
-                    calph_parts = []
-    
-                    for p in pulses:
-                        calph_parts.append(f"calph({p}, +90)")
-    
-                    calph_string = " & ".join(calph_parts)
-    
-                    f.write(
-                        f" 30m mc #0 to 2 "
-                        f"F1PH({calph_string}, caldel(d0, +in0))\n"
-                    )
-    
+        )
+        
+        if vdlist_used:
+            f.write("define list<delay> vd=<$VDLIST>\n")
+            f.write("\n")
+                    
+        # -----------------------
+        # ACQT0 correction if last element is a pulse
+        # -----------------------
+        if sequence.elements:
+            last_el = sequence.elements[-1]
+        
+            if last_el.kind.strip().lower() in ["pulse", "shaped"]:
+                p_var = last_el.name
+        
+                if p_var == "p1":
+                    f.write("acqt0=-p1*2/3.1416\n\n")
                 else:
-    
-                    f.write(" 30m mc #0 to 2 F1QF(caldel(d0, +in0))\n")
-    
+                    f.write(f"acqt0=-tan(({p_var}/p1)*(PI/4))*p1*2/3.1416\n\n")
+                    f.write("\n")
+        
+        # -----------------------
+        # Pulse program body
+        # -----------------------
+        def write_flag(el):
+        
+            number = getattr(el, "flag_number", None)
+        
+            if number is None:
+                number_text = "<flag>"
+            else:
+                number_text = str(number)
+        
+            desc = (el.definition or "").strip()
+        
+            if desc:
+                return f"{number_text} {desc}"        
+            return number_text
+        
+        def write_delay(el):
+            return f" {el.name}"
+        
+        ea_gradients = {
+        dd.value for dd in shape_dropdowns
+        if dd.value
+        }
+        
+        def write_grad(el):
+        
+            shape = el.shape
+        
+            if shape in ea_gradients:
+                shape = f"{shape}*EA"
+        
+            return f" {el.name}:{shape}\n d16"        
+        
+        def write_block(el):
+        
+            title = el.title.strip().lower()
+            channel = el.channel.strip().lower()
+        
+            cpd_file = os.path.join("cpdlib", f"{title}_{channel}.txt")
+        
+            if os.path.exists(cpd_file):
+        
+                with open(cpd_file, "r") as cf:
+                    text = cf.read()
+        
+                # extract parameters
+                cpd_pulses.update(re.findall(r"\bp\d+\b", text))
+                cpd_delays.update(re.findall(r"\bd\d+\b", text))
+                cpd_powers.update(re.findall(r"\bpl\d+\b", text))
+                cpd_phases.update(re.findall(r"\bph\d+\b", text))
+                cpd_shapes.update(re.findall(r":([A-Za-z0-9_]+)", text))        
+                return text.strip()
+        
+            if channel == "f2":
+                text = "\n".join([
+                    " 4u pl13",
+                    " d19 cpd2:f2",
+                    " 4u do:f2",
+                    " 4u pl2:f2"
+                ])
+        
+            elif channel == "f1":
+                text = "\n".join([
+                    " 4u pl9",
+                    " d19 cpd1:f1",
+                    " 4u do:f1",
+                    " 4u pl1:f1"
+                ])
+        
+            else:
+                return f"; unknown block channel {channel}"
+        
+            # also parse fallback
+            cpd_delays.update(re.findall(r"\bd\d+\b", text))
+            cpd_powers.update(re.findall(r"\bpl\d+\b", text))
+        
+            return text
+        
+        def write_shaped(el):
+            return f" ({el.name}:{el.shape} {el.phase}):{el.channel}"
+            
+        def write_pulse(el):
+            return f" ({el.name} {el.phase}):{el.channel}"
+        
+        
+        def write_center_element(el):
+        
+            kind = el.kind.lower()
+        
+            if kind == "pulse":
+                return f"({el.name} {el.phase}):{el.channel}"
+        
+            if kind == "shaped":
+                return f"({el.name}:{el.shape} {el.phase}):{el.channel}"
+        
+            if kind == "delay":
+                return f"({el.name})"
+        
+            return None
+            
+        # -----------------------
+        # Element dictionary
+        # -----------------------        
+        ELEMENT_WRITERS = {
+            "flag": write_flag,
+            "delay": write_delay,
+            "grad": write_grad,
+            "block": write_block,
+            "shaped": write_shaped,
+            "pulse": write_pulse,
+            "flag": write_flag
+        }
+        
+        elements_by_start = {}
+
+        # -----------------------
+        # Pulse sequence
+        # -----------------------
+        
+        f.write("1 ze\n")
+        f.write("2 30m pl1:f1\n")
+        fid_start = get_fid_start_time()
+        
+        block_overlaps_fid = any(
+            el.kind.lower() == "block" and
+            (el.start + el.duration) >= fid_start
+            for el in sequence.elements
+        )
+        
         if block_overlaps_fid:
             f.write(" 30m do:f2\n")
-    
-    f.write("exit\n\n")
-    
-    # -----------------------
-    # Post pulse sequence entries (phase table and definitions)
-    # -----------------------
-    
-    # -----------------------
-    # Phase tables
-    # -----------------------
-    
-    if phase_cycle_checkbox.value:
-    
-        f.write(phase_cycle_output.value + "\n\n")
-    
-    else:
-    
-        unique_phases = set()
-    
-        for el in sequence.elements:
-            if el.phase:
-                unique_phases.add(el.phase.strip())
-    
-        unique_phases |= cpd_phases
-    
-        for ph in sorted(unique_phases):
-            f.write(f"{ph}=0\n")
-    
-        f.write("ph31=0\n\n")
-        f.write("\n")
-    
-    # -----------------------
-    # Power / Pulse / Delay / Shape Definitions
-    # -----------------------
-    def load_definitions(filename: str) -> dict[str, str]:
-        """Load definition mappings from packaged resources."""
-        try:
-            definition_text = read_resource_text("defs", filename)
-        except FileNotFoundError:
-            return {}
-
-        definitions: dict[str, str] = {}
-        for line in definition_text.splitlines():
-            line = line.strip()
-            if ":" in line:
-                key, value = line.split(":", 1)
-                definitions[key.strip()] = value.strip()
-
-        return definitions
-
-    # Load definition dictionaries
-    power_defs = load_definitions("power_def.txt")
-    pulse_defs = load_definitions("pulse_def.txt")
-    delay_defs = load_definitions("delay_def.txt")
-    shape_defs = load_definitions("shaped_def.txt")
-    
-    # Collect unique identifiers from the sequence
-    unique_power = sorted(
-        {
-            el.power.strip()
-            for el in sequence.elements
-            if el.power and re.match(r"^pl\d+$", el.power.strip(), re.IGNORECASE)
-        } | {
-            p for p in cpd_powers if re.match(r"^pl\d+$", p, re.IGNORECASE)
-        }
-    )
-    
-    unique_pulses = sorted({
-        el.name.strip()
-        for el in sequence.elements
-        if el.kind.lower() in ["pulse", "shaped", "block"] and el.name.strip()
-    } | {p for p in cpd_pulses if p})
-    
-    unique_delays = sorted(
-        {el.name for el in sequence.elements if el.kind.lower() == "delay"}
-        | cpd_delays
-    )
-
-    unique_shapes = sorted({
-        el.shape.strip()
-        for el in sequence.elements
-        if getattr(el, "shape", None)
-    } | cpd_shapes)
-    
-    for pl in unique_power:
-        explanation = power_defs.get(pl, "undefined")
-        f.write(f";{pl}: {explanation}\n")
-    f.write("\n")
-    
-    shape_definitions = {}
-
-    for el in sequence.elements:
-        if getattr(el, "shape", None):
-            s = el.shape.strip()
-            if s not in shape_definitions and el.definition.strip():
-                shape_definitions[s] = el.definition.strip()
-                
-    for s in unique_shapes:
-        explanation = shape_defs.get(s, "undefined")
-        f.write(f";{s}: {explanation}\n")
-    
-        definition = shape_definitions.get(s, "")
-        if definition:
-            num = re.search(r"\d+", s)
-            if num:
-                f.write(f";spnam{num.group()}: {definition}\n")
-    
-    for p in unique_pulses:
-        explanation = pulse_defs.get(p, "undefined")
-        f.write(f";{p}: {explanation}\n")
-    f.write("\n")
-    
-    for d in unique_delays:
-        explanation = delay_defs.get(d, "undefined")
-        f.write(f";{d}: {explanation}\n")
-    f.write("\n")
-
-    # -----------------------
-    # User scan parameters
-    # -----------------------
-    f.write(f";ns: {ns_text.value} * n, total number of scans: NS * TD0\n")
-    f.write(f";ds: {ds_text.value}\n\n")
             
-    # -----------------------
-    # 2D parameter explanation
-    # -----------------------
-    if exp_dim.value == "2D":
-    
-        if exp_2d_option.value == "undefined":
-    
-            f.write(";FnMODE: undefined\n\n")
-    
-        else:
-    
-            # automatically count delays named d0
-            nd0 = sum(
-                1 for el in sequence.elements
-                if el.kind.lower() == "delay" and el.name.strip() == "d0"
-            )
-    
-            f.write(";inf1: 1/SW(H) = 2 * DW(H)\n")
-            f.write(";in0: 1/(2 * SW(H)) = DW(H)\n")
-            f.write(f";nd0: {nd0}\n")
-            f.write(";td1: number of experiments\n\n")
-    
-            f.write(f";FnMODE: {exp_2d_option.value}\n\n")
-    # -----------------------
-    # CPD related logic
-    # -----------------------
-    block_overlaps_fid = any(
-        el.kind.lower() == "block" and
-        (el.start + el.duration) >= fid_start
-        for el in sequence.elements
-    )
-    
-    if block_overlaps_fid:
-        f.write(";cpd2: decoupling according to sequence defined by cpdprg2\n")
-        f.write(";pcpd2: f2 channel - 90 degree pulse for decoupling sequence\n")
-    else:
-        f.write(";\n")
+        if any(el.kind.lower() == "grad" for el in sequence.elements):
+            f.write(" 30m UNBLKGRAD\n")
+
+        if any(el.channel.lower() == "f2" for el in sequence.elements):
+            f.write(" 30m pl2:f2\n")
         
-    # -----------------------
-    # Gradient related logic
-    # -----------------------
-    gradients = {}
-    
-    for el in sequence.elements:
-    
-        if el.kind.lower() == "grad" and getattr(el, "shape", None):
-    
-            m = re.match(r"gp(\d+)", el.shape.strip(), re.IGNORECASE)
-    
-            if m:
-                gp_num = int(m.group(1))
-    
-                if gp_num not in gradients:
-                    gradients[gp_num] = {
-                        "power": el.power,
-                        "shape": el.definition
-                    }
-
-    if gradients:
-    
-        f.write(";for z-only gradients:\n")
-    
-        for n in sorted(gradients):
-            vals = gradients[n]
-    
-            power = vals['power']
-    
-            if power is None or power == "":
-                power_str = "undefined"
+        # group elements by start time
+        for el in sequence.elements:
+            start_key = round(el.start, 6)
+            elements_by_start.setdefault(start_key, []).append(el)
+        
+        # write elements in chronological order
+        for start in sorted(elements_by_start.keys()):
+        
+            els = elements_by_start[start]
+        
+            # remove blocks that start after the FID
+            els = [
+                e for e in els
+                if not (e.kind.lower() == "block" and e.start >= fid_start)
+            ]
+        
+            if not els:
+                continue
+        
+            # -----------------------
+            # single element
+            # -----------------------
+            if len(els) == 1:
+            
+                el = els[0]
+                kind = el.kind.lower()
+            
+                # Skip blocks starting after FID
+                if kind == "block" and el.start >= fid_start:
+                    continue
+            
+                writer = ELEMENT_WRITERS.get(kind)
+            
+                if writer:
+                    f.write(writer(el) + "\n")
+                else:
+                    f.write(f"; unknown element type: {kind}\n")
+            
+            # -----------------------
+            # multiple elements (centered elements)
+            # -----------------------
+              
+            else:      
+                flags = [e for e in els if e.kind.lower() == "flag"]
+                
+                if flags:                
+                    for e in flags:                
+                        text = write_flag(e)                
+                        if text:
+                            f.write(text + "\n")               
+                    continue
+                    
+                center_parts = []
+            
+                for e in els:
+                    text = write_center_element(e)
+                    if text:
+                        center_parts.append(text)
+            
+                if center_parts:
+                    line = " (center " + " ".join(center_parts) + " )"
+                    f.write(line + "\n")
+                
+        # -----------------------
+        # Acquisition logic
+        # -----------------------
+        
+        if any(el.kind.lower() == "grad" for el in sequence.elements):
+            f.write(" 4u BLKGRAD\n")
+        
+        vdlist_used = any(
+            el.kind.lower() == "delay" and getattr(el, "name", "").lower() == "vd"
+            for el in sequence.elements
+        )
+        
+        # GO line
+        if block_overlaps_fid:
+            f.write(" 10u pl12:f2\n")
+            f.write(" go=2 ph31 cpd2:f2\n")
+        else:
+            f.write(" go=2 ph31\n")
+        
+        # -----------------------
+        # vdlist experiments
+        # -----------------------
+        
+        if vdlist_used:
+        
+            f.write(" d11 wr #0 if #0 vd.inc\n")
+            f.write(" lo to 1 times td1\n")
+        
+            if block_overlaps_fid:
+                f.write(" d11 do:f2\n")
+        
+        # -----------------------
+        # Normal acquisition
+        # -----------------------
+        
+        else:
+        
+            if exp_dim.value == "1D":
+        
+                f.write(" 30m mc #0 to 2 F0(zd)\n")
+        
             else:
-                power_str = f"{power}".rstrip("%") + "%"
-    
-            f.write(f";gpz{n}: {power_str}\n")
-    
-        f.write("\n;use gradient files:\n")
-        for n in sorted(gradients):
-            vals = gradients[n]
-            f.write(f";gpnam{n}: {vals['shape']}\n")
-    
+        
+                if exp_2d_option.value != "undefined":
+        
+                    phase_sensitive = ["States", "TPPI", "States-TPPI"]
+        
+                    if exp_2d_option.value in phase_sensitive:
+        
+                        pulses = []
+        
+                        for dd in pulse_dropdowns:
+                            if dd.value:
+                                pulses.append(dd.value)
+        
+                        calph_parts = []
+        
+                        for p in pulses:
+                            calph_parts.append(f"calph({p}, +90)")
+        
+                        calph_string = " & ".join(calph_parts)
+        
+                        f.write(
+                            f" 30m mc #0 to 2 "
+                            f"F1PH({calph_string}, caldel(d0, +in0))\n"
+                        )
+        
+                    else:
+        
+                        f.write(" 30m mc #0 to 2 F1QF(caldel(d0, +in0))\n")
+        
+            if block_overlaps_fid:
+                f.write(" 30m do:f2\n")
+        
+        f.write("exit\n\n")
+        
+        # -----------------------
+        # Post pulse sequence entries (phase table and definitions)
+        # -----------------------
+        
+        # -----------------------
+        # Phase tables
+        # -----------------------
+        
+        if phase_cycle_checkbox.value:
+        
+            f.write(phase_cycle_output.value + "\n\n")
+        
+        else:
+        
+            unique_phases = set()
+        
+            for el in sequence.elements:
+                if el.phase:
+                    unique_phases.add(el.phase.strip())
+        
+            unique_phases |= cpd_phases
+        
+            for ph in sorted(unique_phases):
+                f.write(f"{ph}=0\n")
+        
+            f.write("ph31=0\n\n")
+            f.write("\n")
+        
+        # -----------------------
+        # Power / Pulse / Delay / Shape Definitions
+        # -----------------------
+        def load_definitions(def_path):
+            """Load plain-text definitions from a file."""
+            if not os.path.exists(def_path):
+                return {}
+            defs = {}
+            with open(def_path, "r") as df:
+                for line in df:
+                    line = line.strip()
+                    if ":" in line:
+                        key, val = line.split(":", 1)
+                        defs[key.strip()] = val.strip()
+            return defs
+        
+        # Load definition dictionaries
+        power_defs = load_definitions("defs/power_def.txt")
+        pulse_defs = load_definitions("defs/pulse_def.txt")
+        delay_defs = load_definitions("defs/delay_def.txt")
+        shape_defs = load_definitions("defs/shaped_def.txt")
+        
+        # Collect unique identifiers from the sequence
+        unique_power = sorted(
+            {
+                el.power.strip()
+                for el in sequence.elements
+                if el.power and re.match(r"^pl\d+$", el.power.strip(), re.IGNORECASE)
+            } | {
+                p for p in cpd_powers if re.match(r"^pl\d+$", p, re.IGNORECASE)
+            }
+        )
+        
+        unique_pulses = sorted({
+            el.name.strip()
+            for el in sequence.elements
+            if el.kind.lower() in ["pulse", "shaped", "block"] and el.name.strip()
+        } | {p for p in cpd_pulses if p})
+        
+        unique_delays = sorted(
+            {el.name for el in sequence.elements if el.kind.lower() == "delay"}
+            | cpd_delays
+        )
+
+        unique_shapes = sorted({
+            el.shape.strip()
+            for el in sequence.elements
+            if getattr(el, "shape", None)
+        } | cpd_shapes)
+        
+        for pl in unique_power:
+            explanation = power_defs.get(pl, "undefined")
+            f.write(f";{pl}: {explanation}\n")
         f.write("\n")
-    
-    # -----------------------
-    # Footer
-    # -----------------------
-    f.write(";$Id: Generated using NMRpaintv1$\n")
+        
+        shape_definitions = {}
 
-    return f.getvalue()
+        for el in sequence.elements:
+            if getattr(el, "shape", None):
+                s = el.shape.strip()
+                if s not in shape_definitions and el.definition.strip():
+                    shape_definitions[s] = el.definition.strip()
+                    
+        for s in unique_shapes:
+            explanation = shape_defs.get(s, "undefined")
+            f.write(f";{s}: {explanation}\n")
+        
+            definition = shape_definitions.get(s, "")
+            if definition:
+                num = re.search(r"\d+", s)
+                if num:
+                    f.write(f";spnam{num.group()}: {definition}\n")
+        
+        for p in unique_pulses:
+            explanation = pulse_defs.get(p, "undefined")
+            f.write(f";{p}: {explanation}\n")
+        f.write("\n")
+        
+        for d in unique_delays:
+            explanation = delay_defs.get(d, "undefined")
+            f.write(f";{d}: {explanation}\n")
+        f.write("\n")
 
+        # -----------------------
+        # User scan parameters
+        # -----------------------
+        f.write(f";ns: {ns_text.value} * n, total number of scans: NS * TD0\n")
+        f.write(f";ds: {ds_text.value}\n\n")
+                
+        # -----------------------
+        # 2D parameter explanation
+        # -----------------------
+        if exp_dim.value == "2D":
+        
+            if exp_2d_option.value == "undefined":
+        
+                f.write(";FnMODE: undefined\n\n")
+        
+            else:
+        
+                # automatically count delays named d0
+                nd0 = sum(
+                    1 for el in sequence.elements
+                    if el.kind.lower() == "delay" and el.name.strip() == "d0"
+                )
+        
+                f.write(";inf1: 1/SW(H) = 2 * DW(H)\n")
+                f.write(";in0: 1/(2 * SW(H)) = DW(H)\n")
+                f.write(f";nd0: {nd0}\n")
+                f.write(";td1: number of experiments\n\n")
+        
+                f.write(f";FnMODE: {exp_2d_option.value}\n\n")
+                
+        # -----------------------
+        # CPD related logic
+        # -----------------------
+        block_overlaps_fid = any(
+            el.kind.lower() == "block" and
+            (el.start + el.duration) >= fid_start
+            for el in sequence.elements
+        )
+        
+        if block_overlaps_fid:
+            f.write(";cpd2: decoupling according to sequence defined by cpdprg2\n")
+            f.write(";pcpd2: f2 channel - 90 degree pulse for decoupling sequence\n")
+        else:
+            f.write(";\n")
+            
+        # -----------------------
+        # Gradient related logic
+        # -----------------------
+        gradients = {}
+        
+        for el in sequence.elements:
+        
+            if el.kind.lower() == "grad" and getattr(el, "shape", None):
+        
+                m = re.match(r"gp(\d+)", el.shape.strip(), re.IGNORECASE)
+        
+                if m:
+                    gp_num = int(m.group(1))
+        
+                    if gp_num not in gradients:
+                        gradients[gp_num] = {
+                            "power": el.power,
+                            "shape": el.definition
+                        }
 
-def save_pulse_program(
-    filename: str | Path,
-    content: str,
-) -> Path:
-    """Save pulse-program text to an explicit local path."""
-    return write_text_file(
-        path=filename,
-        content=content,
-    )
+        if gradients:
+        
+            f.write(";for z-only gradients:\n")
+        
+            for n in sorted(gradients):
+                vals = gradients[n]
+        
+                power = vals['power']
+        
+                if power is None or power == "":
+                    power_str = "undefined"
+                else:
+                    power_str = f"{power}".rstrip("%") + "%"
+        
+                f.write(f";gpz{n}: {power_str}\n")
+        
+            f.write("\n;use gradient files:\n")
+            f  
+            for n in sorted(gradients):
+                vals = gradients[n]
+                f.write(f";gpnam{n}: {vals['shape']}\n")
+        
+            f.write("\n")
+        
+        # -----------------------
+        # Footer
+        # -----------------------
+        f.write(";$Id: Generated using NMRpaintv1$\n")
 
-
-def generate_pulse_program(
-    filename: str | Path,
-    include_phase_cycle: bool = False,
-) -> Path:
-    """Build and save a pulse program while preserving the existing GUI API."""
-
-    content = build_pulse_program_text(
-        include_phase_cycle=include_phase_cycle,
-    )
-
-    return save_pulse_program(
-        filename=filename,
-        content=content,
-    )
-
-
-def _generate_local_pulse_program() -> Path:
-    """Build and save the current pulse program locally."""
-    filename = normalize_output_filename(
-        exp_title.value,
-        default="pulse_program.txt",
-    )
-
-    content = build_pulse_program_text()
-
-    return save_text_local(
-        content=content,
-        filename=filename,
-    )
-
+print_names_button._click_handlers.callbacks.clear()
+print_names_button.on_click(lambda b: generate_pulse_program("pulse_program.txt"))
 
 def generate_program_button_click(b):
-    """Generate the current pulse program in the local output directory."""
-    generation_output.layout.display = "block"
-    generation_output.clear_output(wait=True)
-
-    with generation_output:
-        try:
-            output_path = _generate_local_pulse_program()
-            print(f"Pulse program saved to: {output_path.resolve()}")
-        except Exception as exc:
-            print(f"Generation failed: {type(exc).__name__}: {exc}")
-
+    filename = f"{exp_title.value}"
+    generate_pulse_program(filename)
+    print(f"Pulse program saved to {filename}")
 
 def generate_and_phase(b):
-    """Populate phase rows, generate the phase cycle, and save locally."""
-    generation_output.layout.display = "block"
-    generation_output.clear_output(wait=True)
-    browser_download_link.value = ""
 
-    with generation_output:
-        try:
-            populate_phase_rows()
+    filename = f"{exp_title.value}"
 
-            if phase_cycle_checkbox.value:
-                generate_phase_cycle()
+    populate_phase_rows()
 
-            output_path = _generate_local_pulse_program()
-            print(f"Pulse program saved to: {output_path.resolve()}")
-        except Exception as exc:
-            print(f"Generation failed: {type(exc).__name__}: {exc}")
+    if phase_cycle_checkbox.value:
+        generate_phase_cycle()
 
+    generate_pulse_program(filename)
 
-def prepare_browser_download(b):
-    """Prepare the current pulse program as a browser download link."""
-    generation_output.layout.display = "block"
-    generation_output.clear_output(wait=True)
-    browser_download_link.value = ""
-
-    try:
-        populate_phase_rows()
-
-        if phase_cycle_checkbox.value:
-            generate_phase_cycle()
-
-        content = build_pulse_program_text()
-        filename = normalize_output_filename(
-            exp_title.value,
-            default="pulse_program.txt",
-        )
-
-        browser_download_link.value = build_text_download_link_html(
-            content=content,
-            filename=filename,
-            label=f"Download {filename}",
-        )
-
-        with generation_output:
-            print("Browser download is ready.")
-
-    except Exception as exc:
-        with generation_output:
-            print(
-                "Download preparation failed: "
-                f"{type(exc).__name__}: {exc}"
-            )
-
+    print(f"Pulse program saved to {filename}")
+    
+print_names_button._click_handlers.callbacks.clear()
+print_names_button.on_click(generate_and_phase)
 
 # -----------------------
 # Phase Cycle GUI
@@ -1334,6 +1226,7 @@ def nested_cycles(bases):
         cycles.append(row)
 
     return cycles
+    
 def generate_phase_cycle():
 
     print("generate_phase_cycle() called")
@@ -1429,9 +1322,6 @@ delete_button.on_click(delete_selected_element)
 
 print_names_button._click_handlers.callbacks.clear()
 print_names_button.on_click(generate_and_phase)
-
-browser_download_button._click_handlers.callbacks.clear()
-browser_download_button.on_click(prepare_browser_download)
 
 # Number of scans (ns) and dummy scans (ds)
 ns_text = IntText(
@@ -1616,30 +1506,18 @@ def on_dim_change(change):
 exp_dim.observe(on_dim_change, names='value')
 
 # -----------------------
-# Packaged element resources
+# Elements folder setup
 # -----------------------
 
+elements_folder = "elements"
 element_types = ["pulse", "shaped", "grad", "block", "flag"]
-element_files: dict[str, list[str]] = {}
+element_files = {}
 
-
-def load_element_files() -> None:
-    """Load element resource identifiers from the installed package."""
-    element_files.clear()
-
-    for element_type in element_types:
-        filenames = list_resource_names(
-            "elements",
-            element_type,
-            suffix=".txt",
-        )
-        element_files[element_type] = [
-            f"elements/{element_type}/{filename}"
-            for filename in filenames
-        ]
-
-
-load_element_files()
+for etype in element_types:
+    folder_path = os.path.join(elements_folder, etype)
+    os.makedirs(folder_path, exist_ok=True)
+    files = glob.glob(os.path.join(folder_path, "*.txt"))
+    element_files[etype] = files
 
 # -----------------------
 # GUI Components
@@ -1792,91 +1670,175 @@ def _coerce_for_widget(widget, value, *, default=None, dropdown_options=None):
     # Fallback: return value or default
     return value if value is not None else default
     
-def show_property_editor(el: SequenceElement):
+def show_property_editor(el):
     global current_element
     current_element = el
+
     kind = el.kind.lower()
 
-    # ----- 1) Decide allowed channel options by kind -----
-    if kind in ["pulse", "shaped", "block"]:
-        new_opts = ["f1", "f2", "Gz"]
+    # ---------------------------
+    # Populate widget values
+    # ---------------------------
+
+    el_title.value = getattr(el, "title", "") or ""
+    el_name.value = getattr(el, "name", "") or ""
+    el_definition.value = getattr(el, "definition", "") or ""
+    el_shape.value = getattr(el, "shape", "") or ""
+
+    el_channel.value = getattr(el, "channel", "f1") or "f1"
+
+    el_power.value = getattr(el, "power", "") or ""
+    el_phase.value = getattr(el, "phase", "") or ""
+
+    el_duration.value = getattr(el, "duration", 0)
+
+    if hasattr(el, "visual_height"):
+        el_height.value = el.visual_height
+
+    # ---------------------------
+    # Build editor layout
+    # ---------------------------
+
+    if kind == "pulse":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_power,
+            el_phase,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "shaped":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_shape,
+            el_channel,
+            el_power,
+            el_phase,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
     elif kind == "grad":
-        new_opts = ["f1", "f2", "Gz"]
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_channel,
+            el_power,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "cpd":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_power,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "flag":
+
+        visible_widgets = [
+            el_definition,
+            update_button
+        ]
+
+    elif kind == "block":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "delay":
+
+        visible_widgets = [
+            el_name,
+            el_definition,
+            el_duration,
+            update_button
+        ]
+
     else:
-        # keep channel scope narrow & consistent with your placement rules
-        new_opts = ["f1", "f2", "Gz"]
 
-    coerced_channel = _coerce_for_widget(
-        el_channel,
-        getattr(el, "channel", None),
-        default=(new_opts[0] if new_opts else None),
-        dropdown_options=new_opts
-    )
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_duration,
+            update_button
+        ]
 
-    # Atomically update options + value to avoid TraitError ("value not in options")
-    with el_channel.hold_trait_notifications():
-        el_channel.options = new_opts
-        el_channel.value   = coerced_channel
+    property_editor_box.children = tuple(visible_widgets)
 
-    # ----- 2) Assign the rest of the fields (all remain selectable) -----
-    el_title.value       = _coerce_for_widget(el_title,       getattr(el, "title", None),       default="")
-    el_name.value        = _coerce_for_widget(el_name,        getattr(el, "name", None),        default="p1")
-    el_definition.value  = _coerce_for_widget(el_definition,  getattr(el, "definition", None),  default="")
-    el_shape.value       = _coerce_for_widget(el_shape,       getattr(el, "shape", None),       default="")
-    el_power.value       = _coerce_for_widget(el_power,       getattr(el, "power", None),       default="pl1")
-    el_phase.value       = _coerce_for_widget(el_phase,       getattr(el, "phase", None),       default="ph1")
+    # ---------------------------
+    # Update callback
+    # ---------------------------
 
-    el_duration.value    = _coerce_for_widget(el_duration,    getattr(el, "duration", None),    default=0.0)
-    el_height.value      = _coerce_for_widget(el_height,      int(getattr(el, "visual_height", 0) or 0), default=60)
-
-    # ----- 3) Visibility: keep everything visible & enabled (matches the older file’s "selectable" behavior) -----
-    for w in [
-        el_title, el_name, el_definition, el_shape, el_channel,
-        el_phase, el_power, el_duration, el_height
-    ]:
-        w.layout.display = "flex"
-        w.disabled = False
-
-    # ----- 4) Update button handler (unchanged logic) -----
-    update_button._click_handlers.callbacks.clear()
-
-    
     def update_el(b):
+
         save_state()
+
         el.title = el_title.value
         el.name = el_name.value
         el.definition = el_definition.value
-    
-        # Update duration for delays too
+
         el.duration = el_duration.value
         el.visual_width = el.duration * timeline_scale
-    
-        el.channel = el_channel.value
 
+        if kind != "flag":
+            el.channel = el_channel.value
 
-        if kind not in ["delay", "block"]:
-            el.power           = el_power.value
-            el.phase           = el_phase.value
+        if kind in ["pulse", "shaped", "grad", "cpd"]:
+            el.power = el_power.value
+
+        if kind in ["pulse", "shaped"]:
+            el.phase = el_phase.value
+
+        if kind == "shaped":
+            el.shape = el_shape.value
 
         if kind in ["pulse", "shaped", "block", "grad"]:
             el.visual_height = el_height.value
-        
-        if kind == "shaped":
-            el.shape = el_shape.value
 
         if kind == "delay":
             el.manual = True
 
         if el.kind != "delay":
             rebuild_global_delays()
-            
+
         renumber_delays()
         draw_sequence()
         coherence_label.value = sequence.coherence_summary()
+
         populate_phase_rows()
         generate_phase_cycle()
-    update_button.on_click(update_el)
 
+    update_button._click_handlers.callbacks.clear()
+    update_button.on_click(update_el)
 # -----------------------
 # Canvas Setup
 # -----------------------
@@ -1957,7 +1919,37 @@ def set_canvas_size(new_width: int, new_height: int = None):
     draw_sequence()
     coherence_label.value = sequence.coherence_summary()
     
+# -----------------------
+# Elements folder setup
+# -----------------------
 
+elements_folder = "elements"
+
+element_types = [
+    "pulse",
+    "shaped",
+    "grad",
+    "block",
+    "flag"
+]
+
+element_files = {}
+
+def load_element_files():
+
+    for etype in element_types:
+
+        folder = os.path.join(elements_folder, etype)
+
+        os.makedirs(folder, exist_ok=True)
+
+        files = glob.glob(os.path.join(folder, "*.txt"))
+
+        element_files[etype] = files
+
+
+load_element_files()
+    
 # -----------------------
 # Element Button
 # -----------------------
@@ -1992,7 +1984,7 @@ def draw_preview(preview_canvas, kind, file_path):
     
 def create_element_button(kind, file_path):
 
-    base = resource_filename(file_path).lower()
+    base = os.path.basename(file_path).lower()
 
     # --- Display names ---
     display_names = {
@@ -2444,6 +2436,15 @@ def on_canvas_mouse_down(x, y):
     drag_start_y = y
 
     for el in reversed(sequence.elements):
+        if el.kind == "flag":
+            rect_x = el.start * timeline_scale - el.visual_width/2
+            rect_w = el.visual_width
+        
+            timeline_y = timeline_positions.get(el.channel, 150)
+        
+            rect_top = timeline_y - el.visual_height
+            rect_h = el.visual_height
+        
         if el.kind == "delay" and not allow_delay_selection:
             continue
 
@@ -2646,10 +2647,9 @@ buttons_row = HBox(
         clear_button,
         toggle_delays_btn,
         print_names_button,
-        browser_download_button,
         phase_cycle_checkbox,
         export_btn,
-        canvas_size_row,
+        canvas_size_row
     ],
     layout=Layout(
         spacing='10px',
@@ -2661,14 +2661,15 @@ buttons_row = HBox(
 # Definitions tabs
 # -----------------------
 
-def load_defs(filename: str):
-    """Load a definition file from packaged resources for display."""
-    try:
-        content = read_resource_text("defs", filename)
-    except FileNotFoundError:
-        return HTML(
-            f"<pre>No definition file found: defs/{filename}</pre>"
-        )
+def load_defs(filename):
+
+    path = f"defs/{filename}"
+
+    if not os.path.exists(path):
+        return HTML(f"<pre>No definition file found: {path}</pre>")
+
+    with open(path, "r") as f:
+        content = f.read()
 
     return HTML(f"<pre>{content}</pre>")
 
@@ -2775,19 +2776,17 @@ ns_ds_row = HBox(
 
 main_vbox = VBox([
     top_bar,
-    generation_output,
-    browser_download_link,
     main_top_row,
     exp_prop_section,
     ns_ds_row,
-    phase_and_defs,
+    phase_and_defs
 ])
 
 #initial d1 arrow with update logic
 dash_x = 40
 fid_start_time = (canvas.width - 83) / timeline_scale
 
-delay_file = DELAY_RESOURCE_ID
+delay_file = os.path.join("defs", "delay.txt")
 delay = SequenceElement(
     kind="delay",
     file_path=delay_file,
@@ -2799,7 +2798,6 @@ delay = SequenceElement(
 
 sequence.add(delay)
 draw_sequence()
-
 
 def create_app():
     """Return the complete NMRpaint widget application."""
