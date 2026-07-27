@@ -54,7 +54,7 @@ timeline_positions = {"f1": 150, "f2": 250, "Gz": 350}
 
 class SequenceElement:
     def __init__(self, kind, file_path, start, duration, channel="f1",
-                 title=None, name=None, definition="", power=None, phase="ph1", shape=None):
+                 title=None, name=None, definition="", power=None, phase=None, shape=None):
         
         self.kind = kind
         self.file_path = file_path
@@ -71,8 +71,8 @@ class SequenceElement:
                 
         if self.kind == "flag":
             self.duration = 0
-            self.visual_width = 0
-            self.visual_height = 0
+            self.visual_width = 30
+            self.visual_height = 120
             self.flag_number = None
             
         elif self.kind == "delay":
@@ -85,7 +85,7 @@ class SequenceElement:
                 self.visual_height = DEFAULT_HEIGHT / 2
             else:
                 self.visual_height = DEFAULT_HEIGHT
-                
+                               
 class PulseSequence:
     def __init__(self):
         self.elements = []
@@ -142,16 +142,23 @@ def apply_placement_defaults(el: 'SequenceElement'):
     if base == "sp1.txt":
         el.name = "p11"
         el.shape = "sp1"
+        el.phase = "ph11"
+        el.power = "pl0"
         return
 
     # 2) Gradients: fixed defaults
     if kind == "grad":
         el.name = "p16"
         el.shape = "gp1"
+        el.channel = "Gz"
+        el.power = "0"
+        el.phase = ""
         return
 
-    # 3) Pulse rules
+    # 3) Pulse rules (channel-sensitive)
     if kind == "pulse":
+        el.phase = "ph1" # default phase for all pulses
+        
         if base == "p0.txt":
             el.name = "p0"
         elif base == "p90.txt":
@@ -628,7 +635,19 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # Pulse program body
     # -----------------------
     def write_flag(el):
-        return f" {el.flag_number}" if getattr(el, "flag_number", None) is not None else " <flag>"
+    
+        number = getattr(el, "flag_number", None)
+    
+        if number is None:
+            number_text = "<flag>"
+        else:
+            number_text = str(number)
+    
+        desc = (el.definition or "").strip()
+    
+        if desc:
+            return f"{number_text} {desc}"        
+        return number_text
     
     def write_delay(el):
         return f" {el.name}"
@@ -637,7 +656,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     dd.value for dd in shape_dropdowns
     if dd.value
     }
-    
+     
     def write_grad(el):
     
         shape = el.shape
@@ -723,6 +742,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         "block": write_block,
         "shaped": write_shaped,
         "pulse": write_pulse,
+        "flag": write_flag
     }
     
     elements_by_start = {}
@@ -1334,6 +1354,7 @@ def nested_cycles(bases):
         cycles.append(row)
 
     return cycles
+    
 def generate_phase_cycle():
 
     print("generate_phase_cycle() called")
@@ -1796,85 +1817,170 @@ def show_property_editor(el: SequenceElement):
     global current_element
     current_element = el
     kind = el.kind.lower()
+    kind = el.kind.lower()
 
-    # ----- 1) Decide allowed channel options by kind -----
-    if kind in ["pulse", "shaped", "block"]:
-        new_opts = ["f1", "f2", "Gz"]
+    # ---------------------------
+    # Populate widget values
+    # ---------------------------
+
+    el_title.value = getattr(el, "title", "") or ""
+    el_name.value = getattr(el, "name", "") or ""
+    el_definition.value = getattr(el, "definition", "") or ""
+    el_shape.value = getattr(el, "shape", "") or ""
+
+    el_channel.value = getattr(el, "channel", "f1") or "f1"
+
+    el_power.value = getattr(el, "power", "") or ""
+    el_phase.value = getattr(el, "phase", "") or ""
+
+    el_duration.value = getattr(el, "duration", 0)
+
+    if hasattr(el, "visual_height"):
+        el_height.value = el.visual_height
+
+    # ---------------------------
+    # Build editor layout
+    # ---------------------------
+
+    if kind == "pulse":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_power,
+            el_phase,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "shaped":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_shape,
+            el_channel,
+            el_power,
+            el_phase,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
     elif kind == "grad":
-        new_opts = ["f1", "f2", "Gz"]
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_channel,
+            el_power,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "cpd":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_power,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "flag":
+
+        visible_widgets = [
+            el_definition,
+            update_button
+        ]
+
+    elif kind == "block":
+
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_duration,
+            el_height,
+            update_button
+        ]
+
+    elif kind == "delay":
+
+        visible_widgets = [
+            el_name,
+            el_definition,
+            el_duration,
+            update_button
+        ]
+
     else:
-        # keep channel scope narrow & consistent with your placement rules
-        new_opts = ["f1", "f2", "Gz"]
 
-    coerced_channel = _coerce_for_widget(
-        el_channel,
-        getattr(el, "channel", None),
-        default=(new_opts[0] if new_opts else None),
-        dropdown_options=new_opts
-    )
+        visible_widgets = [
+            el_title,
+            el_name,
+            el_definition,
+            el_channel,
+            el_duration,
+            update_button
+        ]
 
-    # Atomically update options + value to avoid TraitError ("value not in options")
-    with el_channel.hold_trait_notifications():
-        el_channel.options = new_opts
-        el_channel.value   = coerced_channel
+    property_editor_box.children = tuple(visible_widgets)
 
-    # ----- 2) Assign the rest of the fields (all remain selectable) -----
-    el_title.value       = _coerce_for_widget(el_title,       getattr(el, "title", None),       default="")
-    el_name.value        = _coerce_for_widget(el_name,        getattr(el, "name", None),        default="p1")
-    el_definition.value  = _coerce_for_widget(el_definition,  getattr(el, "definition", None),  default="")
-    el_shape.value       = _coerce_for_widget(el_shape,       getattr(el, "shape", None),       default="")
-    el_power.value       = _coerce_for_widget(el_power,       getattr(el, "power", None),       default="pl1")
-    el_phase.value       = _coerce_for_widget(el_phase,       getattr(el, "phase", None),       default="ph1")
+    # ---------------------------
+    # Update callback
+    # ---------------------------
 
-    el_duration.value    = _coerce_for_widget(el_duration,    getattr(el, "duration", None),    default=0.0)
-    el_height.value      = _coerce_for_widget(el_height,      int(getattr(el, "visual_height", 0) or 0), default=60)
-
-    # ----- 3) Visibility: keep everything visible & enabled (matches the older file’s "selectable" behavior) -----
-    for w in [
-        el_title, el_name, el_definition, el_shape, el_channel,
-        el_phase, el_power, el_duration, el_height
-    ]:
-        w.layout.display = "flex"
-        w.disabled = False
-
-    # ----- 4) Update button handler (unchanged logic) -----
-    update_button._click_handlers.callbacks.clear()
-
-    
     def update_el(b):
+
         save_state()
+
         el.title = el_title.value
         el.name = el_name.value
         el.definition = el_definition.value
-    
-        # Update duration for delays too
+
         el.duration = el_duration.value
         el.visual_width = el.duration * timeline_scale
-    
-        el.channel = el_channel.value
 
+        if kind != "flag":
+            el.channel = el_channel.value
 
-        if kind not in ["delay", "block"]:
-            el.power           = el_power.value
-            el.phase           = el_phase.value
+        if kind in ["pulse", "shaped", "grad", "cpd"]:
+            el.power = el_power.value
+
+        if kind in ["pulse", "shaped"]:
+            el.phase = el_phase.value
+
+        if kind == "shaped":
+            el.shape = el_shape.value
 
         if kind in ["pulse", "shaped", "block", "grad"]:
             el.visual_height = el_height.value
-        
-        if kind == "shaped":
-            el.shape = el_shape.value
 
         if kind == "delay":
             el.manual = True
 
         if el.kind != "delay":
             rebuild_global_delays()
-            
+
         renumber_delays()
         draw_sequence()
         coherence_label.value = sequence.coherence_summary()
+
         populate_phase_rows()
         generate_phase_cycle()
+
+    update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
 
 # -----------------------
@@ -2444,6 +2550,15 @@ def on_canvas_mouse_down(x, y):
     drag_start_y = y
 
     for el in reversed(sequence.elements):
+        if el.kind == "flag":
+            rect_x = el.start * timeline_scale - el.visual_width/2
+            rect_w = el.visual_width
+        
+            timeline_y = timeline_positions.get(el.channel, 150)
+        
+            rect_top = timeline_y - el.visual_height
+            rect_h = el.visual_height
+        
         if el.kind == "delay" and not allow_delay_selection:
             continue
 
