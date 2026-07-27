@@ -2915,7 +2915,6 @@ delay = SequenceElement(
 sequence.add(delay)
 draw_sequence()
 
-
 def create_app():
     """Return the complete NMRpaint widget application."""
     return main_vbox
