@@ -2550,46 +2550,55 @@ def on_canvas_mouse_down(x, y):
     drag_start_y = y
 
     for el in reversed(sequence.elements):
-        if el.kind == "flag":
-            rect_x = el.start * timeline_scale - el.visual_width/2
-            rect_w = el.visual_width
-        
-            timeline_y = timeline_positions.get(el.channel, 150)
-        
-            rect_top = timeline_y - el.visual_height
-            rect_h = el.visual_height
-        
+    
         if el.kind == "delay" and not allow_delay_selection:
             continue
-
-        rect_x = el.start * timeline_scale
-        rect_w = el.visual_width
-        
-        if el.kind == "delay":
+    
+        if el.kind == "flag":
+    
+            timeline_y = timeline_positions.get(el.channel, 150)
+    
+            rect_x = el.start * timeline_scale - 20
+            rect_w = 40
+    
+            rect_top = timeline_y - 140
+            rect_h = 160
+    
+        elif el.kind == "delay":
+    
+            rect_x = el.start * timeline_scale
+            rect_w = el.visual_width
+    
             timeline_y = timeline_positions["f1"] - 30
             rect_h = 60
             rect_top = timeline_y - rect_h / 2
+    
         else:
+    
+            rect_x = el.start * timeline_scale
+            rect_w = el.visual_width
+    
             timeline_y = timeline_positions.get(el.channel, 150)
             rect_h = el.visual_height
             rect_top = timeline_y - rect_h
-
-        if rect_x <= x <= rect_x + rect_w and rect_top <= y <= timeline_y:
+    
+        if (rect_x <= x <= rect_x + rect_w and
+                rect_top <= y <= rect_top + rect_h):
+    
             dragging_el = el
             drag_start_x = x
             drag_start_y = y
-
+    
             drag_mode = "move"
-
-            # Save temp values
+    
             drag_temp_start = el.start
             drag_temp_width = el.visual_width
             drag_temp_height = el.visual_height
-
+    
             draw_sequence()
             show_property_editor(el)
             return
-
+                
     # If creating a new element inside a delay
     kind = selected_element.get("kind")
     file_path = selected_element.get("file_path")
