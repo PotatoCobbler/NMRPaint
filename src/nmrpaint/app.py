@@ -1,5 +1,5 @@
 from .exporters import (
-    build_text_download_hrf,
+    build_text_download_href,
     normalize_output_filename,
     save_text_local,
     write_text_file,
