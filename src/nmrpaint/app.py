@@ -39,6 +39,8 @@ from .resource_manager import (
     resource_exists,
 )
 
+VERSION = "0.1.0"
+
 # -----------------------
 # Internal model
 # -----------------------
@@ -2922,14 +2924,36 @@ ns_ds_row = HBox(
     )
 )
 
+app_title = HTML("""
+<h1 style="
+    text-align:center;
+    color:#1f4e79;
+    margin-top:10px;
+    margin-bottom:20px;">
+    NMRpaint
+</h1>
+""")
+
+copyright_footer = HTML("""
+<hr>
+<div style="
+    text-align:center;
+    font-size:11px;
+    color:#666;">
+    NMRpaint v{VERSION} | Pulse Sequence Generator<br>
+    © 2026 Alex van der Ham
+</div>
+""")
 
 main_vbox = VBox([
+    app_title,
     top_bar,
     generation_output,
     main_top_row,
     exp_prop_section,
     ns_ds_row,
     phase_and_defs,
+    copyright_footer,
 ])
 
 #initial d1 arrow with update logic
