@@ -2917,7 +2917,7 @@ ns_ds_row = HBox(
 exp_prop_row = HBox(
     [exp_title, exp_class, exp_dim, exp_2d_option, exp_type, exp_subtype, exp_incl, ns_text, ds_text, pulse_section, shape_section, exp_comment],
     layout=Layout(spacing="1px"),
-    padding='5px 0px'    
+    padding='20px 0px'    
 )
 
 exp_prop_section = VBox([
