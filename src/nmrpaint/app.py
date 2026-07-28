@@ -619,10 +619,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # vclist logic
     # -----------------------
-
     vclist_used = any(
-    el.kind.lower() == "flag" and getattr(el, "definition", "").lower() == "times vclist"
-    for el in sequence.elements
+        el.kind.lower() == "flag"
+        and re.fullmatch(r"lo\s+to\s+\d+\s+times\s+vclist", getattr(el, "definition", "").lower().strip())
+        for el in sequence.elements
     )
     
     if vclist_used:
@@ -850,12 +850,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     if any(el.kind.lower() == "grad" for el in sequence.elements):
         f.write(" 4u BLKGRAD\n")
-    
-    #vdlist_used = any(
-    #    el.kind.lower() == "delay" and getattr(el, "name", "").lower() == "vd"
-    #    for el in sequence.elements
-    #)
-    
+
     # GO line
     if block_overlaps_fid:
         f.write(" 10u pl12:f2\n")
