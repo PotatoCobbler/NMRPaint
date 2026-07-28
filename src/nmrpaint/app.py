@@ -889,20 +889,19 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # c logic
     # -----------------------
-
     clogic_used = any(
-    el.kind.lower() == "flag" and getattr(el, "definition", "").lower() == "times c"
-    for el in sequence.elements
+        el.kind.lower() == "flag"
+        and re.fullmatch(r"lo\s+to\s+\d+\s+times\s+c", getattr(el, "definition", "").lower().strip())
+        for el in sequence.elements
     )
     
-    if clogic_used:   
+    if clogic_used:
         f.write(" d11 wr #0 if #0 ivc\n")
         f.write(" lo to 1 times td1\n")
     
         if block_overlaps_fid:
             f.write(" d11 do:f2\n")
-    
-    
+        
     # -----------------------
     # Normal acquisition
     # -----------------------
