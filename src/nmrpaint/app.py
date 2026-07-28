@@ -2944,10 +2944,10 @@ app_title = HTML(f"""
         text-underline-offset: 5px;">aint<span style="
         display:inline-block;
         width:0.7em;
-        border-bottom:3px solid #BC4B00;
+        border-bottom:5px solid #BC4B00;
         margin-right:-0.35em;
-        vertical-align:-0.35em;"></span>
-        🖌️
+        vertical-align:-0.10em;"></span>🖌️
+        
 </div>
 """)
 
