@@ -454,11 +454,8 @@ clear_button = Button(
 
 print_names_button = Button(
     description="Generate",
-    button_style="primary",
-    icon="download"
+    button_style="primary"
 )
-
-browser_download_link = HTML(value="")
 
 delete_button = Button(
     description="Delete",
@@ -486,6 +483,16 @@ generation_output = Output(
         width="100%",
         display="none",
     )
+)
+
+browser_download_button = Button(
+    description="Prepare Download",
+    tooltip="Prepare the pulse program for browser download",
+    icon="download",
+)
+
+browser_download_link = HTML(
+    value="",
 )
 
 def export_png(b):
@@ -1135,25 +1142,53 @@ def generate_pulse_program(
         content=content,
     )
 
-def generate_and_phase(b):
-    browser_download_link.value = ""
-    populate_phase_rows()
 
-    if phase_cycle_checkbox.value:
-        generate_phase_cycle()
+def _generate_local_pulse_program() -> Path:
+    """Build and save the current pulse program locally."""
+    filename = normalize_output_filename(
+        exp_title.value,
+        default="pulse_program.txt",
+    )
 
     content = build_pulse_program_text()
 
-    filename = normalize_output_filename(
-        exp_title.value,
-        default="pulse_program.txt"
-    )
-
-    browser_download_link.value = build_text_download_link_html(
+    return save_text_local(
         content=content,
         filename=filename,
-        label=f"⬇ Download {filename}"
     )
+
+
+def generate_program_button_click(b):
+    """Generate the current pulse program in the local output directory."""
+    generation_output.layout.display = "block"
+    generation_output.clear_output(wait=True)
+
+    with generation_output:
+        try:
+            output_path = _generate_local_pulse_program()
+            print(f"Pulse program saved to: {output_path.resolve()}")
+        except Exception as exc:
+            print(f"Generation failed: {type(exc).__name__}: {exc}")
+
+
+def generate_and_phase(b):
+    """Populate phase rows, generate the phase cycle, and save locally."""
+    generation_output.layout.display = "block"
+    generation_output.clear_output(wait=True)
+    browser_download_link.value = ""
+
+    with generation_output:
+        try:
+            populate_phase_rows()
+
+            if phase_cycle_checkbox.value:
+                generate_phase_cycle()
+
+            output_path = _generate_local_pulse_program()
+            print(f"Pulse program saved to: {output_path.resolve()}")
+        except Exception as exc:
+            print(f"Generation failed: {type(exc).__name__}: {exc}")
+
 
 def prepare_browser_download(b):
     """Prepare the current pulse program as a browser download link."""
@@ -1176,7 +1211,7 @@ def prepare_browser_download(b):
         browser_download_link.value = build_text_download_link_html(
             content=content,
             filename=filename,
-            label=f"Download {filename}"
+            label=f"Download {filename}",
         )
 
         with generation_output:
@@ -1415,6 +1450,9 @@ delete_button.on_click(delete_selected_element)
 
 print_names_button._click_handlers.callbacks.clear()
 print_names_button.on_click(generate_and_phase)
+
+browser_download_button._click_handlers.callbacks.clear()
+browser_download_button.on_click(prepare_browser_download)
 
 # Number of scans (ns) and dummy scans (ds)
 ns_text = IntText(
@@ -2733,14 +2771,12 @@ canvas_size_row = HBox(
 
 buttons_row = HBox(
     [
-
-
-        
         delete_button,
         undo_button,
         clear_button,
         toggle_delays_btn,
         print_names_button,
+        browser_download_button,
         phase_cycle_checkbox,
         export_btn,
         canvas_size_row,
@@ -2869,8 +2905,8 @@ ns_ds_row = HBox(
 
 main_vbox = VBox([
     top_bar,
-    browser_download_link,
     generation_output,
+    browser_download_link,
     main_top_row,
     exp_prop_section,
     ns_ds_row,
