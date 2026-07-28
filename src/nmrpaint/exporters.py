@@ -22,7 +22,7 @@ _WINDOWS_RESERVED_NAMES = {
 def normalize_output_filename(
     raw_title: str | None,
     *,
-    default: str = "pulse_program.txt",
+    default: str = "pulse_program",
 ) -> str:
     """
     Convert a user-provided title into a safe local filename.
