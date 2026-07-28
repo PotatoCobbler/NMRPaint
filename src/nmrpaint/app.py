@@ -2009,7 +2009,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 670
+canvas_width = 775
 canvas_height = 400
 
 def get_fid_start_time():
