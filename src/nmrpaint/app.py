@@ -2774,6 +2774,7 @@ buttons_row = HBox(
         toggle_delays_btn,
         browser_download_button,
         phase_cycle_checkbox,
+        browser_download_link,
         export_btn,
         canvas_size_row,
     ],
@@ -2902,7 +2903,6 @@ ns_ds_row = HBox(
 main_vbox = VBox([
     top_bar,
     generation_output,
-    browser_download_link,
     main_top_row,
     exp_prop_section,
     ns_ds_row,
