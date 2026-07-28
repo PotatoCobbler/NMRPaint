@@ -2933,19 +2933,13 @@ app_title = HTML(f"""
     margin-top:10px;
     margin-bottom:15px;">
 <span style="
-    text-decoration: underline;
-    text-decoration-color:#BC4B00;
-    text-decoration-thickness:5px;
-    text-underline-offset:5px;">NMR</span>p<span style="
-    text-decoration: underline;
-    text-decoration-color:#BC4B00;
-    text-decoration-thickness:5px;
-    text-underline-offset:5px;">aint</span><span style="
-    display:inline-block;
-    width:0.7em;
     border-bottom:5px solid #BC4B00;
-    margin-right:-0.35em;
-    vertical-align:-0.20em;"></span>🖌️
+    padding-bottom:4px;">NMR</span>p<span style="
+    display:inline-block;
+    border-bottom:5px solid #BC4B00;
+    padding-bottom:4px;
+    padding-right:0.7em;">aint</span><span style="
+    margin-left:-0.7em;">🖌️</span>
 </div>
 """)
 
