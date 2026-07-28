@@ -1206,10 +1206,9 @@ def prepare_browser_download(b):
     browser_download_link.value = f"""
     <a id="nmrpaint_download"
        href="{href}"
-       download="{filename}"
-       ocument.getElementById('nmrpaint_download').click();
-    }}, 100);
-    </script>
+       download="{filename}">
+       Download
+    </a>
     """
 
 # -----------------------
