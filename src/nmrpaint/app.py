@@ -2928,11 +2928,11 @@ app_title = HTML(f"""
 <div style="
     text-align:center;
     font-size:48px;
-    font-weight:Bold;
+    font-weight:bold;
     color:#0069B3;
     margin-top:10px;
     margin-bottom:15px;">
-    NMRpaint🖌️
+    NMRp<span style="text-decoration: underline;">aint</span>🖌️
 </div>
 """)
 
