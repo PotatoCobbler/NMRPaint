@@ -1204,13 +1204,10 @@ def prepare_browser_download(b):
     href = build_text_download_href(content)
 
     browser_download_link.value = f"""
-    <a id="nmrpaint_download"
-       href="{href}"
-       download="{filename}">
-       Download
+    <a ef}
+       Download {filename}
     </a>
     """
-
 # -----------------------
 # Phase Cycle GUI
 # -----------------------
