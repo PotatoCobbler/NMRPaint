@@ -628,7 +628,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     if vclist_used:
         f.write("define list<loopcounter> vc=<$VCLIST>\n")
         f.write("\n")
-        
+          
     # -----------------------
     # ACQT0 correction if last element is a pulse
     # -----------------------
@@ -879,13 +879,29 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # vclist experiments
     # -----------------------
     
-    if vdlist_used:
-    
+    if vclist_used:    
         f.write(" d11 wr #0 if #0 vclist.inc\n")
         f.write(" lo to 1 times td1\n")
     
         if block_overlaps_fid:
             f.write(" d11 do:f2\n")
+            
+    # -----------------------
+    # c logic
+    # -----------------------
+
+    clogic_used = any(
+    el.kind.lower() == "flag" and getattr(el, "definition", "").lower() == "times c"
+    for el in sequence.elements
+    )
+    
+    if clogic_used_used:   
+        f.write(" d11 wr #0 if #0 ivc\n")
+        f.write(" lo to 1 times td1\n")
+    
+        if block_overlaps_fid:
+            f.write(" d11 do:f2\n")
+    
     
     # -----------------------
     # Normal acquisition
