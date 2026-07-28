@@ -1188,37 +1188,39 @@ def generate_and_phase(b):
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
 
+from IPython.display import display, Javascript
+import base64
+
 def prepare_browser_download(b):
-    """Prepare the current pulse program as a browser download link."""
-    generation_output.layout.display = "block"
-    generation_output.clear_output(wait=True)
-    browser_download_link.value = ""
 
-    try:
-        populate_phase_rows()
+    populate_phase_rows()
 
-        if phase_cycle_checkbox.value:
-            generate_phase_cycle()
+    if phase_cycle_checkbox.value:
+        generate_phase_cycle()
 
-        content = build_pulse_program_text()
-        filename = normalize_output_filename(
-            exp_title.value,
-            default="pulse_program",
-        )
-        print("filename =", repr(filename))
-        
-        browser_download_link.value = build_text_download_link_html(
-            content=content,
-            filename=filename,
-            label=f"Download {filename}",
-        )
-        
-    except Exception as exc:
-        with generation_output:
-            print(
-                "Download preparation failed: "
-                f"{type(exc).__name__}: {exc}"
-            )
+    content = build_pulse_program_text()
+
+    filename = normalize_output_filename(
+        exp_title.value,
+        default="pulse_program",
+    )
+
+    encoded = base64.b64encode(
+        content.encode("utf-8")
+    ).decode("ascii")
+
+    js = f"""
+    (() => {{
+        const a = document.createElement('a');
+        a.href = 'data:application/octet-stream;base64,{encoded}';
+        a.download = '{filename}';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }})();
+    """
+
+    display(Javascript(js))
 
 
 # -----------------------
