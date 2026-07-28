@@ -8,8 +8,8 @@ from nmrpaint.exporters import (
 
 
 def test_empty_title_uses_default_filename():
-    assert normalize_output_filename("") == "pulse_program.txt"
-    assert normalize_output_filename(None) == "pulse_program.txt"
+    assert normalize_output_filename("") == "pulse_program"
+    assert normalize_output_filename(None) == "pulse_program"
 
 
 def test_invalid_filename_characters_are_replaced():
