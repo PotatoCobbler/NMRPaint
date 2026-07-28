@@ -2949,10 +2949,6 @@ app_title = HTML(f"""
         vertical-align:0.05em;"></span>🖌️
 </div>
 """)
-        
-    </span>🖌️
-</div>
-""")
 
 copyright_footer = HTML(f"""
 <hr>
