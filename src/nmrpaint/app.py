@@ -2946,7 +2946,7 @@ app_title = HTML(f"""
     <span style="
         position:absolute;
         left:100%;
-        bottom:-5px;
+        bottom:0px;
         width:0.7em;
         height:5px;
         background:#BC4B00;"></span>
