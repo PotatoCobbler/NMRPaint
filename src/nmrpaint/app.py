@@ -2902,16 +2902,6 @@ main_top_row = HBox(
     )
 )
 
-exp_prop_row = HBox(
-    [exp_title, exp_class, exp_dim, exp_2d_option, exp_type, exp_subtype, exp_incl],
-    layout=Layout(spacing="1px")
-)
-
-exp_prop_section = VBox([
-    HTML("<div style='font-size:16px; font-weight:bold; margin-bottom:4px;'>Experiment Properties</div>"),
-    exp_prop_row
-])
-
 ns_ds_row = HBox(
     [ns_text, ds_text, pulse_section, shape_section, exp_comment],
     layout=Layout(
@@ -2923,6 +2913,16 @@ ns_ds_row = HBox(
         width="100%"
     )
 )
+
+exp_prop_row = HBox(
+    [exp_title, exp_class, exp_dim, exp_2d_option, exp_type, exp_subtype, exp_incl, ns_text, ds_text, pulse_section, shape_section, exp_comment],
+    layout=Layout(spacing="1px")
+)
+
+exp_prop_section = VBox([
+    HTML("<div style='font-size:16px; font-weight:bold; margin-bottom:4px;'>Experiment Properties</div>"),
+    exp_prop_row
+])
 
 app_title = HTML(f"""
 <div style="
@@ -2949,11 +2949,10 @@ copyright_footer = HTML(f"""
 
 main_vbox = VBox([
     app_title,
+    exp_prop_section,
     top_bar,
     generation_output,
     main_top_row,
-    exp_prop_section,
-    ns_ds_row,
     phase_and_defs,
     copyright_footer,
 ])
