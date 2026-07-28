@@ -488,8 +488,7 @@ generation_output = Output(
 browser_download_button = Button(
     description="Prepare Download",
     tooltip="Prepare the pulse program for browser download",
-    button_style="primary",
-    icon="download",
+    button_style="primary"
 )
 
 browser_download_link = HTML(
