@@ -1,5 +1,5 @@
 from .exporters import (
-    build_text_download_link_html,
+    build_text_download_hrf,
     normalize_output_filename,
     save_text_local,
     write_text_file,
@@ -1187,10 +1187,6 @@ def generate_and_phase(b):
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
-
-from IPython.display import display, Javascript
-import base64
-
 def prepare_browser_download(b):
 
     populate_phase_rows()
@@ -1205,23 +1201,16 @@ def prepare_browser_download(b):
         default="pulse_program",
     )
 
-    encoded = base64.b64encode(
-        content.encode("utf-8")
-    ).decode("ascii")
+    href = build_text_download_href(content)
 
-    js = f"""
-    (() => {{
-        const a = document.createElement('a');
-        a.href = 'data:application/octet-stream;base64,{encoded}';
-        a.download = '{filename}';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }})();
+    browser_download_link.value = f"""
+    <a id="nmrpaint_download"
+       href="{href}"
+       download="{filename}"
+       ocument.getElementById('nmrpaint_download').click();
+    }}, 100);
+    </script>
     """
-
-    display(Javascript(js))
-
 
 # -----------------------
 # Phase Cycle GUI
