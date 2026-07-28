@@ -2920,7 +2920,6 @@ exp_prop_row = HBox(
 )
 
 exp_prop_section = VBox([
-    HTML("<div style='font-size:16px; font-weight:bold; margin-bottom:4px;'>Experiment Properties</div>"),
     exp_prop_row
 ])
 
@@ -2949,8 +2948,8 @@ copyright_footer = HTML(f"""
 
 main_vbox = VBox([
     app_title,
-    exp_prop_section,
     top_bar,
+    exp_prop_section,
     generation_output,
     main_top_row,
     phase_and_defs,
