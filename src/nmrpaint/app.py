@@ -1147,7 +1147,7 @@ def _generate_local_pulse_program() -> Path:
     """Build and save the current pulse program locally."""
     filename = normalize_output_filename(
         exp_title.value,
-        default="pulse_program.txt",
+        default="pulse_program",
     )
 
     content = build_pulse_program_text()
@@ -1205,7 +1205,7 @@ def prepare_browser_download(b):
         content = build_pulse_program_text()
         filename = normalize_output_filename(
             exp_title.value,
-            default="pulse_program.txt",
+            default="pulse_program",
         )
 
         browser_download_link.value = build_text_download_link_html(
