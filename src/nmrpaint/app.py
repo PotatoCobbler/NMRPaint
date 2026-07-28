@@ -2946,7 +2946,8 @@ app_title = HTML(f"""
         width:0.7em;
         border-bottom:3px solid #BC4B00;
         margin-right:-0.35em;
-        vertical-align:0.05em;"></span>🖌️
+        vertical-align:-0.05em;"></span>
+        🖌️
 </div>
 """)
 
