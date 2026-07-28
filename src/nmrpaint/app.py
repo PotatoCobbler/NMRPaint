@@ -895,7 +895,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     for el in sequence.elements
     )
     
-    if clogic_used_used:   
+    if clogic_used:   
         f.write(" d11 wr #0 if #0 ivc\n")
         f.write(" lo to 1 times td1\n")
     
