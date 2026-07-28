@@ -1207,15 +1207,12 @@ def prepare_browser_download(b):
         )
         print("filename =", repr(filename))
         
-        browser_download_link.value = (
-            f"<b>filename:</b> {filename}<br><br>" +
-            build_text_download_link_html(
-                content=content,
-                filename=filename,
-                label=f"Download {filename}",
-            )
+        browser_download_link.value = build_text_download_link_html(
+            content=content,
+            filename=filename,
+            label=f"Download {filename}",
         )
-
+        
     except Exception as exc:
         with generation_output:
             print(
