@@ -1207,7 +1207,8 @@ def prepare_browser_download(b):
             exp_title.value,
             default="pulse_program",
         )
-
+        print("filename =", repr(filename))
+        
         browser_download_link.value = build_text_download_link_html(
             content=content,
             filename=filename,
