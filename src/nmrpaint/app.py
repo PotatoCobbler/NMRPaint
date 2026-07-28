@@ -2924,17 +2924,19 @@ ns_ds_row = HBox(
     )
 )
 
-app_title = HTML("""
-<h1 style="
+app_title = HTML(f"""
+<div style="
     text-align:center;
+    font-size:42px;
+    font-weight:Bold;
     color:#1f4e79;
     margin-top:10px;
-    margin-bottom:20px;">
+    margin-bottom:15px;">
     NMRpaint
-</h1>
+</div>
 """)
 
-copyright_footer = HTML("""
+copyright_footer = HTML(f"""
 <hr>
 <div style="
     text-align:center;
