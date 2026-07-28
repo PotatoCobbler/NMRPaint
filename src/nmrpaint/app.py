@@ -2929,13 +2929,13 @@ app_title = HTML(f"""
     text-align:center;
     font-size:48px;
     font-weight:bold;
-    color:#0069B3;
+    color:#0071BC;
     margin-top:10px;
     margin-bottom:15px;">
     NMRp<span style="
         text-decoration: underline;
-        text-decoration-color: #FF8C00;
-        text-decoration-thickness: 3px;
+        text-decoration-color: #BC4B00;
+        text-decoration-thickness: 5px;
         text-underline-offset: 5px;">
         aint 
     </span>🖌️
