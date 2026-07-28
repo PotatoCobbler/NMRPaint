@@ -1059,7 +1059,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     f.write(f";ds: {ds_text.value}\n\n")
 
     if any((vdlist_used, vclist_used, clogic_used)):
-    f.write(";td1: number of experiments in list\n")
+        f.write(";td1: number of experiments in list\n")
             
     # -----------------------
     # 2D parameter explanation
