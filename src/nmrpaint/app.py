@@ -2870,7 +2870,6 @@ ns_ds_row = HBox(
 main_vbox = VBox([
     top_bar,
     generation_output,
-    ,
     main_top_row,
     exp_prop_section,
     ns_ds_row,
