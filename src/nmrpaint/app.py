@@ -2741,7 +2741,6 @@ buttons_row = HBox(
         clear_button,
         toggle_delays_btn,
         print_names_button,
-        ,
         phase_cycle_checkbox,
         export_btn,
         canvas_size_row,
