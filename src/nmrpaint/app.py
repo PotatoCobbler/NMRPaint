@@ -615,7 +615,20 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     if vdlist_used:
         f.write("define list<delay> vd=<$VDLIST>\n")
         f.write("\n")
-                
+
+    # -----------------------
+    # vclist logic
+    # -----------------------
+
+    vclist_used = any(
+    el.kind.lower() == "flag" and getattr(el, "definition", "").lower() == "times vclist"
+    for el in sequence.elements
+    )
+    
+    if loopcounter_used:
+        f.write("define list<loopcounter> vc=<$VCLIST>\n")
+        f.write("\n")
+        
     # -----------------------
     # ACQT0 correction if last element is a pulse
     # -----------------------
@@ -838,10 +851,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     if any(el.kind.lower() == "grad" for el in sequence.elements):
         f.write(" 4u BLKGRAD\n")
     
-    vdlist_used = any(
-        el.kind.lower() == "delay" and getattr(el, "name", "").lower() == "vd"
-        for el in sequence.elements
-    )
+    #vdlist_used = any(
+    #    el.kind.lower() == "delay" and getattr(el, "name", "").lower() == "vd"
+    #    for el in sequence.elements
+    #)
     
     # GO line
     if block_overlaps_fid:
@@ -857,6 +870,18 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     if vdlist_used:
     
         f.write(" d11 wr #0 if #0 vd.inc\n")
+        f.write(" lo to 1 times td1\n")
+    
+        if block_overlaps_fid:
+            f.write(" d11 do:f2\n")
+            
+    # -----------------------
+    # vclist experiments
+    # -----------------------
+    
+    if vdlist_used:
+    
+        f.write(" d11 wr #0 if #0 vclist.inc\n")
         f.write(" lo to 1 times td1\n")
     
         if block_overlaps_fid:
