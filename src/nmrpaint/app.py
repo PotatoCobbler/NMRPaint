@@ -2932,7 +2932,7 @@ app_title = HTML(f"""
     color:#0069B3;
     margin-top:10px;
     margin-bottom:15px;">
-    NMRp<span style="text-decoration: underline;">aint</span>🖌️
+    NMRp<span style="text-decoration: underline;">aint 🖌️</span>
 </div>
 """)
 
