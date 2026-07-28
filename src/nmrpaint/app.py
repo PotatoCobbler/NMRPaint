@@ -2869,6 +2869,7 @@ ns_ds_row = HBox(
 
 main_vbox = VBox([
     top_bar,
+    browser_download_link,
     generation_output,
     main_top_row,
     exp_prop_section,
