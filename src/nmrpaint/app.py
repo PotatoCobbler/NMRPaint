@@ -2941,7 +2941,15 @@ app_title = HTML(f"""
         text-decoration: underline;
         text-decoration-color: #BC4B00;
         text-decoration-thickness: 5px;
-        text-underline-offset: 5px;">aint  
+        text-underline-offset: 5px;">aint<span style="
+        display:inline-block;
+        width:0.7em;
+        border-bottom:3px solid #BC4B00;
+        margin-right:-0.35em;
+        vertical-align:0.05em;"></span>🖌️
+</div>
+""")
+        
     </span>🖌️
 </div>
 """)
