@@ -2927,9 +2927,9 @@ ns_ds_row = HBox(
 app_title = HTML(f"""
 <div style="
     text-align:center;
-    font-size:42px;
+    font-size:48px;
     font-weight:Bold;
-    color:#1f4e79;
+    color:#0069B3;
     margin-top:10px;
     margin-bottom:15px;">
     NMRpaint
@@ -2940,9 +2940,9 @@ copyright_footer = HTML(f"""
 <hr>
 <div style="
     text-align:center;
-    font-size:11px;
+    font-size:20px;
     color:#666;">
-    NMRpaint v{VERSION} | Pulse Sequence Generator<br>
+    NMRpaint v{VERSION} | Pulse Program Generator<br>
     © 2026 Alex van der Ham
 </div>
 """)
