@@ -625,7 +625,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     for el in sequence.elements
     )
     
-    if loopcounter_used:
+    if vclist_used:
         f.write("define list<loopcounter> vc=<$VCLIST>\n")
         f.write("\n")
         
