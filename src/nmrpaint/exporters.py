@@ -127,18 +127,14 @@ def save_text_local(
 
 
 def build_text_download_href(content: str) -> str:
-    """
-    Build a browser-safe data URL for UTF-8 text content.
-    """
     encoded_content = base64.b64encode(
         content.encode("utf-8")
     ).decode("ascii")
 
     return (
-        "data:text/plain;charset=utf-8;base64,"
+        "data:application/octet-stream;base64,"
         f"{encoded_content}"
     )
-
 
 def build_text_download_link_html(
     *,
