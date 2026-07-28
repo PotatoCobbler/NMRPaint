@@ -458,6 +458,8 @@ print_names_button = Button(
     icon="download"
 )
 
+browser_download_link = HTML(value="")
+
 delete_button = Button(
     description="Delete",
     button_style="danger",
@@ -2731,12 +2733,15 @@ canvas_size_row = HBox(
 
 buttons_row = HBox(
     [
+
+
+        
         delete_button,
         undo_button,
         clear_button,
         toggle_delays_btn,
         print_names_button,
-        browser_download_link,
+        ,
         phase_cycle_checkbox,
         export_btn,
         canvas_size_row,
@@ -2866,7 +2871,7 @@ ns_ds_row = HBox(
 main_vbox = VBox([
     top_bar,
     generation_output,
-    browser_download_link,
+    ,
     main_top_row,
     exp_prop_section,
     ns_ds_row,
