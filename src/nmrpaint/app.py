@@ -1214,9 +1214,6 @@ def prepare_browser_download(b):
             label=f"Download {filename}",
         )
 
-        with generation_output:
-            print("Browser download is ready.")
-
     except Exception as exc:
         with generation_output:
             print(
@@ -1652,7 +1649,7 @@ def load_element_files() -> None:
         filenames = list_resource_names(
             "elements",
             element_type,
-            suffix=".txt",
+            suffix="",
         )
         element_files[element_type] = [
             f"elements/{element_type}/{filename}"
