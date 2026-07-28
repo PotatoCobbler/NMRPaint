@@ -486,7 +486,7 @@ generation_output = Output(
 )
 
 browser_download_button = Button(
-    description="Prepare Download",
+    description="Generate",
     tooltip="Prepare the pulse program for browser download",
     button_style="primary"
 )
@@ -2775,7 +2775,6 @@ buttons_row = HBox(
         undo_button,
         clear_button,
         toggle_delays_btn,
-        print_names_button,
         browser_download_button,
         phase_cycle_checkbox,
         export_btn,
