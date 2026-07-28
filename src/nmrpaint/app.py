@@ -2009,7 +2009,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 775
+canvas_width = 670
 canvas_height = 400
 
 def get_fid_start_time():
@@ -2940,7 +2940,7 @@ copyright_footer = HTML(f"""
 <hr>
 <div style="
     text-align:center;
-    font-size:20px;
+    font-size:14px;
     color:#666;">
     NMRpaint v{VERSION} | Pulse Program Generator<br>
     © 2026 Alex van der Ham
