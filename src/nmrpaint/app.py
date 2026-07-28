@@ -2937,8 +2937,7 @@ app_title = HTML(f"""
         text-decoration-color: #BC4B00;
         text-decoration-thickness: 5px;
         text-underline-offset: 5px;">
-    NMR</span>p
-    <span style="
+    NMR</span>p<span style="
         text-decoration: underline;
         text-decoration-color: #BC4B00;
         text-decoration-thickness: 5px;
