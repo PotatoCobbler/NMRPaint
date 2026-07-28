@@ -1176,7 +1176,7 @@ def prepare_browser_download(b):
         browser_download_link.value = build_text_download_link_html(
             content=content,
             filename=filename,
-            label=f"Download {filename}",
+            label=f"Download {filename}"
         )
 
         with generation_output:
