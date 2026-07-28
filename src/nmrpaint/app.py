@@ -846,8 +846,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             
     # -----------------------
     # Acquisition logic
-    # -----------------------
-    
+    # -----------------------    
     if any(el.kind.lower() == "grad" for el in sequence.elements):
         f.write(" 4u BLKGRAD\n")
 
@@ -860,10 +859,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     # -----------------------
     # vdlist experiments
-    # -----------------------
-    
-    if vdlist_used:
-    
+    # -----------------------    
+    if vdlist_used:    
         f.write(" d11 wr #0 if #0 vd.inc\n")
         f.write(" lo to 1 times td1\n")
     
@@ -872,9 +869,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             
     # -----------------------
     # vclist experiments
-    # -----------------------
-    
-    if vclist_used:    
+    # -----------------------    
+    elif vclist_used:    
         f.write(" d11 wr #0 if #0 vclist.inc\n")
         f.write(" lo to 1 times td1\n")
     
@@ -890,7 +886,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         for el in sequence.elements
     )
     
-    if clogic_used:
+    elif clogic_used:
         f.write(" d11 wr #0 if #0 ivc\n")
         f.write(" lo to 1 times td1\n")
     
@@ -903,18 +899,15 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     else:
     
-        if exp_dim.value == "1D":
-    
+        if exp_dim.value == "1D":    
             f.write(" 30m mc #0 to 2 F0(zd)\n")
     
         else:
     
-            if exp_2d_option.value != "undefined":
-    
-                phase_sensitive = ["States", "TPPI", "States-TPPI"]
-    
-                if exp_2d_option.value in phase_sensitive:
-    
+            if exp_2d_option.value != "undefined":   
+                phase_sensitive = ["States", "TPPI", "States-TPPI"]    
+                
+                if exp_2d_option.value in phase_sensitive:    
                     pulses = []
     
                     for dd in pulse_dropdowns:
