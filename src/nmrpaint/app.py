@@ -2938,21 +2938,11 @@ app_title = HTML(f"""
     text-decoration-color:#BC4B00;
     text-decoration-thickness:5px;
     text-underline-offset:5px;">NMR</span>p<span style="
-    position:relative;
-    text-decoration:underline;
-    text-decoration-color:#BC4B00;
-    text-decoration-thickness:5px;
-    text-underline-offset:5px;
-    padding-right:0.15em;">">aint
-    <span style="
-        position:absolute;
-        left:100%;
-        bottom:2.5px;
-        width:0.3em;
-        height:4.5px;
-        background:#BC4B00;"></span>
-</span>🖌️
-
+    display:inline-block;
+    border-bottom:5px solid #BC4B00;
+    padding-bottom:5px;
+    padding-right:0.3em;">aint </span>
+    🖌️
 </div>
 """)
 
