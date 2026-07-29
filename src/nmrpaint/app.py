@@ -2936,14 +2936,18 @@ app_title = HTML(f"""
 <span style="
     display:inline-block;
     border-bottom:5px solid #BC4B00;
-    padding-bottom:3px;">
+    padding-bottom:8px;">
     NMR
 </span>p<span style="
     display:inline-block;
     border-bottom:5px solid #BC4B00;
     padding-bottom:8px;
-    padding-right:0.1em;">
-    aint<span style="position:relative; left:-0.05em;">🖌️</span>
+    padding-right:0.3em;">
+    aint
+</span><span style="
+    position:relative;
+    left:-0.15em;">
+    🖌️
 </span>
 
 </div>
