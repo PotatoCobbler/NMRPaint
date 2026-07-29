@@ -2989,14 +2989,19 @@ copyright_footer = HTML(f"""
 </div>
 """)
 
-main_vbox = VBox([
-    app_title,
-    top_bar,
-    exp_prop_section,
-    generation_output,
-    main_top_row,
-    copyright_footer,
-])
+main_vbox = VBox(
+    [
+        app_title,
+        top_bar,
+        exp_prop_section,
+        generation_output,
+        main_top_row,
+        copyright_footer,
+    ],
+    layout=Layout(
+        background_color="#F8F8FF"
+    )
+)
 
 #initial d1 arrow with update logic
 dash_x = 40
