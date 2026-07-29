@@ -2934,18 +2934,18 @@ app_title = HTML(f"""
     margin-bottom:15px;">
 
 <span style="
-    text-decoration:underline;
-    text-decoration-color:#BC4B00;
-    text-decoration-thickness:5px;
-    text-underline-offset:5px;">NMR</span>p<span style="
-    display:inline-block;
-    border-bottom:5px solid #BC4B00;
-    padding-bottom:10px;
-    padding-right:0.3em;">aint</span>🖌️
-
-</div>
-""")
-
+    position:relative;
+    display:inline-block;">
+    aint&nbsp;🖌️
+    <span style="
+        position:absolute;
+        left:0;
+        right:0.7em;   /* Adjust until the line ends 0.3em into the icon */
+        bottom:-5px;
+        height:5px;
+        background:#BC4B00;">
+    </span>
+</span>
 
 copyright_footer = HTML(f"""
 <hr>
