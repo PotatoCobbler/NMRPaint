@@ -482,7 +482,7 @@ generation_output = Output(
     layout=Layout(
         border="1px solid #d9d9d9",
         padding="6px",
-        width="100%",
+        width=,
         display="none",
     )
 )
@@ -2489,7 +2489,7 @@ def build_elements_panel():
         layout=Layout(
             justify_content="center",
             gap="6px",
-            width="100%",
+            width=,
             overflow="hidden"
         )
     )
@@ -2508,7 +2508,7 @@ def build_elements_panel():
         layout=Layout(
             justify_content="center",
             gap="6px",
-            width="100%",
+            width=,
             overflow="hidden"
         )
     )
@@ -2550,8 +2550,8 @@ canvas_coherence_column = VBox(
 
 canvas_container.layout.min_width  = f"{canvas_width}px"
 canvas_container.layout.min_height = f"{canvas_height}px"
-canvas_container.layout.width  = "100%"
-canvas_container.layout.height = "auto"
+canvas_container.layout.width  = f"{canvas_width}px"
+canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
 canvas_coherence_column.layout.flex = "1 1 auto"
