@@ -2939,20 +2939,8 @@ main_top_row = HBox(
     )
 )
 
-ns_ds_row = HBox(
-    [ns_text, ds_text, pulse_section, shape_section, exp_comment],
-    layout=Layout(
-        spacing="4px",
-        justify_content="flex-start",
-        align_items="center",
-        margin="0px",
-        padding="0px",
-        width="100%"
-    )
-)
-
 exp_prop_row = HBox(
-    [exp_title, exp_class, exp_dim, exp_2d_option, shape_section, exp_type, exp_subtype, exp_incl, ns_text, ds_text, pulse_section, exp_comment],
+    [exp_title, exp_class, exp_dim, exp_2d_option, pulse_section, shape_section, exp_type, exp_subtype, exp_incl, ns_text, ds_text, exp_comment],
     layout=Layout(spacing="1px"),
     padding='20px 20px'    
 )
