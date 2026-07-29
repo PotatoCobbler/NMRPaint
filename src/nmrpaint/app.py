@@ -2933,7 +2933,7 @@ app_title = HTML(f"""
     margin-top:10px;
     margin-bottom:15px;">
 
-<span style="
+<span style="color:#BC4B00;">.</span><span style="
     display:inline-block;
     border-bottom:5px solid #BC4B00;
     padding-bottom:8px;">
