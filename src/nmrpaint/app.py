@@ -2942,7 +2942,8 @@ app_title = HTML(f"""
     text-decoration:underline;
     text-decoration-color:#BC4B00;
     text-decoration-thickness:5px;
-    text-underline-offset:5px;">aint
+    text-underline-offset:5px;
+    padding-right:0.15em;">">aint
     <span style="
         position:absolute;
         left:100%;
