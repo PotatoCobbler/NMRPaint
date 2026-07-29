@@ -2009,7 +2009,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 1200
+canvas_width = 800
 canvas_height = 400
 
 def get_fid_start_time():
@@ -2873,11 +2873,6 @@ defs_section = VBox([
     defs_tabs
 ])
 
-phase_and_defs = HBox([
-    phase_cycle_box,
-    defs_section
-])
-
 # -----------------------
 # Layout
 # -----------------------
@@ -2902,6 +2897,7 @@ main_top_row = HBox(
     [
         elements_panel,
         canvas_coherence_column,
+        phase_cycle_box,
         property_editor_box
     ],
     layout=Layout(
@@ -2978,7 +2974,6 @@ main_vbox = VBox([
     exp_prop_section,
     generation_output,
     main_top_row,
-    phase_and_defs,
     copyright_footer,
 ])
 
