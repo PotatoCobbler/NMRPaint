@@ -2592,9 +2592,18 @@ elements_panel.layout.flex          = "0 0 150px"
 property_editor_box.layout.flex     = "0 0 230px"
 
 elements_section = VBox([
-    HTML("<b style='font-size:15px'>Elements</b>"),
+    HTML("""
+    <div style="
+        text-align:center;
+        font-size:15px;
+        font-weight:bold;
+    ">
+        Elements
+    </div>
+    """),
     elements_panel
 ])
+`
 
 # -----------------------
 # Mouse actions
@@ -2913,14 +2922,9 @@ top_bar = HBox(
     )
 )
 
-#elements_section = VBox([
-#    HTML("<b style='font-size:15px'>Elements</b>"),
-#    elements_panel
-#])
-
 main_top_row = HBox(
     [
-        elements_panel,
+        elements_section,
         canvas_coherence_column,
         phase_cycle_box,
         property_editor_box
