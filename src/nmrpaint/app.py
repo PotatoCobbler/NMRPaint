@@ -2945,7 +2945,8 @@ app_title = HTML(f"""
         bottom:-10px;          /* <-- Vertical position */
         height:10px;           /* <-- Thickness */
         background:#BC4B00;">
-    </span></span>🖌️
+    </span>
+</span>🖌️
 
 
 copyright_footer = HTML(f"""
