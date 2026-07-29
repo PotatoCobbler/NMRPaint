@@ -2580,16 +2580,6 @@ canvas_coherence_column = VBox(
     ]
 )
 
-canvas_container.layout.min_width  = f"{canvas_width}px"
-canvas_container.layout.min_height = f"{canvas_height}px"
-canvas_container.layout.width  = f"{canvas_width}px"
-canvas_container.layout.height = f"{canvas_height}px"
-canvas_container.layout.overflow = "hidden"
-canvas_container.layout.align_items = "center"
-canvas_coherence_column.layout.flex = "1 1 auto"
-elements_section.layout.flex = "0 0 220px"
-property_editor_box.layout.flex     = "0 0 230px"
-
 elements_section = VBox([
     HTML("""
     <div style="
@@ -2602,6 +2592,17 @@ elements_section = VBox([
     """),
     elements_panel
 ])
+
+canvas_container.layout.min_width  = f"{canvas_width}px"
+canvas_container.layout.min_height = f"{canvas_height}px"
+canvas_container.layout.width  = f"{canvas_width}px"
+canvas_container.layout.height = f"{canvas_height}px"
+canvas_container.layout.overflow = "hidden"
+canvas_container.layout.align_items = "center"
+canvas_coherence_column.layout.flex = "1 1 auto"
+elements_section.layout.flex = "0 0 220px"
+property_editor_box.layout.flex = "0 0 230px"
+
 
 # -----------------------
 # Mouse actions
