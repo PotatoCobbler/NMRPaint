@@ -1310,7 +1310,6 @@ phase_cycle_box = VBox([
         text-align:center;
         font-size:15px;
         font-weight:bold;
-        margin-bottom:8px;
     ">
         Phase Cycle Generator
     </div>
@@ -2588,7 +2587,7 @@ canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
 canvas_coherence_column.layout.flex = "1 1 auto"
-elements_panel.layout.flex          = "0 0 150px"
+elements_section.layout.flex = "0 0 220px"
 property_editor_box.layout.flex     = "0 0 230px"
 
 elements_section = VBox([
