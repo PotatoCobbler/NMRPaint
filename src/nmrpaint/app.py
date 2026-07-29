@@ -2073,8 +2073,16 @@ def set_canvas_size(new_width: int, new_height: int = None):
 
     canvas.width = canvas_width
     canvas.height = canvas_height
+    
     dynamic_canvas.width = canvas_width
     dynamic_canvas.height = canvas_height
+    
+    for c in (canvas, dynamic_canvas):
+        c.layout.width = f"{canvas_width}px"
+        c.layout.height = f"{canvas_height}px"
+    
+    canvas_container.layout.width = f"{canvas_width}px"
+    canvas_container.layout.height = f"{canvas_height}px"
 
     canvas_container.layout.min_width  = f"{canvas_width}px"
     canvas_container.layout.min_height = f"{canvas_height}px"
