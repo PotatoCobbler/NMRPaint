@@ -2934,6 +2934,12 @@ app_title = HTML(f"""
     margin-bottom:15px;">
 
 <span style="
+    border-bottom:5px solid #BC4B00;
+    padding-bottom:5px;">NMR</span>p<span style="
+    position:relative;
+    display:inline-block;
+    border-bottom:5px solid #BC4B00;
+    padding-bottom:5px;"><span style="
     position:relative;
     display:inline-block;">
     aint&nbsp;🖌️
