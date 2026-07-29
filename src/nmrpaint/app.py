@@ -2946,7 +2946,7 @@ app_title = HTML(f"""
     aint
 </span><span style="
     position:relative;
-    left:-1.0em;">
+    left:-0.75em;">
     🖌️
 </span>
 
