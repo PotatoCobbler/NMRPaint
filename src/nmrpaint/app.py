@@ -2033,7 +2033,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 1000
+canvas_width = 970
 canvas_height = 400
 
 def get_fid_start_time():
@@ -2521,7 +2521,6 @@ def build_elements_panel():
         layout=Layout(
             justify_content="center",
             gap="6px",
-            width="100%",
             overflow="hidden"
         )
     )
@@ -2540,7 +2539,6 @@ def build_elements_panel():
         layout=Layout(
             justify_content="center",
             gap="6px",
-            width="100%",
             overflow="hidden"
         )
     )
@@ -2600,7 +2598,7 @@ canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
 canvas_coherence_column.layout.flex = "1 1 auto"
-elements_section.layout.flex = "0 0 220px"
+elements_section.layout = Layout(width="220px",overflow="hidden")
 property_editor_box.layout.flex = "0 0 230px"
 
 
