@@ -482,7 +482,7 @@ generation_output = Output(
     layout=Layout(
         border="1px solid #d9d9d9",
         padding="6px",
-        width=,
+        width="100%",
         display="none",
     )
 )
@@ -2489,7 +2489,7 @@ def build_elements_panel():
         layout=Layout(
             justify_content="center",
             gap="6px",
-            width=,
+            width="100%",
             overflow="hidden"
         )
     )
@@ -2508,7 +2508,7 @@ def build_elements_panel():
         layout=Layout(
             justify_content="center",
             gap="6px",
-            width=,
+            width="100%",
             overflow="hidden"
         )
     )
