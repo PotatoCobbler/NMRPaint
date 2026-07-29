@@ -2603,7 +2603,6 @@ elements_section = VBox([
     """),
     elements_panel
 ])
-`
 
 # -----------------------
 # Mouse actions
