@@ -2578,7 +2578,7 @@ canvas_section = VBox([
         font-size:15px;
         font-weight:bold;
     ">
-        Pulse Sequence
+        
     </div>
     """),
     canvas_box,
