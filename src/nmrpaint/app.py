@@ -2939,9 +2939,9 @@ app_title = HTML(f"""
     text-decoration-thickness:5px;
     text-underline-offset:5px;">NMR</span>p<span style="
     display:inline-block;
-    border-bottom:5px solid #BC4B00;
+    border-bottom:3.5px solid #BC4B00;
     padding-bottom:5px;
-    padding-right:0.3em;">aint </span>
+    padding-right:0.3em;">aint</span>
     🖌️
 </div>
 """)
