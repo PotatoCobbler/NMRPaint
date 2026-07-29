@@ -1688,17 +1688,18 @@ load_element_files()
 # GUI Components
 # -----------------------
 property_editor_header = HTML(
-    "<b style='font-size:15px'>Element Editor</b>"
+    "<b style='font-size:15px'>Element editor</b>"
 )
 
-property_editor_content = VBox()
+property_editor_content = VBox(
+    layout=Layout(width="100%")
+)
 property_editor_box = VBox(
     [
         property_editor_header,
         property_editor_content
     ],
     layout=Layout(
-        border="1px solid gray",
         padding="8px",
         width="230px",
         overflow="hidden"
@@ -1768,6 +1769,20 @@ update_button = Button(
     description="Update Element",
     button_style="success",
     layout=button_layout
+)
+
+# Initial contents shown when NMRpaint starts
+property_editor_content.children = (
+    el_title,
+    el_name,
+    el_definition,
+    el_shape,
+    el_channel,
+    el_power,
+    el_phase,
+    el_duration,
+    el_height,
+    update_button
 )
 
 def _coerce_for_widget(widget, value, *, default=None, dropdown_options=None):
@@ -2004,7 +2019,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 1000
+canvas_width = 1050
 canvas_height = 400
 
 def get_fid_start_time():
