@@ -1687,7 +1687,23 @@ load_element_files()
 # -----------------------
 # GUI Components
 # -----------------------
-property_editor_box = VBox(layout=Layout(border="1px solid gray", padding="5px", width="200px"))
+property_editor_header = HTML(
+    "<b style='font-size:15px'>Element Editor</b>"
+)
+
+property_editor_content = VBox()
+property_editor_box = VBox(
+    [
+        property_editor_header,
+        property_editor_content
+    ],
+    layout=Layout(
+        border="1px solid gray",
+        padding="8px",
+        width="230px",
+        overflow="hidden"
+    )
+)
 
 field_layout = Layout(width="210px")
 label_style = {"description_width": "85px"}
@@ -1752,27 +1768,6 @@ update_button = Button(
     description="Update Element",
     button_style="success",
     layout=button_layout
-)
-
-property_editor_box = VBox(
-    [
-        el_title,
-        el_name,
-        el_definition,
-        el_shape,
-        el_channel,
-        el_power,
-        el_phase,
-        el_duration,
-        el_height,
-        update_button
-    ],
-    layout=Layout(
-        border="1px solid gray",
-        padding="8px",
-        width="230px",
-        overflow="hidden"
-    )
 )
 
 def _coerce_for_widget(widget, value, *, default=None, dropdown_options=None):
@@ -1957,7 +1952,7 @@ def show_property_editor(el: SequenceElement):
             update_button
         ]
 
-    property_editor_box.children = tuple(visible_widgets)
+    property_editor_content.children = tuple(visible_widgets)
 
     # ---------------------------
     # Update callback
@@ -2009,7 +2004,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 800
+canvas_width = 1000
 canvas_height = 400
 
 def get_fid_start_time():
