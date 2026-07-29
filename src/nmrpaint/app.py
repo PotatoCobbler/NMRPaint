@@ -2940,12 +2940,16 @@ app_title = HTML(f"""
     <span style="
         position:absolute;
         left:0;
-        right:0.7em;   /* Adjust until the line ends 0.3em into the icon */
+        right:0.7em;
         bottom:-5px;
         height:5px;
         background:#BC4B00;">
     </span>
 </span>
+
+</div>
+""")
+
 
 copyright_footer = HTML(f"""
 <hr>
