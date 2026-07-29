@@ -2942,11 +2942,11 @@ app_title = HTML(f"""
     display:inline-block;
     border-bottom:5px solid #BC4B00;
     padding-bottom:8px;
-    padding-right:0.8em;">
+    padding-right:0.5em;">
     aint
 </span><span style="
     position:relative;
-    left:-0.2em;">
+    left:-1.0em;">
     🖌️
 </span>
 
