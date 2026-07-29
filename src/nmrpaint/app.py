@@ -2941,8 +2941,8 @@ app_title = HTML(f"""
 </span>p<span style="
     display:inline-block;
     border-bottom:5px solid #BC4B00;
-    padding-bottom:3px;
-    padding-right:0.25em;">
+    padding-bottom:8px;
+    padding-right:0.1em;">
     aint<span style="position:relative; left:-0.05em;">🖌️</span>
 </span>
 
