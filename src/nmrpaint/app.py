@@ -2604,7 +2604,6 @@ canvas_container.layout.width  = f"{canvas_width}px"
 canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
-canvas_coherence_column.layout.flex = "1 1 auto"
 elements_section.layout = Layout(width="220px",overflow="hidden")
 property_editor_box.layout.flex = "0 0 230px"
 
