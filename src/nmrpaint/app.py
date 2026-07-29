@@ -2062,10 +2062,8 @@ for c in (canvas, dynamic_canvas):
     c.layout.height = f"{canvas_height}px"
 
 dynamic_canvas.layout.pointer_events = "none"
-
 canvas.layout.border = "1px solid black"
 
-# IMPORTANT: use a Box that is itself relative-positioned
 canvas_container = Box(
     children=[canvas, dynamic_canvas],
     layout=Layout(
@@ -2583,7 +2581,10 @@ canvas_section = VBox([
     """),
     canvas_box,
     coherence_label
-])
+],
+layout=Layout(
+    padding="0 20px 0 0"
+))
 
 elements_section = VBox([
     HTML("""
