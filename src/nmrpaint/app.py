@@ -2583,7 +2583,7 @@ canvas_section = VBox([
     coherence_label
 ],
 layout=Layout(
-    padding="0 20px 0 0"
+    padding="0 25px 0 0"
 ))
 
 elements_section = VBox([
