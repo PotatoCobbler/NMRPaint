@@ -2571,12 +2571,19 @@ coherence_label = Label(
     value=sequence.coherence_summary()
 )
 
-canvas_coherence_column = VBox(
-    [
-        canvas_box,
-        coherence_label
-    ]
-)
+canvas_section = VBox([
+    HTML("""
+    <div style="
+        text-align:center;
+        font-size:15px;
+        font-weight:bold;
+    ">
+        Pulse Sequence
+    </div>
+    """),
+    canvas_box,
+    coherence_label
+])
 
 elements_section = VBox([
     HTML("""
@@ -2922,7 +2929,7 @@ top_bar = HBox(
 main_top_row = HBox(
     [
         elements_section,
-        canvas_coherence_column,
+        canvas_section,
         phase_cycle_box,
         property_editor_box
     ],
