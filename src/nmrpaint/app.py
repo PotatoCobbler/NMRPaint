@@ -1305,7 +1305,16 @@ def add_phase_row(pulse, phase):
     phase_cycle_container.children = list(phase_cycle_container.children) + [row_widget]
 
 phase_cycle_box = VBox([
-    HTML("<b style='font-size:15px'>Phase Cycle Generator</b>"),
+    HTML("""
+    <div style="
+        text-align:center;
+        font-size:15px;
+        font-weight:bold;
+        margin-bottom:8px;
+    ">
+        Phase Cycle Generator
+    </div>
+    """),
     phase_cycle_header,
     phase_cycle_container,
     phase_cycle_output
@@ -1687,9 +1696,15 @@ load_element_files()
 # -----------------------
 # GUI Components
 # -----------------------
-property_editor_header = HTML(
-    "<b style='font-size:15px'>Element editor</b>"
-)
+property_editor_header = HTML("""
+<div style="
+    text-align:center;
+    font-size:15px;
+    font-weight:bold;
+">
+    Element editor
+</div>
+""")
 
 property_editor_content = VBox(
     layout=Layout(width="100%")
@@ -2019,7 +2034,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 1050
+canvas_width = 1000
 canvas_height = 400
 
 def get_fid_start_time():
@@ -2577,7 +2592,7 @@ elements_panel.layout.flex          = "0 0 150px"
 property_editor_box.layout.flex     = "0 0 230px"
 
 elements_section = VBox([
-    HTML("<b style='font-size:16px'>Elements</b>"),
+    HTML("<b style='font-size:15px'>Elements</b>"),
     elements_panel
 ])
 
@@ -2784,7 +2799,7 @@ canvas.on_mouse_up(on_canvas_mouse_up)
 # Canvas size controls
 # -----------------------
 canvas_width_input = IntText(
-    description="Canvas W:",
+    description="Canvas width:",
     value=canvas_width,
     layout=Layout(width="160px"),
     style={'description_width': '75px'}
@@ -2899,7 +2914,7 @@ top_bar = HBox(
 )
 
 #elements_section = VBox([
-#    HTML("<b style='font-size:16px'>Elements</b>"),
+#    HTML("<b style='font-size:15px'>Elements</b>"),
 #    elements_panel
 #])
 
