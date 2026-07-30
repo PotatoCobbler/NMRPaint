@@ -939,8 +939,11 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                     )
     
                 elif exp_2d_option.value == "Echo-Antiecho":
+                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
     
-                    # Selected gradients (gp1, gp2, ...)
+                    calph_parts = [f"calph({p}, +90)" for p in pulses]
+                    calph_string = " & ".join(calph_parts)
+                    
                     selected_gp = [dd.value for dd in shape_dropdowns if dd.value]
     
                     # Map gp1 -> EA1, gp3 -> EA2, ...
