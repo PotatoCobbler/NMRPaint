@@ -1104,15 +1104,13 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # Gradient related logic
     # -----------------------
-    gradients = []
+    gradients = sorted(
+        [el for el in sequence.elements if el.kind.lower() == "grad"],
+        key=lambda e: e.start
+    )
     
-    for el in sequence.elements:
-        if el.kind.lower() == "grad" and getattr(el, "title", None):
-            gradients.append({
-                "power": el.power,
-                "title": el.title
-            })
-    
+    for i, el in enumerate(gradients, start=1):
+        el.shape = f"gp{i}"
     if gradients:
     
         f.write(";for z-only gradients:\n")
