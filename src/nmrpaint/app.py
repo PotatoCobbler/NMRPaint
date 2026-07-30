@@ -676,12 +676,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     def write_delay(el):
         return f" {el.name}"
 
-         
-    gradient_numbers = {
-        id(el): i
-        for i, el in enumerate(gradients, start=1)
-    }
-    
     ea_gradients = {
     dd.value for dd in shape_dropdowns
     if dd.value
