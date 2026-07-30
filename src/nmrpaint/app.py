@@ -688,13 +688,19 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     }
 
     def write_grad(el):
-        gp = f"gp{gradient_numbers[id(el)]}"
+    
+        gradients = sorted(
+            [g for g in sequence.elements if g.kind.lower() == "grad"],
+            key=lambda g: g.start
+        )
+    
+        gp = f"gp{gradients.index(el) + 1}"
     
         if gp in ea_gradients:
-            gp = f"{gp}*EA"
+            gp += "*EA"
     
         return f" {el.name}:{gp}\n d16"
-    
+        
     def write_block(el):
     
         title = el.title.strip().lower()
