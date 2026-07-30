@@ -2064,7 +2064,7 @@ def show_property_editor(el: SequenceElement):
 # -----------------------
 
 canvas_width = 970
-canvas_height = 400
+canvas_height = 450
 
 def get_fid_start_time():
     return (canvas.width - 83) / timeline_scale
