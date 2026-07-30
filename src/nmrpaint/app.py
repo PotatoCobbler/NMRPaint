@@ -1140,7 +1140,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         f.write("\n;use gradient files:\n")
         for n in sorted(gradients):
             vals = gradients[n]
-            f.write(f";gpnam{n}: {vals['shape']}\n")
+            f.write(f";gpnam{n}: {vals['title']}\n")
     
         f.write("\n")
     
