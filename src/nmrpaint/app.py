@@ -1714,7 +1714,6 @@ property_editor_box = VBox(
         property_editor_content
     ],
     layout=Layout(
-        padding="8px",
         width="230px",
         overflow="hidden"
     )
@@ -2553,7 +2552,6 @@ def build_elements_panel():
             gap="6px",
             margin="0 15px 0 0",
             overflow="hidden",
-            background_color="white"
         )
     )
 
