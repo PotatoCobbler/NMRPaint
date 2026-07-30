@@ -970,7 +970,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
                     f.write(
                         f" 30m mc #0 to 2 "
-                        f"F1EA({', '.join(args)})\n"
+                        f"F1EA({'& '.join(args)})\n"
                     )
     
                 else:
@@ -1589,42 +1589,37 @@ def update_2d_dropdowns(change=None):
 
     # ---- Echo-Antiecho case ----
     if exp_2d_option.value == "Echo-Antiecho":
-
-        pulse_section.layout.display = "none"
+    
+        pulse_section.layout.display = "flex"
         shape_section.layout.display = "flex"
-
-        # get unique shapes
+    
         gradients = sorted(
             [el for el in sequence.elements if el.kind.lower() == "grad"],
             key=lambda el: el.start
         )
-        
+    
         shape_names = [f"gp{i}" for i in range(1, len(gradients) + 1)]
-
-        if not shape_names:
-            return
-
+    
         shape_dropdowns.clear()
         shape_dropdowns_container.children = ()
-
+    
         def add_dropdown(change=None):
             if change is not None and not change["new"]:
                 return
-
+    
             dd = Dropdown(
                 options=[""] + shape_names,
                 description="",
                 layout=Layout(width="140px")
             )
-
+    
             dd.observe(add_dropdown, names="value")
-
+    
             shape_dropdowns.append(dd)
             shape_dropdowns_container.children = tuple(shape_dropdowns)
-
+    
         add_dropdown()
         return
-
 
     # ---- Phase-sensitive experiments ----
     if exp_2d_option.value not in phase_sensitive:
