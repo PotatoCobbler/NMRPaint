@@ -150,11 +150,16 @@ def apply_placement_defaults(el: 'SequenceElement'):
 
     # 2) Gradients: fixed defaults
     if kind == "grad":
-        el.name = "p16"
-        #el.shape = "gp1"
-        el.channel = "Gz"
-        el.power = "0"
-        el.phase = ""
+        if not el.name:
+            el.name = "p16"
+        if not el.shape:
+            el.shape = "gp1"
+        if not el.channel:
+            el.channel = "Gz"
+        if not el.power:
+            el.power = "0"
+        if el.phase is None:
+            el.phase = ""
         return
 
     # 3) Pulse rules (channel-sensitive)
