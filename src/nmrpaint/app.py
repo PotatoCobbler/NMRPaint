@@ -2998,11 +2998,10 @@ main_vbox = VBox(
         main_top_row,
         copyright_footer,
     ],
-    layout=Layout(
-        background_color="#FF0000"
-    )
 )
-#background_color="#F8F8FF"
+
+main_vbox.layout = Layout(background_color="#f5f5f5",padding="15px")
+
 #initial d1 arrow with update logic
 dash_x = 40
 fid_start_time = (canvas.width - 83) / timeline_scale
