@@ -1104,43 +1104,37 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # Gradient related logic
     # -----------------------
-    gradients = {}
+    gradients = []
     
     for el in sequence.elements:
-    
         if el.kind.lower() == "grad" and getattr(el, "title", None):
+            gradients.append({
+                "power": el.power,
+                "title": el.title
+            })
     
-            m = re.match(r"gp(\d+)", el.title.strip(), re.IGNORECASE)
-    
-            if m:
-                gp_num = int(m.group(1))
-    
-                if gp_num not in gradients:
-                    gradients[gp_num] = {
-                        "power": el.power,
-                        "title": el.title
-                    }
-
     if gradients:
     
         f.write(";for z-only gradients:\n")
     
-        for n in sorted(gradients):
-            vals = gradients[n]
+        for i, vals in enumerate(gradients, start=1):
     
-            power = vals['power']
+            power = vals["power"]
     
             if power is None or power == "":
                 power_str = "undefined"
             else:
                 power_str = f"{power}".rstrip("%") + "%"
     
-            f.write(f";gpz{n}: {power_str}\n")
+            f.write(f";gpz{i}: {power_str}\n")
     
         f.write("\n;use gradient files:\n")
-        for n in sorted(gradients):
-            vals = gradients[n]
-            f.write(f";gpnam{n}: {vals['title']}\n")
+    
+        for i, vals in enumerate(gradients, start=1):
+            f.write(f";gpnam{i}: {vals['title']}\n")
+    
+        f.write("\n")
+
     
         f.write("\n")
     
