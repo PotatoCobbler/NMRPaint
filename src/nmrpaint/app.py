@@ -2989,8 +2989,22 @@ copyright_footer = HTML(f"""
 </div>
 """)
 
+app_wrapper = HTML("""
+<div style="
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    background:#ff0000;
+    z-index:-999;
+">
+</div>
+""")
+
 main_vbox = VBox(
     [
+        app_wrapper,
         app_title,
         top_bar,
         exp_prop_section,
@@ -3000,7 +3014,6 @@ main_vbox = VBox(
     ],
 )
 
-main_vbox.layout = Layout(background_color="#ff0000")
 
 #initial d1 arrow with update logic
 dash_x = 40
