@@ -1101,39 +1101,39 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     else:
         f.write(";\n")
         
-# -----------------------
-# Gradient related logic
-# -----------------------
-gradients = sorted(
-    [el for el in sequence.elements if el.kind.lower() == "grad"],
-    key=lambda e: e.start
-)
-
-# Renumber gradient shapes
-for i, el in enumerate(gradients, start=1):
-    el.shape = f"gp{i}"
-
-if gradients:
-
-    f.write(";for z-only gradients:\n")
-
+    # -----------------------
+    # Gradient related logic
+    # -----------------------
+    gradients = sorted(
+        [el for el in sequence.elements if el.kind.lower() == "grad"],
+        key=lambda e: e.start
+    )
+    
+    # Renumber gradient shapes
     for i, el in enumerate(gradients, start=1):
-
-        power = el.power
-
-        if not power:
-            power_str = "undefined"
-        else:
-            power_str = f"{power}".rstrip("%") + "%"
-
-        f.write(f";gpz{i}: {power_str}\n")
-
-    f.write("\n;use gradient files:\n")
-
-    for i, el in enumerate(gradients, start=1):
-        f.write(f";gpnam{i}: {el.title}\n")
-
-    f.write("\n")
+        el.shape = f"gp{i}"
+    
+    if gradients:
+    
+        f.write(";for z-only gradients:\n")
+    
+        for i, el in enumerate(gradients, start=1):
+    
+            power = el.power
+    
+            if not power:
+                power_str = "undefined"
+            else:
+                power_str = f"{power}".rstrip("%") + "%"
+    
+            f.write(f";gpz{i}: {power_str}\n")
+    
+        f.write("\n;use gradient files:\n")
+    
+        for i, el in enumerate(gradients, start=1):
+            f.write(f";gpnam{i}: {el.title}\n")
+    
+        f.write("\n")
     
     # -----------------------
     # Footer
