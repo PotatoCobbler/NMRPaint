@@ -1,10 +1,10 @@
 ; gradient pulse
-title=
+title=sine.100
 name=p16
 definition=
 duration=4
 channel=Gz
-power=gp1
+power=10%
 phase=
 random_enabled=False
 random_type=hard
