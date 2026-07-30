@@ -150,16 +150,11 @@ def apply_placement_defaults(el: 'SequenceElement'):
 
     # 2) Gradients: fixed defaults
     if kind == "grad":
-        if not el.name:
-            el.name = "p16"
-        if not el.shape:
-            el.shape = "gp1"
-        if not el.channel:
-            el.channel = "Gz"
-        if not el.power:
-            el.power = "0"
-        if el.phase is None:
-            el.phase = ""
+        el.name = "p16"
+        el.shape = "gp1"
+        el.channel = "Gz"
+        el.power = "0"
+        el.phase = ""
         return
 
     # 3) Pulse rules (channel-sensitive)
@@ -680,20 +675,25 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     def write_delay(el):
         return f" {el.name}"
+
+         
+    gradient_numbers = {
+        id(el): i
+        for i, el in enumerate(gradients, start=1)
+    }
     
     ea_gradients = {
     dd.value for dd in shape_dropdowns
     if dd.value
     }
-     
+
     def write_grad(el):
+        gp = f"gp{gradient_numbers[id(el)]}"
     
-        shape = el.shape
+        if gp in ea_gradients:
+            gp = f"{gp}*EA"
     
-        if shape in ea_gradients:
-            shape = f"{shape}*EA"
-    
-        return f" {el.name}:{shape}\n d16"        
+        return f" {el.name}:{gp}\n d16"
     
     def write_block(el):
     
