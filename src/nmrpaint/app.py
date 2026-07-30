@@ -2552,7 +2552,8 @@ def build_elements_panel():
             align_items="center",
             gap="6px",
             margin="0 15px 0 0",
-            overflow="hidden"
+            overflow="hidden",
+            background_color="white"
         )
     )
 
