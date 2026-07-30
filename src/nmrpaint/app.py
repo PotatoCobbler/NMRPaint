@@ -3000,7 +3000,7 @@ main_vbox = VBox(
     ],
 )
 
-main_vbox.layout = Layout(background_color="#f5f5f5",padding="15px")
+main_vbox.layout = Layout(background_color="#ff0000")
 
 #initial d1 arrow with update logic
 dash_x = 40
