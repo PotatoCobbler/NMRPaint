@@ -1108,7 +1108,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     for el in sequence.elements:
     
-        if el.kind.lower() == "grad" and getattr(el, "shape", None):
+        if el.kind.lower() == "grad" and getattr(el, "title", None):
     
             m = re.match(r"gp(\d+)", el.shape.strip(), re.IGNORECASE)
     
@@ -1118,7 +1118,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                 if gp_num not in gradients:
                     gradients[gp_num] = {
                         "power": el.power,
-                        "shape": el.definition
+                        "title": el.definition
                     }
 
     if gradients:
