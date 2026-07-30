@@ -1,5 +1,5 @@
 ; gradient pulse
-title=sine.100
+title=SMSQ10.100
 name=p16
 definition=
 duration=4
