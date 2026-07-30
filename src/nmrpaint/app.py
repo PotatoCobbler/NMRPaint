@@ -2426,6 +2426,8 @@ def draw_element(c, el, _ignored=None):
     
 def draw_static_background():
     canvas.clear()
+    canvas.fill_style = "white"
+    canvas.fill_rect(0, 0, canvas.width, canvas.height)
     canvas.font = "16px Arial"
 
     # Vertical reference line
