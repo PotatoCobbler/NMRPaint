@@ -2996,7 +2996,7 @@ app_wrapper = HTML("""
     left:0;
     width:100vw;
     height:100vh;
-    background:#eaf2ff;
+    background:#F5F5F5;
     z-index:-999;
 ">
 </div>
