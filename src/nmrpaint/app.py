@@ -681,6 +681,15 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     if dd.value
     }
 
+    ea_map = {}
+
+    if exp_2d_option.value == "Echo-Antiecho":
+        selected_gp = [dd.value for dd in shape_dropdowns if dd.value]
+        ea_map = {
+            gp: f"EA{i}"
+            for i, gp in enumerate(selected_gp, start=1)
+        }
+
     def write_grad(el):
     
         gradients = sorted(
@@ -688,10 +697,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             key=lambda g: g.start
         )
     
-        gp = f"gp{gradients.index(el) + 1}"
+        gp = f"gp{gradients.index(el)+1}"
     
-        if gp in ea_gradients:
-            gp += "*EA"
+        if gp in ea_map:
+            gp += f"*{ea_map[gp]}"
     
         return f" {el.name}:{gp}\n d16"
         
@@ -906,34 +915,59 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # Normal acquisition
     # -----------------------
-    
     else:
     
-        if exp_dim.value == "1D":    
+        if exp_dim.value == "1D":
             f.write(" 30m mc #0 to 2 F0(zd)\n")
     
         else:
     
-            if exp_2d_option.value != "undefined":   
-                phase_sensitive = ["States", "TPPI", "States-TPPI"]    
-                
-                if exp_2d_option.value in phase_sensitive:    
-                    pulses = []
+            if exp_2d_option.value != "undefined":
     
-                    for dd in pulse_dropdowns:
-                        if dd.value:
-                            pulses.append(dd.value)
+                phase_sensitive = ["States", "TPPI", "States-TPPI"]
     
-                    calph_parts = []
+                if exp_2d_option.value in phase_sensitive:
     
-                    for p in pulses:
-                        calph_parts.append(f"calph({p}, +90)")
+                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
     
+                    calph_parts = [f"calph({p}, +90)" for p in pulses]
                     calph_string = " & ".join(calph_parts)
     
                     f.write(
                         f" 30m mc #0 to 2 "
                         f"F1PH({calph_string}, caldel(d0, +in0))\n"
+                    )
+    
+                elif exp_2d_option.value == "Echo-Antiecho":
+    
+                    # Selected gradients (gp1, gp2, ...)
+                    selected_gp = [dd.value for dd in shape_dropdowns if dd.value]
+    
+                    # Map gp1 -> EA1, gp3 -> EA2, ...
+                    ea_map = {
+                        gp: f"EA{i}"
+                        for i, gp in enumerate(selected_gp, start=1)
+                    }
+    
+                    calea_string = " & ".join(
+                        f"calgrad({ea})"
+                        for ea in ea_map.values()
+                    )
+    
+                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
+                    calph_string = " & ".join(
+                        f"calph({p}, +90)"
+                        for p in pulses
+                    )
+    
+                    args = [calea_string, "caldel(d0, +in0)"]
+    
+                    if calph_string:
+                        args.append(calph_string)
+    
+                    f.write(
+                        f" 30m mc #0 to 2 "
+                        f"F1EA({', '.join(args)})\n"
                     )
     
                 else:
@@ -943,8 +977,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         if block_overlaps_fid:
             f.write(" 30m do:f2\n")
     
-    f.write("exit\n\n")
-    
+    f.write("exit\n\n")    
     # -----------------------
     # Post pulse sequence entries (phase table and definitions)
     # -----------------------
@@ -1558,8 +1591,12 @@ def update_2d_dropdowns(change=None):
         shape_section.layout.display = "flex"
 
         # get unique shapes
-        shape_names = sorted({el.shape for el in sequence.elements
-                              if el.kind.lower() == "grad"})
+        gradients = sorted(
+            [el for el in sequence.elements if el.kind.lower() == "grad"],
+            key=lambda el: el.start
+        )
+        
+        shape_names = [f"gp{i}" for i in range(1, len(gradients) + 1)]
 
         if not shape_names:
             return
