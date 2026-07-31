@@ -563,11 +563,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         f.write("#include <Grad.incl>\n")
 
     delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon"]
-    if any(
-        el.kind.lower() == "delay" and el.name
-        for el in sequence.elements
-        if any(k in el.name for k in delay_keywords)
-    ):
+    for el in sequence.elements:
+        if any(k in el.name for k in delay_keywords):
+
         f.write("#include <Delay.incl>\n")
 
     if exp_incl.value.strip():
@@ -676,15 +674,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     def write_delay(el):
         return f" {el.name}"
 
-    ea_map = {}
-    
-    count = 1
-    
-    for gp_dd, sign_dd in ea_gradient_rows:
-    
-        if not gp_dd.value:
-            continue
-    
         ea_map[gp_dd.value] = (
             f"EA{count}",
             sign_dd.value
@@ -694,11 +683,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
 
     if exp_2d_option.value == "Echo-Antiecho":
         ea_map = {}
-        
         count = 1
-        
-        for gp_dd, sign_dd in ea_gradient_rows:
-        
+        for gp_dd, sign_dd in ea_gradient_rows:        
             if not gp_dd.value:
                 continue
         
@@ -810,7 +796,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         "block": write_block,
         "shaped": write_shaped,
         "pulse": write_pulse,
-        "flag": write_flag
     }
     
     elements_by_start = {}
@@ -958,7 +943,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                     exp_2d_option.value in phase_sensitive
                     or exp_2d_option.value == "Echo-Antiecho"
                 )
-    
+                
+                calph_string = ""
+                
                 if exp_2d_option.value in phase_sensitive:
     
                     calph_parts = []
@@ -996,7 +983,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         if block_overlaps_fid:
             f.write(" 30m do:f2\n")
     
-    f.write("exit\n\n")    
+    f.write("exit\n\n")
     # -----------------------
     # Post pulse sequence entries (phase table and definitions)
     # -----------------------
