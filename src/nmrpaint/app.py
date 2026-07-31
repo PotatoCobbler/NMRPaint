@@ -943,8 +943,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                     or exp_2d_option.value == "Echo-Antiecho"
                 )
                 
-                calph_string = ""
-                
                 if exp_2d_option.value in phase_sensitive:
     
                     calph_parts = []
@@ -963,7 +961,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                         f" 30m mc #0 to 2 "
                         f"F1PH({calph_string}, caldel(d0, +in0))\n"
                     )
-    
+                    
+                    calph_string = " & ".join(calph_parts)
                 elif exp_2d_option.value == "Echo-Antiecho":
                     args = [calea_string, "caldel(d0, +in0)"]
                     
