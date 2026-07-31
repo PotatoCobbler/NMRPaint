@@ -1592,9 +1592,9 @@ shape_section = HBox(
     layout=Layout(spacing="2px", align_items="center", margin="0px", padding="0px", display="none")
 )
 
-def update_2d_dropdowns(change=None):
+phase_sensitive = ["States", "TPPI", "States-TPPI", "Echo-Antiecho"]
 
-    phase_sensitive = ["States", "TPPI", "States-TPPI"]
+def update_2d_dropdowns(change=None):
 
     show_phase = (
         exp_2d_option.value in phase_sensitive
