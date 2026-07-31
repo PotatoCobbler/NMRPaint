@@ -713,26 +713,26 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             f"calgrad({ea_name})"
             for ea_name, sign in ea_map.values()
         )
+        
+    def write_grad(el):
     
-def write_grad(el):
-
-    gradients = sorted(
-        [g for g in sequence.elements if g.kind.lower() == "grad"],
-        key=lambda g: g.start
-    )
-
-    gp = f"gp{gradients.index(el)+1}"
-
-    if gp in ea_map:
-
-        ea_name, sign = ea_map[gp]
-
-        if sign == "+":
-            gp += f"*{ea_name}"
-        else:
-            gp += f"*-1*{ea_name}"
-
-    return f" {el.name}:{gp}\n d16"
+        gradients = sorted(
+            [g for g in sequence.elements if g.kind.lower() == "grad"],
+            key=lambda g: g.start
+        )
+    
+        gp = f"gp{gradients.index(el)+1}"
+    
+        if gp in ea_map:
+    
+            ea_name, sign = ea_map[gp]
+    
+            if sign == "+":
+                gp += f"*{ea_name}"
+            else:
+                gp += f"*-1*{ea_name}"
+    
+        return f" {el.name}:{gp}\n d16"
     
     def write_block(el):
     
