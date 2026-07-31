@@ -671,6 +671,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         return number_text
     
     def write_delay(el):
+        ea_map = {}
+        count = 1
+        
         return f" {el.name}"
 
         ea_map[gp_dd.value] = (
@@ -1265,27 +1268,32 @@ def generate_and_phase(b):
 
 def prepare_browser_download(b):
 
-    populate_phase_rows()
+    try:
+        populate_phase_rows()
 
-    if phase_cycle_checkbox.value:
-        generate_phase_cycle()
+        if phase_cycle_checkbox.value:
+            generate_phase_cycle()
 
-    content = build_pulse_program_text()
+        content = build_pulse_program_text()
 
-    filename = normalize_output_filename(
-        exp_title.value,
-        default="pulse_program",
-    )
+        filename = normalize_output_filename(
+            exp_title.value,
+            default="pulse_program",
+        )
 
-    href = build_text_download_href(content)
+        href = build_text_download_href(content)
 
-    browser_download_link.value = f"""
-    <a id="nmrpaint_download"
-       href="{href}"
-       download="{filename}">
-       Download
-    </a>
-    """
+        browser_download_link.value = f"""
+        {href}
+           Download
+        </a>
+        """
+
+        print("Download link created")
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
 
 # -----------------------
 # Phase Cycle GUI
