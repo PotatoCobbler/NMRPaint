@@ -565,8 +565,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon"]
     for el in sequence.elements:
         if any(k in el.name for k in delay_keywords):
-
-        f.write("#include <Delay.incl>\n")
+            f.write("#include <Delay.incl>\n")
 
     if exp_incl.value.strip():
         f.write(f"#include <{exp_incl.value.strip()}>\n")
