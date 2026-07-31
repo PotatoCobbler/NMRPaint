@@ -563,9 +563,12 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         f.write("#include <Grad.incl>\n")
 
     delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon"]
-    for el in sequence.elements:
-        if any(k in el.name for k in delay_keywords):
-            f.write("#include <Delay.incl>\n")
+    if any(
+        el.kind.lower() == "delay" and el.name
+        for el in sequence.elements
+        if any(k in el.name for k in delay_keywords)
+    ):
+        f.write("#include <Delay.incl>\n")
 
     if exp_incl.value.strip():
         f.write(f"#include <{exp_incl.value.strip()}>\n")
@@ -671,37 +674,22 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         return number_text
     
     def write_delay(el):
-        ea_map = {}
-        count = 1
-        
         return f" {el.name}"
 
-        ea_map[gp_dd.value] = (
-            f"EA{count}",
-            sign_dd.value
-        )
-    
-        count += 1
+    ea_gradients = {
+    dd.value for dd in shape_dropdowns
+    if dd.value
+    }
+
+    ea_map = {}
 
     if exp_2d_option.value == "Echo-Antiecho":
-        ea_map = {}
-        count = 1
-        for gp_dd, sign_dd in ea_gradient_rows:        
-            if not gp_dd.value:
-                continue
-        
-            ea_map[gp_dd.value] = (
-                f"EA{count}",
-                sign_dd.value
-            )
-        
-            count += 1
-        
-        calea_string = " & ".join(
-            f"calgrad({ea_name})"
-            for ea_name, sign in ea_map.values()
-        )
-        
+        selected_gp = [dd.value for dd in shape_dropdowns if dd.value]
+        ea_map = {
+            gp: f"EA{i}"
+            for i, gp in enumerate(selected_gp, start=1)
+        }
+
     def write_grad(el):
     
         gradients = sorted(
@@ -712,16 +700,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         gp = f"gp{gradients.index(el)+1}"
     
         if gp in ea_map:
-    
-            ea_name, sign = ea_map[gp]
-    
-            if sign == "+":
-                gp += f"*{ea_name}"
-            else:
-                gp += f"*-1*{ea_name}"
+            gp += f"*{ea_map[gp]}"
     
         return f" {el.name}:{gp}\n d16"
-    
+        
     def write_block(el):
     
         title = el.title.strip().lower()
@@ -798,6 +780,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         "block": write_block,
         "shaped": write_shaped,
         "pulse": write_pulse,
+        "flag": write_flag
     }
     
     elements_by_start = {}
@@ -940,44 +923,54 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         else:
     
             if exp_2d_option.value != "undefined":
-                
-                calph_string = ""
-                
-                show_phase = (
-                    exp_2d_option.value in phase_sensitive
-                    or exp_2d_option.value == "Echo-Antiecho"
-                )
-                
+    
+                phase_sensitive = ["States", "TPPI", "States-TPPI"]
+    
                 if exp_2d_option.value in phase_sensitive:
     
-                    calph_parts = []
-                    
-                    for phase_dd, inc_dd in phase_rows:                    
-                        if not phase_dd.value:
-                            continue
-                    
-                        calph_parts.append(
-                            f"calph({phase_dd.value}, {inc_dd.value})"
-                        )
-                    
+                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
+    
+                    calph_parts = [f"calph({p}, +90)" for p in pulses]
                     calph_string = " & ".join(calph_parts)
     
                     f.write(
                         f" 30m mc #0 to 2 "
                         f"F1PH({calph_string}, caldel(d0, +in0))\n"
                     )
-                    
+    
+                elif exp_2d_option.value == "Echo-Antiecho":
+                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
+    
+                    calph_parts = [f"calph({p}, +90)" for p in pulses]
                     calph_string = " & ".join(calph_parts)
                     
-                elif exp_2d_option.value == "Echo-Antiecho":
+                    selected_gp = [dd.value for dd in shape_dropdowns if dd.value]
+    
+                    # Map gp1 -> EA1, gp3 -> EA2, ...
+                    ea_map = {
+                        gp: f"EA{i}"
+                        for i, gp in enumerate(selected_gp, start=1)
+                    }
+    
+                    calea_string = " & ".join(
+                        f"calgrad({ea})"
+                        for ea in ea_map.values()
+                    )
+    
+                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
+                    calph_string = " & ".join(
+                        f"calph({p}, +90)"
+                        for p in pulses
+                    )
+    
                     args = [calea_string, "caldel(d0, +in0)"]
-                    
+    
                     if calph_string:
                         args.append(calph_string)
-                    
+    
                     f.write(
                         f" 30m mc #0 to 2 "
-                        f"F1EA({', '.join(args)})\n"
+                        f"F1EA({'& '.join(args)})\n"
                     )
     
                 else:
@@ -987,7 +980,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         if block_overlaps_fid:
             f.write(" 30m do:f2\n")
     
-    f.write("exit\n\n")
+    f.write("exit\n\n")    
     # -----------------------
     # Post pulse sequence entries (phase table and definitions)
     # -----------------------
@@ -1190,9 +1183,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
 
     return f.getvalue()
 
-# -----------------------
-# Generate and download link
-# -----------------------
 
 def save_pulse_program(
     filename: str | Path,
@@ -1223,16 +1213,16 @@ def generate_pulse_program(
 
 def _generate_local_pulse_program() -> Path:
     """Build and save the current pulse program locally."""
-
     filename = normalize_output_filename(
         exp_title.value,
         default="pulse_program",
     )
 
-    return generate_pulse_program(
+    return save_text_local(
+        content=content,
         filename=filename,
-        include_phase_cycle=phase_cycle_checkbox.value,
     )
+
 
 def generate_program_button_click(b):
     """Generate the current pulse program in the local output directory."""
@@ -1243,7 +1233,6 @@ def generate_program_button_click(b):
         try:
             output_path = _generate_local_pulse_program()
             print(f"Pulse program saved to: {output_path.resolve()}")
-            prepare_browser_download(None)
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
@@ -1268,32 +1257,27 @@ def generate_and_phase(b):
 
 def prepare_browser_download(b):
 
-    try:
-        populate_phase_rows()
+    populate_phase_rows()
 
-        if phase_cycle_checkbox.value:
-            generate_phase_cycle()
+    if phase_cycle_checkbox.value:
+        generate_phase_cycle()
 
-        content = build_pulse_program_text()
+    content = build_pulse_program_text()
 
-        filename = normalize_output_filename(
-            exp_title.value,
-            default="pulse_program",
-        )
+    filename = normalize_output_filename(
+        exp_title.value,
+        default="pulse_program",
+    )
 
-        href = build_text_download_href(content)
+    href = build_text_download_href(content)
 
-        browser_download_link.value = f"""
-        {href}
-           Download
-        </a>
-        """
-
-        print("Download link created")
-
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
+    browser_download_link.value = f"""
+    <a id="nmrpaint_download"
+       href="{href}"
+       download="{filename}">
+       Download
+    </a>
+    """
 
 # -----------------------
 # Phase Cycle GUI
@@ -1591,8 +1575,7 @@ pulse_section = HBox(
 )
 
 #shapes
-ea_gradient_rows = []
-phase_rows = []
+shape_dropdowns = []
 shape_section_label = Label("EA grad:", layout=Layout(width="80px"))
 shape_dropdowns_container = HBox([], layout=Layout(width="200px", spacing="2px", align_items="center", margin="0px", padding="0px"))
 shape_section = HBox(
@@ -1600,104 +1583,83 @@ shape_section = HBox(
     layout=Layout(spacing="2px", align_items="center", margin="0px", padding="0px", display="none")
 )
 
-phase_sensitive = ["States", "TPPI", "States-TPPI", "Echo-Antiecho"]
-
 def update_2d_dropdowns(change=None):
 
-    show_phase = (
-        exp_2d_option.value in phase_sensitive
-        or exp_2d_option.value == "Echo-Antiecho"
-    )
+    phase_sensitive = ["States", "TPPI", "States-TPPI"]
 
-    show_ea = (exp_2d_option.value == "Echo-Antiecho")
-
-    # -------------------------
-    # Show / hide UI sections
-    # -------------------------
-    pulse_section.layout.display = "flex" if show_phase else "none"
-    shape_section.layout.display = "flex" if show_ea else "none"
-
-    # =====================================================
-    # Echo-Antiecho gradient selection
-    # =====================================================
-    ea_gradient_rows.clear()
-    shape_dropdowns_container.children = ()
-
-    if show_ea:
-
+    # ---- Echo-Antiecho case ----
+    if exp_2d_option.value == "Echo-Antiecho":
+    
+        pulse_section.layout.display = "flex"
+        shape_section.layout.display = "flex"
+    
         gradients = sorted(
             [el for el in sequence.elements if el.kind.lower() == "grad"],
             key=lambda el: el.start
         )
-
-        gp_names = [f"gp{i}" for i in range(1, len(gradients)+1)]
-
-        def add_ea_row(change=None):
-
+    
+        shape_names = [f"gp{i}" for i in range(1, len(gradients) + 1)]
+    
+        shape_dropdowns.clear()
+        shape_dropdowns_container.children = ()
+    
+        def add_dropdown(change=None):
             if change is not None and not change["new"]:
                 return
-
-            gp_dd = Dropdown(
-                options=[""] + gp_names,
-                layout=Layout(width="70px")
+    
+            dd = Dropdown(
+                options=[""] + shape_names,
+                description="",
+                layout=Layout(width="140px")
             )
+    
+            dd.observe(add_dropdown, names="value")
+    
+            shape_dropdowns.append(dd)
+            shape_dropdowns_container.children = tuple(shape_dropdowns)
+    
+        add_dropdown()
+        return
 
-            sign_dd = Dropdown(
-                options=["+", "-"],
-                value="+",
-                layout=Layout(width="55px")
-            )
+    # ---- Phase-sensitive experiments ----
+    if exp_2d_option.value not in phase_sensitive:
+        pulse_section.layout.display = "none"
+        shape_section.layout.display = "none"
 
-            gp_dd.observe(add_ea_row, names="value")
+        pulse_dropdowns.clear()
+        pulse_dropdowns_container.children = ()
+        return
 
-            ea_gradient_rows.append((gp_dd, sign_dd))
 
-            shape_dropdowns_container.children = tuple(
-                HBox([gp, sign])
-                for gp, sign in ea_gradient_rows
-            )
+    pulse_section.layout.display = "flex"
+    shape_section.layout.display = "none"
 
-        add_ea_row()
+    # get available pulses
+    pulse_names = sorted({el.phase for el in sequence.elements
+                          if el.kind.lower() in ["pulse", "shaped"]})
 
-    # =====================================================
-    # Phase increment selection
-    # =====================================================
-    phase_rows.clear()
+    if not pulse_names:
+        return
+
+    pulse_dropdowns.clear()
     pulse_dropdowns_container.children = ()
 
-    phase_names = sorted({
-        el.phase
-        for el in sequence.elements
-        if el.phase
-    })
-
-    def add_phase_row(change=None):
-
+    def add_dropdown(change=None):
         if change is not None and not change["new"]:
             return
 
-        phase_dd = Dropdown(
-            options=[""] + phase_names,
-            layout=Layout(width="80px")
+        dd = Dropdown(
+            options=[""] + pulse_names,
+            description="",
+            layout=Layout(width="140px")
         )
 
-        inc_dd = Dropdown(
-            options=["+90", "+180", "+270"],
-            value="+90",
-            layout=Layout(width="80px")
-        )
+        dd.observe(add_dropdown, names="value")
 
-        phase_dd.observe(add_phase_row, names="value")
+        pulse_dropdowns.append(dd)
+        pulse_dropdowns_container.children = tuple(pulse_dropdowns)
 
-        phase_rows.append((phase_dd, inc_dd))
-
-        pulse_dropdowns_container.children = tuple(
-            HBox([phase, inc])
-            for phase, inc in phase_rows
-        )
-
-    if show_phase:
-        add_phase_row()
+    add_dropdown()
 
 exp_2d_option.observe(update_2d_dropdowns, names="value")
 update_2d_dropdowns()
