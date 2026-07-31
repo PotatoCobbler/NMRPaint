@@ -939,7 +939,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
             if exp_2d_option.value != "undefined":
     
-                phase_sensitive = ["States", "TPPI", "States-TPPI"]
+                show_phase = (
+                    exp_2d_option.value in phase_sensitive
+                    or exp_2d_option.value == "Echo-Antiecho"
+                )
     
                 if exp_2d_option.value in phase_sensitive:
     
@@ -1609,9 +1612,26 @@ def update_2d_dropdowns(change=None):
 
     phase_sensitive = ["States", "TPPI", "States-TPPI"]
 
+    show_phase = (
+        exp_2d_option.value in phase_sensitive
+        or exp_2d_option.value == "Echo-Antiecho"
+    )
+
+    if show_phase:
+        pulse_section.layout.display = "flex"
+    else:
+        pulse_section.layout.display = "none"
+
+    if exp_2d_option.value == "Echo-Antiecho":
+        shape_section.layout.display = "flex"
+    else:
+        shape_section.layout.display = "none"
+
     # ---- Echo-Antiecho case ----
     if exp_2d_option.value == "Echo-Antiecho":
-    
+        pulse_section.layout.display = "flex"
+        shape_section.layout.display = "flex"
+        
         ea_gradient_rows.clear()
         shape_dropdowns_container.children = ()
         
@@ -1650,11 +1670,11 @@ def update_2d_dropdowns(change=None):
             )
         
         add_ea_row()        
-        return
+        
 
     # ---- Phase-sensitive experiments ----
     if exp_2d_option.value not in phase_sensitive:
-        pulse_section.layout.display = "none"
+        pulse_section.layout.display = "flex"
         shape_section.layout.display = "none"
 
     phase_rows.clear()
