@@ -1199,6 +1199,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
 
     return f.getvalue()
 
+# -----------------------
+# Generate and download link
+# -----------------------
 
 def save_pulse_program(
     filename: str | Path,
@@ -1229,16 +1232,16 @@ def generate_pulse_program(
 
 def _generate_local_pulse_program() -> Path:
     """Build and save the current pulse program locally."""
+
     filename = normalize_output_filename(
         exp_title.value,
         default="pulse_program",
     )
 
-    return save_text_local(
-        content=content,
+    return generate_pulse_program(
         filename=filename,
+        include_phase_cycle=phase_cycle_checkbox.value,
     )
-
 
 def generate_program_button_click(b):
     """Generate the current pulse program in the local output directory."""
@@ -1249,6 +1252,7 @@ def generate_program_button_click(b):
         try:
             output_path = _generate_local_pulse_program()
             print(f"Pulse program saved to: {output_path.resolve()}")
+            prepare_browser_download(None)
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
