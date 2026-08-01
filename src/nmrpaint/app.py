@@ -1809,46 +1809,6 @@ def update_2d_dropdowns(change=None):
             )
 
         add_pulse_dropdown()
-    
-    # ---- Phase-sensitive experiments ----
-    if exp_2d_option.value not in phase_sensitive:
-        pulse_section.layout.display = "none"
-        shape_section.layout.display = "none"
-
-        pulse_dropdowns.clear()
-        pulse_dropdowns_container.children = ()
-        return
-
-
-    pulse_section.layout.display = "flex"
-    shape_section.layout.display = "none"
-
-    # get available pulses
-    pulse_names = sorted({el.phase for el in sequence.elements
-                          if el.kind.lower() in ["pulse", "shaped"]})
-
-    if not pulse_names:
-        return
-
-    pulse_dropdowns.clear()
-    pulse_dropdowns_container.children = ()
-
-    def add_dropdown(change=None):
-        if change is not None and not change["new"]:
-            return
-
-        dd = Dropdown(
-            options=[""] + pulse_names,
-            description="",
-            layout=Layout(width="140px")
-        )
-
-        dd.observe(add_dropdown, names="value")
-
-        pulse_dropdowns.append(dd)
-        pulse_dropdowns_container.children = tuple(pulse_dropdowns)
-
-    add_dropdown()
 
 exp_2d_option.observe(update_2d_dropdowns, names="value")
 update_2d_dropdowns()
