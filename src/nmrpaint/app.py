@@ -1690,6 +1690,8 @@ def update_2d_dropdowns(change=None):
                 layout=Layout(width="70px", flex="0 0 auto")
             )
             
+            phase_dd.observe(add_pulse_dropdown, names="value")
+            
             row = HBox(
                 [phase_dd, inc_dd],
                 layout=Layout(width="100%", align_items="center")
