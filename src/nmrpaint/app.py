@@ -2370,7 +2370,7 @@ def create_element_button(kind, file_path):
         "p90.txt": "90",
         "p180.txt": "180",
         "sp1.txt": "sel. pulse",
-        "grad.txt": "gradient",
+        "gp1.txt": "gradient",
         "cpd.txt": "CPD",
         "flag.txt": "flag"
     }
