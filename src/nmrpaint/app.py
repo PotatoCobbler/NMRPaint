@@ -1622,7 +1622,7 @@ exp_2d_option = Dropdown(
     description="2D Option:",
     options=["", "States-TPPI", "QF", "Echo-Antiecho", "QF(no frequency)", "undefined", "States", "TPPI"],
     value=None,
-    layout=Layout(width="200px")
+    layout=Layout(width="220px")
 )
 exp_2d_option.layout.display = "none"
 
