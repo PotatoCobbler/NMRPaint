@@ -1937,7 +1937,6 @@ property_editor_box = VBox(
 
 field_layout = Layout(width="210px")
 label_style = {"description_width": "85px"}
-button_layout = Layout(width="210px", margin="8px 0 0 0")
 
 el_title = Text(
     description="Title",
@@ -1997,7 +1996,7 @@ el_height = IntText(
 update_button = Button(
     description="Update Element",
     button_style="success",
-    layout=button_layout
+    layout=Layout(width="100px")
 )
 
 # Initial contents shown when NMRpaint starts
