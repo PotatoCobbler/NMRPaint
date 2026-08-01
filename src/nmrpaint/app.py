@@ -704,12 +704,12 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         
         for i, (gp, sign) in enumerate(selected, start=1):
         
-            suffix = f"EA{i}" if multiple else "EA"
+            suffix = f"*EA{i}" if multiple else "*EA"
         
             if sign == "+":
                 ea_map[gp] = suffix
             else:
-                ea_map[gp] = f"*-1*{suffix}"
+                ea_map[gp] = f"*-1{suffix}"
 
     def write_grad(el):
     
