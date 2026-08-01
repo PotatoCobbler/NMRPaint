@@ -443,8 +443,7 @@ def delete_selected_element(b):
 toggle_delays_btn = Button(
     description="Delay Selection",
     button_style="info",
-    tooltip="Click to allow selecting delay elements",
-    layout=Layout(width="200px")
+    tooltip="Click to allow selecting delay elements"
 )
 
 undo_button = Button(
