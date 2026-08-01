@@ -1632,7 +1632,7 @@ pulse_section_label = Label(
     layout=Layout(width="80px", flex="0 0 auto")
 )
 
-pulse_dropdowns_container = VBox(
+pulse_dropdowns_container = HBox(
     [],
     layout=Layout(
         width="100%",
@@ -1663,7 +1663,7 @@ shape_section_label = Label(
     layout=Layout(width="80px", flex="0 0 auto")
 )
 
-shape_dropdowns_container = VBox(
+shape_dropdowns_container = HBox(
     [],
     layout=Layout(
         width="100%",
