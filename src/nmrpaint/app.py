@@ -1924,10 +1924,17 @@ property_editor_header = HTML("""
 property_editor_content = VBox(
     layout=Layout(width="100%")
 )
+
+update_button = Button(
+    description="Update Element",
+    button_style="success",
+    tooltip="Update Element"
+)
 property_editor_box = VBox(
     [
         property_editor_header,
-        property_editor_content
+        property_editor_content,
+        update_button
     ],
     layout=Layout(
         width="230px",
@@ -1993,11 +2000,6 @@ el_height = IntText(
     style=label_style
 )
 
-update_button = Button(
-    description="Update Element",
-    button_style="success",
-    tooltip="Resize canvas"
-)
 
 # Initial contents shown when NMRpaint starts
 property_editor_content.children = (
@@ -3037,7 +3039,7 @@ canvas_width_input = IntText(
 apply_canvas_size_btn = Button(
     description="Update",
     button_style="info",
-    layout=Layout(width="250px")
+    tooltip="Resize canvas"
 )
 
 def on_apply_canvas_size(_):
