@@ -3046,10 +3046,6 @@ def on_apply_canvas_size(_):
 
 apply_canvas_size_btn.on_click(on_apply_canvas_size)
 
-canvas_size_row = HBox(
-    [canvas_width_input, apply_canvas_size_btn]
-)
-
 # -----------------------
 # Buttons row
 # -----------------------
@@ -3064,7 +3060,8 @@ buttons_row = HBox(
         phase_cycle_checkbox,
         browser_download_link,
         export_btn,
-        canvas_size_row,
+        canvas_width_input,
+        apply_canvas_size_btn,
     ],
     layout=Layout(
         spacing='10px',
