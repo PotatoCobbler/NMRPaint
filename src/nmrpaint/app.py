@@ -1631,7 +1631,7 @@ pulse_dropdowns = []
 
 pulse_section_label = Label(
     "Phase increment:",
-    layout=Layout(width="80px", flex="0 0 auto")
+    layout=Layout(width="100px", flex="0 0 auto")
 )
 
 pulse_dropdowns_container = HBox(
@@ -2378,8 +2378,8 @@ def create_element_button(kind, file_path):
         "p0.txt": "var",
         "p90.txt": "90",
         "p180.txt": "180",
-        "sp1.txt": "sp1",
-        "grad.txt": "gp1",
+        "sp1.txt": "sel. pulse",
+        "grad.txt": "gradient",
         "cpd.txt": "CPD",
         "flag.txt": "flag"
     }
