@@ -32,7 +32,7 @@ from ipywidgets import (
     Output,
 )
 from ipycanvas import Canvas
-from IPython.display import Javascript, display, FileLink
+from IPython.display import display, FileLink
 
 from .resource_manager import (
     list_resource_names,
@@ -1294,7 +1294,7 @@ def generate_program_button_click(b):
         try:
             output_path = _generate_local_pulse_program()
             print(f"Pulse program saved to: {output_path.resolve()}")
-            prepare_browser_download(None)
+
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
@@ -1317,7 +1317,7 @@ def generate_and_phase(b):
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
-def prepare_browser_download(b=None):
+def prepare_browser_download(b):
 
     populate_phase_rows()
 
@@ -1340,16 +1340,6 @@ def prepare_browser_download(b=None):
        Download
     </a>
     """
-
-    # Automatically click the download link
-    display(Javascript("""
-        setTimeout(function() {
-            const a = document.getElementById('nmrpaint_download');
-            if (a) {
-                a.click();
-            }
-        }, 100);
-    """))
 
 # -----------------------
 # Phase Cycle GUI
