@@ -1025,12 +1025,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                     
                     calea_string = " & ".join(calea_parts)
     
-                    pulses = [row["phase"].value for dd in pulse_dropdowns if row["phase"].value]
-                    calph_string = " & ".join(
-                        f"calph({p}, +90)"
-                        for p in pulses
-                    )
-    
                     args = [calea_string, "caldel(d0, +in0)"]
     
                     if calph_string:
@@ -1038,7 +1032,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
                     f.write(
                         f" 30m mc #0 to 2 "
-                        f"F1EA({'& '.join(args)})\n"
+                        f"F1EA({', '.join(args)})\n"
                     )
     
                 else:
