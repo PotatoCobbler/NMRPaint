@@ -3158,12 +3158,8 @@ main_top_row = HBox(
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_class, exp_dim],
-    layout=Layout(
-        width="100%",
-        display="flex",
-        align_items="center",
-        justify_content="flex-start"
-    )
+    layout=Layout(spacing="1px"),
+    padding='20px 20px' 
 )
 
 exp_prop_row_2 = HBox(
