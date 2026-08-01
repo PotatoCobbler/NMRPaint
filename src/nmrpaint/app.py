@@ -474,8 +474,8 @@ phase_cycle_checkbox = Checkbox(
 
 export_btn = Button(
     description="Export Canvas",
-    button_style="warning",   # yellow/orange
-    layout=Layout(width="200px")
+    button_style="warning",
+    tooltip="Download pulse sequence image"
 )
 
 # Visible status area for generation success and errors.
@@ -1996,7 +1996,7 @@ el_height = IntText(
 update_button = Button(
     description="Update Element",
     button_style="success",
-    layout=Layout(width="100px")
+    tooltip="Resize canvas"
 )
 
 # Initial contents shown when NMRpaint starts
