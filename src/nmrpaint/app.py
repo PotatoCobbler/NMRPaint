@@ -3157,7 +3157,7 @@ main_top_row = HBox(
 )
 
 exp_prop_row_1 = HBox(
-    [exp_title, exp_class, exp_dim, exp_2d_option, pulse_section, shape_section],
+    [exp_title, exp_class, exp_dim, exp_2d_option, shape_section],
     layout=Layout(
         width="100%",
         display="flex",
@@ -3174,6 +3174,7 @@ exp_prop_row_2 = HBox(
 
 exp_prop_section = VBox([
     exp_prop_row_1,
+    pulse_section,
     exp_prop_row_2
 ])
 
