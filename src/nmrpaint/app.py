@@ -3157,7 +3157,7 @@ main_top_row = HBox(
 )
 
 exp_prop_row_1 = HBox(
-    [exp_title, exp_class, exp_dim, exp_2d_option, shape_section],
+    [exp_title, exp_class, exp_dim],
     layout=Layout(
         width="100%",
         display="flex",
@@ -3167,6 +3167,12 @@ exp_prop_row_1 = HBox(
 )
 
 exp_prop_row_2 = HBox(
+    [exp_2d_option, pulse_section, shape_section],
+    layout=Layout(spacing="1px"),
+    padding='20px 20px' 
+)
+
+exp_prop_row_3 = HBox(
     [exp_type, exp_subtype, exp_incl, ns_text, ds_text, exp_comment],
     layout=Layout(spacing="1px"),
     padding='20px 20px' 
@@ -3174,8 +3180,8 @@ exp_prop_row_2 = HBox(
 
 exp_prop_section = VBox([
     exp_prop_row_1,
-    pulse_section,
-    exp_prop_row_2
+    exp_prop_row_2,
+    exp_prop_row_3
 ])
 
 app_title = HTML(f"""
