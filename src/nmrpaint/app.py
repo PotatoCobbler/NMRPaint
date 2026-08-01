@@ -943,7 +943,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
         else:
     
-            if exp_2d_option.value != "undefined":
+            if exp_2d_option.value != "":
     
                 phase_sensitive = ["States", "TPPI", "States-TPPI"]
     
@@ -1618,7 +1618,7 @@ exp_dim = Dropdown(
 
 exp_2d_option = Dropdown(
     description="2D Option:",
-    options=["States-TPPI", "QF", "Echo-Antiecho", "QF(no frequency)", "undefined", "States", "TPPI"],
+    options=["", "States-TPPI", "QF", "Echo-Antiecho", "QF(no frequency)", "undefined", "States", "TPPI"],
     value=None,
     layout=Layout(width="200px")
 )
