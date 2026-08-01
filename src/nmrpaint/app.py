@@ -1681,20 +1681,18 @@ def update_2d_dropdowns(change=None):
 
             phase_dd = Dropdown(
                 options=[""] + pulse_names,
-                layout=Layout(width="90px")
+                layout=Layout(flex="1 1 auto", min_width="120px")
             )
-
+            
             inc_dd = Dropdown(
                 options=["+90", "+180", "+270"],
                 value="+90",
-                layout=Layout(width="70px")
+                layout=Layout(width="85px", flex="0 0 auto")
             )
-
-            phase_dd.observe(add_pulse_dropdown, names="value")
-
+            
             row = HBox(
                 [phase_dd, inc_dd],
-                layout=Layout(spacing="2px")
+                layout=Layout(width="100%", align_items="center")
             )
 
             pulse_dropdowns.append({
@@ -1725,22 +1723,22 @@ def update_2d_dropdowns(change=None):
 
             gp_dd = Dropdown(
                 options=[""] + shape_names,
-                layout=Layout(width="90px")
+                layout=Layout(flex="1 1 auto", min_width="120px")
             )
-
+            
             sign_dd = Dropdown(
                 options=["+", "-"],
                 value="+",
-                layout=Layout(width="55px")
+                layout=Layout(width="60px", flex="0 0 auto")
             )
-
+            
             gp_dd.observe(add_shape_dropdown, names="value")
-
+            
             row = HBox(
                 [gp_dd, sign_dd],
-                layout=Layout(spacing="2px")
+                layout=Layout(width="100%", align_items="center")
             )
-
+            
             shape_dropdowns.append({
                 "gp": gp_dd,
                 "sign": sign_dd,
