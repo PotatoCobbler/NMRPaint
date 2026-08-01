@@ -2011,8 +2011,7 @@ property_editor_content.children = (
     el_power,
     el_phase,
     el_duration,
-    el_height,
-    update_button
+    el_height
 )
 
 def _coerce_for_widget(widget, value, *, default=None, dropdown_options=None):
@@ -2114,8 +2113,7 @@ def show_property_editor(el: SequenceElement):
             el_power,
             el_phase,
             el_duration,
-            el_height,
-            update_button
+            el_height
         ]
 
     elif kind == "shaped":
@@ -2129,8 +2127,7 @@ def show_property_editor(el: SequenceElement):
             el_power,
             el_phase,
             el_duration,
-            el_height,
-            update_button
+            el_height
         ]
 
     elif kind == "grad":
@@ -2141,8 +2138,7 @@ def show_property_editor(el: SequenceElement):
             el_channel,
             el_power,
             el_duration,
-            el_height,
-            update_button
+            el_height
         ]
 
     elif kind == "cpd":
@@ -2154,15 +2150,13 @@ def show_property_editor(el: SequenceElement):
             el_channel,
             el_power,
             el_duration,
-            el_height,
-            update_button
+            el_height
         ]
 
     elif kind == "flag":
 
         visible_widgets = [
-            el_definition,
-            update_button
+            el_definition
         ]
 
     elif kind == "block":
@@ -2173,8 +2167,7 @@ def show_property_editor(el: SequenceElement):
             el_definition,
             el_channel,
             el_duration,
-            el_height,
-            update_button
+            el_height
         ]
 
     elif kind == "delay":
@@ -2182,8 +2175,7 @@ def show_property_editor(el: SequenceElement):
         visible_widgets = [
             el_name,
             el_definition,
-            el_duration,
-            update_button
+            el_duration
         ]
 
     else:
@@ -2193,8 +2185,7 @@ def show_property_editor(el: SequenceElement):
             el_name,
             el_definition,
             el_channel,
-            el_duration,
-            update_button
+            el_duration
         ]
 
     property_editor_content.children = tuple(visible_widgets)
