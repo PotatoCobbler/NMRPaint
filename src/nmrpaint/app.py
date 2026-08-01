@@ -1929,6 +1929,11 @@ update_button = Button(
     button_style="success",
     tooltip="Update Element"
 )
+
+update_button.layout = Layout(
+    margin="10px auto 0px auto"
+)
+
 property_editor_box = VBox(
     [
         property_editor_header,
