@@ -1681,13 +1681,13 @@ def update_2d_dropdowns(change=None):
 
             phase_dd = Dropdown(
                 options=[""] + pulse_names,
-                layout=Layout(flex="1 1 auto", min_width="120px")
+                layout=Layout(flex="1 1 auto", min_width="90px")
             )
             
             inc_dd = Dropdown(
                 options=["+90", "+180", "+270"],
                 value="+90",
-                layout=Layout(width="85px", flex="0 0 auto")
+                layout=Layout(width="70px", flex="0 0 auto")
             )
             
             row = HBox(
@@ -1723,7 +1723,7 @@ def update_2d_dropdowns(change=None):
 
             gp_dd = Dropdown(
                 options=[""] + shape_names,
-                layout=Layout(flex="1 1 auto", min_width="120px")
+                layout=Layout(flex="1 1 auto", min_width="70px")
             )
             
             sign_dd = Dropdown(
