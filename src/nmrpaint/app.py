@@ -1626,21 +1626,64 @@ exp_2d_option.layout.display = "none"
 
 #pulses
 pulse_dropdowns = []
-pulse_section_label = Label("Incr pulse:", layout=Layout(width="80px"))
 
-pulse_dropdowns_container = HBox([], layout=Layout(width="200px", spacing="2px", align_items="center", margin="0px", padding="0px"))
-pulse_section = HBox(
-    [pulse_section_label, pulse_dropdowns_container],
-    layout=Layout(spacing="2px", align_items="center", margin="0px", padding="0px", display="none")
+pulse_section_label = Label(
+    "Incr pulse:",
+    layout=Layout(width="80px", flex="0 0 auto")
 )
 
-#shapes
+pulse_dropdowns_container = VBox(
+    [],
+    layout=Layout(
+        width="100%",
+        flex="1 1 auto",
+        align_items="stretch",
+        margin="0px",
+        padding="0px"
+    )
+)
+
+pulse_section = HBox(
+    [pulse_section_label, pulse_dropdowns_container],
+    layout=Layout(
+        width="100%",
+        flex="1 1 auto",
+        align_items="center",
+        margin="0px",
+        padding="0px",
+        display="none"
+    )
+)
+
+# shapes
 shape_dropdowns = []
-shape_section_label = Label("EA grad:", layout=Layout(width="80px"))
-shape_dropdowns_container = HBox([], layout=Layout(width="200px", spacing="2px", align_items="center", margin="0px", padding="0px"))
+
+shape_section_label = Label(
+    "EA grad:",
+    layout=Layout(width="80px", flex="0 0 auto")
+)
+
+shape_dropdowns_container = VBox(
+    [],
+    layout=Layout(
+        width="100%",
+        flex="1 1 auto",
+        align_items="stretch",
+        margin="0px",
+        padding="0px"
+    )
+)
+
 shape_section = HBox(
     [shape_section_label, shape_dropdowns_container],
-    layout=Layout(spacing="2px", align_items="center", margin="0px", padding="0px", display="none")
+    layout=Layout(
+        width="100%",
+        flex="1 1 auto",
+        align_items="center",
+        margin="0px",
+        padding="0px",
+        display="none"
+    )
 )
 
 def update_2d_dropdowns(change=None):
@@ -1694,9 +1737,12 @@ def update_2d_dropdowns(change=None):
             
             row = HBox(
                 [phase_dd, inc_dd],
-                layout=Layout(width="100%", align_items="center")
+                layout=Layout(
+                    width="100%",
+                    flex="1 1 auto",
+                    align_items="center"
+                )
             )
-
             pulse_dropdowns.append({
                 "phase": phase_dd,
                 "inc": inc_dd,
@@ -1738,7 +1784,11 @@ def update_2d_dropdowns(change=None):
             
             row = HBox(
                 [gp_dd, sign_dd],
-                layout=Layout(width="100%", align_items="center")
+                layout=Layout(
+                    width="100%",
+                    flex="1 1 auto",
+                    align_items="center"
+                )
             )
             
             shape_dropdowns.append({
@@ -3114,8 +3164,12 @@ main_top_row = HBox(
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_class, exp_dim, exp_2d_option, pulse_section, shape_section],
-    layout=Layout(spacing="1px"),
-    padding='20px 20px'    
+    layout=Layout(
+        width="100%",
+        display="flex",
+        align_items="center",
+        justify_content="flex-start"
+    )
 )
 
 exp_prop_row_2 = HBox(
