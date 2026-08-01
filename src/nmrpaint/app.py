@@ -677,18 +677,39 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         return f" {el.name}"
 
     ea_gradients = {
-    dd.value for dd in shape_dropdowns
-    if dd.value
+        row["gp"].value
+        for row in shape_dropdowns
+        if row["gp"].value
     }
 
     ea_map = {}
 
     if exp_2d_option.value == "Echo-Antiecho":
-        selected_gp = [dd.value for dd in shape_dropdowns if dd.value]
-        ea_map = {
-            gp: f"EA{i}"
-            for i, gp in enumerate(selected_gp, start=1)
-        }
+        selected = []
+        
+        for row in shape_dropdowns:
+        
+            gp = row["gp"].value
+        
+            if not gp:
+                continue
+        
+            sign = row["sign"].value
+        
+            selected.append((gp, sign))
+        
+        ea_map = {}
+        
+        multiple = len(selected) > 1
+        
+        for i, (gp, sign) in enumerate(selected, start=1):
+        
+            suffix = f"EA{i}" if multiple else "EA"
+        
+            if sign == "+":
+                ea_map[gp] = suffix
+            else:
+                ea_map[gp] = f"*-1*{suffix}"
 
     def write_grad(el):
     
@@ -698,9 +719,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         )
     
         gp = f"gp{gradients.index(el)+1}"
-    
+            
         if gp in ea_map:
-            gp += f"*{ea_map[gp]}"
+            gp += ea_map[gp]
     
         return f" {el.name}:{gp}\n d16"
         
@@ -927,10 +948,22 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                 phase_sensitive = ["States", "TPPI", "States-TPPI"]
     
                 if exp_2d_option.value in phase_sensitive:
-    
-                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
-    
-                    calph_parts = [f"calph({p}, +90)" for p in pulses]
+                        
+                    calph_parts = []
+                    
+                    for row in pulse_dropdowns:
+                    
+                        phase = row["phase"].value
+                    
+                        if not phase:
+                            continue
+                    
+                        inc = row["inc"].value
+                    
+                        calph_parts.append(
+                            f"calph({phase}, {inc})"
+                        )
+                    
                     calph_string = " & ".join(calph_parts)
     
                     f.write(
@@ -939,25 +972,60 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                     )
     
                 elif exp_2d_option.value == "Echo-Antiecho":
-                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
-    
-                    calph_parts = [f"calph({p}, +90)" for p in pulses]
-                    calph_string = " & ".join(calph_parts)
+                    calph_parts = []
                     
-                    selected_gp = [dd.value for dd in shape_dropdowns if dd.value]
+                    for row in pulse_dropdowns:
+                    
+                        phase = row["phase"].value
+                    
+                        if not phase:
+                            continue
+                    
+                        inc = row["inc"].value
+                    
+                        calph_parts.append(
+                            f"calph({phase}, {inc})"
+                        )
+                    
+                    calph_string = " & ".join(calph_parts)
+                    selected = []
+
+                    for row in shape_dropdowns:
+                    
+                        gp = row["gp"].value
+                    
+                        if not gp:
+                            continue
+                    
+                        sign = row["sign"].value
+                    
+                        selected.append((gp, sign))
+                    
+                    ea_map = {}
+                    
+                    multiple = len(selected) > 1
+                    
+                    for i, (gp, sign) in enumerate(selected, start=1):
+                    
+                        suffix = f"EA{i}" if multiple else "EA"
+                    
+                        if sign == "+":
+                            ea_map[gp] = suffix
+                        else:
+                            ea_map[gp] = f"*-1*{suffix}"
     
-                    # Map gp1 -> EA1, gp3 -> EA2, ...
-                    ea_map = {
-                        gp: f"EA{i}"
-                        for i, gp in enumerate(selected_gp, start=1)
-                    }
+                    calea_parts = []
+                    
+                    for i in range(len(selected)):
+                    
+                        if len(selected) == 1:
+                            calea_parts.append("calgrad(EA)")
+                        else:
+                            calea_parts.append(f"calgrad(EA{i+1})")
+                    
+                    calea_string = " & ".join(calea_parts)
     
-                    calea_string = " & ".join(
-                        f"calgrad({ea})"
-                        for ea in ea_map.values()
-                    )
-    
-                    pulses = [dd.value for dd in pulse_dropdowns if dd.value]
+                    pulses = [row["phase"].value for dd in pulse_dropdowns if row["phase"].value]
                     calph_string = " & ".join(
                         f"calph({p}, +90)"
                         for p in pulses
@@ -1587,40 +1655,161 @@ def update_2d_dropdowns(change=None):
 
     phase_sensitive = ["States", "TPPI", "States-TPPI"]
 
-    # ---- Echo-Antiecho case ----
+    # -----------------------------
+    # Clear everything
+    # -----------------------------
+    pulse_dropdowns.clear()
+    shape_dropdowns.clear()
+
+    pulse_dropdowns_container.children = ()
+    shape_dropdowns_container.children = ()
+
+    pulse_section.layout.display = "none"
+    shape_section.layout.display = "none"
+
+    # ======================================================
+    # Echo-Antiecho
+    # ======================================================
     if exp_2d_option.value == "Echo-Antiecho":
-    
+
         pulse_section.layout.display = "flex"
         shape_section.layout.display = "flex"
-    
+
+        # ----------------- Pulses -----------------
+
+        pulse_names = sorted({
+            el.phase for el in sequence.elements
+            if el.kind.lower() in ["pulse", "shaped"] and el.phase
+        })
+
+        def add_pulse_dropdown(change=None):
+
+            if change is not None and not change["new"]:
+                return
+
+            phase_dd = Dropdown(
+                options=[""] + pulse_names,
+                layout=Layout(width="90px")
+            )
+
+            inc_dd = Dropdown(
+                options=["+90", "+180", "+270"],
+                value="+90",
+                layout=Layout(width="70px")
+            )
+
+            phase_dd.observe(add_pulse_dropdown, names="value")
+
+            row = HBox(
+                [phase_dd, inc_dd],
+                layout=Layout(spacing="2px")
+            )
+
+            pulse_dropdowns.append({
+                "phase": phase_dd,
+                "inc": inc_dd,
+                "widget": row,
+            })
+
+            pulse_dropdowns_container.children = tuple(
+                r["widget"] for r in pulse_dropdowns
+            )
+
+        add_pulse_dropdown()
+
+        # ----------------- Gradients -----------------
+
         gradients = sorted(
             [el for el in sequence.elements if el.kind.lower() == "grad"],
             key=lambda el: el.start
         )
-    
-        shape_names = [f"gp{i}" for i in range(1, len(gradients) + 1)]
-    
-        shape_dropdowns.clear()
-        shape_dropdowns_container.children = ()
-    
-        def add_dropdown(change=None):
+
+        shape_names = [f"gp{i}" for i in range(1, len(gradients)+1)]
+
+        def add_shape_dropdown(change=None):
+
             if change is not None and not change["new"]:
                 return
-    
-            dd = Dropdown(
+
+            gp_dd = Dropdown(
                 options=[""] + shape_names,
-                description="",
-                layout=Layout(width="140px")
+                layout=Layout(width="90px")
             )
-    
-            dd.observe(add_dropdown, names="value")
-    
-            shape_dropdowns.append(dd)
-            shape_dropdowns_container.children = tuple(shape_dropdowns)
-    
-        add_dropdown()
+
+            sign_dd = Dropdown(
+                options=["+", "-"],
+                value="+",
+                layout=Layout(width="55px")
+            )
+
+            gp_dd.observe(add_shape_dropdown, names="value")
+
+            row = HBox(
+                [gp_dd, sign_dd],
+                layout=Layout(spacing="2px")
+            )
+
+            shape_dropdowns.append({
+                "gp": gp_dd,
+                "sign": sign_dd,
+                "widget": row,
+            })
+
+            shape_dropdowns_container.children = tuple(
+                r["widget"] for r in shape_dropdowns
+            )
+
+        add_shape_dropdown()
+
         return
 
+    # ======================================================
+    # States / TPPI / States-TPPI
+    # ======================================================
+    if exp_2d_option.value in phase_sensitive:
+
+        pulse_section.layout.display = "flex"
+
+        pulse_names = sorted({
+            el.phase for el in sequence.elements
+            if el.kind.lower() in ["pulse", "shaped"] and el.phase
+        })
+
+        def add_pulse_dropdown(change=None):
+
+            if change is not None and not change["new"]:
+                return
+
+            phase_dd = Dropdown(
+                options=[""] + pulse_names,
+                layout=Layout(width="90px")
+            )
+
+            inc_dd = Dropdown(
+                options=["+90", "+180", "+270"],
+                value="+90",
+                layout=Layout(width="70px")
+            )
+
+            phase_dd.observe(add_pulse_dropdown, names="value")
+
+            row = HBox(
+                [phase_dd, inc_dd],
+                layout=Layout(spacing="2px")
+            )
+
+            pulse_dropdowns.append({
+                "phase": phase_dd,
+                "inc": inc_dd,
+                "widget": row,
+            })
+
+            pulse_dropdowns_container.children = tuple(
+                r["widget"] for r in pulse_dropdowns
+            )
+
+        add_pulse_dropdown()
+    
     # ---- Phase-sensitive experiments ----
     if exp_2d_option.value not in phase_sensitive:
         pulse_section.layout.display = "none"
