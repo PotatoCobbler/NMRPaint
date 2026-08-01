@@ -1630,7 +1630,7 @@ exp_2d_option.layout.display = "none"
 pulse_dropdowns = []
 
 pulse_section_label = Label(
-    "Incr pulse:",
+    "Phase increment:",
     layout=Layout(width="80px", flex="0 0 auto")
 )
 
@@ -1661,7 +1661,7 @@ pulse_section = HBox(
 shape_dropdowns = []
 
 shape_section_label = Label(
-    "EA grad:",
+    "EA increment:",
     layout=Layout(width="80px", flex="0 0 auto")
 )
 
