@@ -1,4 +1,4 @@
-p0 : 0W
+p0 : variable flip angle pulse
 p1 : f1 channel -  90 degree high power pulse
 p2 : f1 channel - 180 degree high power pulse
 p3 : f2 channel -  90 degree high power pulse
