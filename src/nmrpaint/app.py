@@ -1024,19 +1024,17 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                             calea_parts.append(f"calgrad(EA{i+1})")
                     
                     calea_string = " & ".join(calea_parts)
-    
-                    args = [calea_string, "caldel(d0, +in0)"]
-    
+                    delay_arg = "caldel(d0, +in0)"
+                    
                     if calph_string:
-                        args.append(calph_string)
-    
+                        delay_arg += f" & {calph_string}"
+                    
                     f.write(
                         f" 30m mc #0 to 2 "
-                        f"F1EA({', '.join(args)})\n"
+                        f"F1EA({calea_string}, {delay_arg})\n"
                     )
     
                 else:
-    
                     f.write(" 30m mc #0 to 2 F1QF(caldel(d0, +in0))\n")
     
         if block_overlaps_fid:
