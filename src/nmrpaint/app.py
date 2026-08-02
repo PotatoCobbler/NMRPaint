@@ -788,7 +788,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
         if kind == "delay":
             return f"({el.name})"
-    
+            
+        if kind == "grad":
+            return f"({el.name}:{el.shape})"    
+            
         return None
         
     # -----------------------
