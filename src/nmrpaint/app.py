@@ -2121,6 +2121,15 @@ def show_property_editor(el: SequenceElement):
     if hasattr(el, "visual_height"):
         el_height.value = el.visual_height
 
+    #wvm attributes
+    el_powerindex.value = ""
+    el_subname.value = ""
+    el_length.value = ""
+    el_stepsize.value = ""
+    el_bandwidth.value = ""
+    el_Q.value = ""
+    el_sweepdirection.value = ""
+
     # ---------------------------
     # Build editor layout
     # ---------------------------
