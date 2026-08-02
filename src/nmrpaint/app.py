@@ -786,8 +786,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         if kind == "shaped":
             return f"({el.name}:{el.shape} {el.phase}):{el.channel}"
     
-        if kind == "delay":
-            return f"({el.name})"
+        #if kind == "delay":
+        #    return f"({el.name})"
             
         if kind == "grad":
             return f"({el.name}:{el.shape})"    
@@ -1692,6 +1692,17 @@ shape_section = HBox(
 
 def update_2d_dropdowns(change=None):
 
+    if exp_dim.value != "2D":
+        pulse_dropdowns.clear()
+        shape_dropdowns.clear()
+
+        pulse_dropdowns_container.children = ()
+        shape_dropdowns_container.children = ()
+
+        pulse_section.layout.display = "none"
+        shape_section.layout.display = "none"
+        return
+
     phase_sensitive = ["States", "TPPI", "States-TPPI"]
 
     # -----------------------------
@@ -1881,8 +1892,12 @@ def on_dim_change(change):
         exp_2d_option.layout.display = "flex"
     else:
         exp_2d_option.layout.display = "none"
+        exp_2d_option.value = None
 
-exp_dim.observe(on_dim_change, names='value')
+    update_2d_dropdowns()
+
+exp_dim.observe(on_dim_change, names="value")
+
 
 # -----------------------
 # Packaged element resources
