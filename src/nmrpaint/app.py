@@ -1521,7 +1521,7 @@ def generate_and_phase(b):
         with generation_output:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
     
-    def prepare_browser_download(b):
+def prepare_browser_download(b):
 
     populate_phase_rows()
 
