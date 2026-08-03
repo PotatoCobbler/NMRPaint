@@ -207,6 +207,9 @@ def pulse_fill_color(el):
 #--------------
 #wvm attributes
 #--------------
+field_layout = Layout(width="210px")
+label_style = {"description_width": "85px"}
+
 el_powerindex = Text(
     description="Power Index",
     value=""
@@ -237,10 +240,19 @@ el_Q = Text(
     value=""
 )
 
+el_wvm = Checkbox(
+    description="wvm",
+    value=False,
+    layout=field_layout,
+    style=label_style
+)
+
 el_sweepdirection = Dropdown(
     description="Sweep",
     options=["", "lowToHigh", "highToLow"],
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 el_powerindex.value = ""
@@ -2102,9 +2114,6 @@ property_editor_box = VBox(
     )
 )
 
-field_layout = Layout(width="210px")
-label_style = {"description_width": "85px"}
-
 el_title = Text(
     description="Title",
     layout=field_layout,
@@ -2160,20 +2169,6 @@ el_height = IntText(
     style=label_style
 )
 
-el_wvm = Checkbox(
-    description="wvm",
-    value=False,
-    layout=field_layout,
-    style=label_style
-)
-
-el_sweepdirection = Dropdown(
-    description="Sweep",
-    options=["", "lowToHigh", "highToLow"],
-    value="",
-    layout=field_layout,
-    style=label_style
-)
 
 
 # Initial contents shown when NMRpaint starts
