@@ -1439,7 +1439,6 @@ def save_pulse_program(
         content=content,
     )
 
-
 def generate_pulse_program(
     filename: str | Path,
     include_phase_cycle: bool = False,
@@ -1455,7 +1454,6 @@ def generate_pulse_program(
         content=content,
     )
 
-
 def _generate_local_pulse_program() -> Path:
     """Build and save the current pulse program locally."""
     filename = normalize_output_filename(
@@ -1467,7 +1465,6 @@ def _generate_local_pulse_program() -> Path:
         content=content,
         filename=filename,
     )
-
 
 def generate_program_button_click(b):
     """Generate the current pulse program in the local output directory."""
@@ -1482,23 +1479,41 @@ def generate_program_button_click(b):
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
-
 def generate_and_phase(b):
-    """Populate phase rows, generate the phase cycle, and save locally."""
+    """Populate phase rows, generate the phase cycle, save locally,
+    and display the pulse program."""
+
     generation_output.layout.display = "block"
     generation_output.clear_output(wait=True)
     browser_download_link.value = ""
 
-    with generation_output:
-        try:
-            populate_phase_rows()
+    try:
+        populate_phase_rows()
 
-            if phase_cycle_checkbox.value:
-                generate_phase_cycle()
+        if phase_cycle_checkbox.value:
+            generate_phase_cycle()
 
-            output_path = _generate_local_pulse_program()
+        pulse_program_text = build_pulse_program_text(
+            include_phase_cycle=phase_cycle_checkbox.value
+        )
+
+        pulse_program_output.value = pulse_program_text
+
+        filename = normalize_output_filename(
+            exp_title.value,
+            default="pulse_program"
+        )
+
+        output_path = save_pulse_program(
+            filename,
+            pulse_program_text
+        )
+
+        with generation_output:
             print(f"Pulse program saved to: {output_path.resolve()}")
-        except Exception as exc:
+
+    except Exception as exc:
+        with generation_output:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
 def prepare_browser_download(b):
@@ -1525,9 +1540,23 @@ def prepare_browser_download(b):
     </a>
     """
 
+
 # -----------------------
 # Phase Cycle GUI
 # -----------------------
+pulse_program_output = Textarea(
+    value="",
+    description="",
+    layout=Layout(
+        width="450px",
+        height="500px"
+    )
+)
+
+pulse_program_box = VBox([
+    HTML("<h4>Pulse Program</h4>"),
+    pulse_program_output
+])
 
 phase_rows = []
 
@@ -3367,7 +3396,7 @@ main_top_row = HBox(
     [
         elements_section,
         canvas_section,
-        phase_cycle_box,
+        pulse_program_box,  
         property_editor_box
     ],
     layout=Layout(
@@ -3375,6 +3404,8 @@ main_top_row = HBox(
         gap="10px"
     )
 )
+
+#phase_cycle_box,
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_class, exp_dim],
