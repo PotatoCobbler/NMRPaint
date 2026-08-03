@@ -3247,12 +3247,12 @@ app_wrapper = HTML("""
     left:0;
     width:100vw;
     height:100vh;
-    background:#F5F5F5;
+    background:#000000;
     z-index:-999;
 ">
 </div>
 """)
-
+#F5F5F5
 main_vbox = VBox(
     [
         app_wrapper,
