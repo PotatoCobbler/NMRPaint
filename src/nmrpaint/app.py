@@ -275,15 +275,18 @@ el_bandwidth.value = ""
 el_Q.value = ""
 el_sweepdirection.value = ""
 
-wvm_box = VBox([
-    el_powerindex,
-    el_subname,
-    el_length,
-    el_stepsize,
-    el_bandwidth,
-    el_Q,
-    el_sweepdirection,
-])
+wvm_box = VBox(
+    [
+        el_powerindex,
+        el_subname,
+        el_length,
+        el_stepsize,
+        el_bandwidth,
+        el_Q,
+        el_sweepdirection,
+    ],
+    layout=Layout(width="210px")
+)
 
 wvm_box.layout.display = "none"
 
