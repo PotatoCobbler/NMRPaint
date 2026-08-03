@@ -2381,49 +2381,61 @@ def show_property_editor(el: SequenceElement):
     # ---------------------------
     # Update callback
     # ---------------------------
-
+    
     def update_el(b):
-
+    
         save_state()
-
+    
         el.title = el_title.value
         el.name = el_name.value
         el.definition = el_definition.value
-
+    
         el.duration = el_duration.value
         el.visual_width = el.duration * timeline_scale
-
+    
         if kind != "flag":
             el.channel = el_channel.value
-
+    
         if kind in ["pulse", "shaped", "grad", "cpd"]:
             el.power = el_power.value
-
+    
         if kind in ["pulse", "shaped"]:
             el.phase = el_phase.value
-
+    
         if kind == "shaped":
             el.shape = el_shape.value
-
+    
+            # ---------------------------
+            # WVM properties
+            # ---------------------------
+            el.wvm = el_wvm.value
+            el.powerindex = el_powerindex.value
+            el.subname = el_subname.value
+            el.length = el_length.value
+            el.stepsize = el_stepsize.value
+            el.bandwidth = el_bandwidth.value
+            el.Q = el_Q.value
+            el.sweepdirection = el_sweepdirection.value
+    
         if kind in ["pulse", "shaped", "block", "grad"]:
             el.visual_height = el_height.value
-
+    
         if kind == "delay":
             el.manual = True
-
+    
         if el.kind != "delay":
             rebuild_global_delays()
-
+    
         renumber_delays()
         draw_sequence()
         coherence_label.value = sequence.coherence_summary()
-
+    
         populate_phase_rows()
         generate_phase_cycle()
-
+    
     update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
-
+    
 # -----------------------
 # Canvas Setup
 # -----------------------
