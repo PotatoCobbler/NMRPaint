@@ -1575,7 +1575,7 @@ phase_cycle_box = VBox([
     phase_cycle_output
 ])
 
-phase_cycle_box.layout = Layout(width="440px")
+phase_cycle_box.layout = Layout(width="420px")
 
 def populate_phase_rows():
 
@@ -2121,7 +2121,7 @@ property_editor_box = VBox(
         update_button
     ],
     layout=Layout(
-        width="230px",
+        width="250px",
         overflow="hidden"
     )
 )
