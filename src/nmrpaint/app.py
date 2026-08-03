@@ -243,6 +243,12 @@ el_sweepdirection = Dropdown(
     value=""
 )
 
+el_wvm = Checkbox(
+    description="wvm",
+    value=False,
+    indent=False
+)
+
 el_powerindex.value = ""
 el_subname.value = ""
 el_length.value = ""
