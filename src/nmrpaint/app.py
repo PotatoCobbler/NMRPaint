@@ -208,7 +208,7 @@ def pulse_fill_color(el):
 #wvm attributes
 #--------------
 field_layout = Layout(width="210px")
-label_style = {"description_width": "95px"}
+label_style = {"description_width": "85px"}
 
 el_powerindex = Text(
     description="Power Index",
@@ -3046,7 +3046,7 @@ canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
 elements_section.layout = Layout(width="220px",overflow="hidden")
-property_editor_box.layout.flex = "0 0 240px"
+property_editor_box.layout.flex = "0 0 250px"
 
 
 # -----------------------
