@@ -1525,7 +1525,7 @@ phase_cycle_header = HBox([
 
 phase_cycle_container = VBox([])
 phase_cycle_output = Textarea(
-    layout=Layout(width="406px", height="160px")
+    layout=Layout(width="400px", height="160px")
 )
 
 def add_phase_row(pulse, phase):
