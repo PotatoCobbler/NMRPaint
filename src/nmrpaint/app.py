@@ -207,7 +207,7 @@ def pulse_fill_color(el):
 #--------------
 #wvm attributes
 #--------------
-field_layout = Layout(width="210px")
+field_layout = Layout(width="200px")
 label_style = {"description_width": "85px"}
 
 el_powerindex = Text(
