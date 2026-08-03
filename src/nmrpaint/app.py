@@ -207,6 +207,42 @@ def pulse_fill_color(el):
 #--------------
 #wvm attributes
 #--------------
+el_powerindex = Text(
+    description="Power Index",
+    value=""
+)
+
+el_subname = Text(
+    description="Subname",
+    value=""
+)
+
+el_length = Text(
+    description="Length (ms)",
+    value=""
+)
+
+el_stepsize = Text(
+    description="Step Size (us)",
+    value=""
+)
+
+el_bandwidth = Text(
+    description="Bandwidth (kHz)",
+    value=""
+)
+
+el_Q = Text(
+    description="Q",
+    value=""
+)
+
+el_sweepdirection = Dropdown(
+    description="Sweep",
+    options=["", "lowToHigh", "highToLow"],
+    value=""
+)
+
 el_powerindex.value = ""
 el_subname.value = ""
 el_length.value = ""
