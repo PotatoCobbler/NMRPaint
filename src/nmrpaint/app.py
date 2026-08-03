@@ -2143,7 +2143,7 @@ property_editor_box = VBox(
         update_button
     ],
     layout=Layout(
-        width="250px",
+        width="260px",
         overflow="hidden"
     )
 )
