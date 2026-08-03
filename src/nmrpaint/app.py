@@ -99,7 +99,8 @@ class SequenceElement:
                 self.visual_height = DEFAULT_HEIGHT / 2
             else:
                 self.visual_height = DEFAULT_HEIGHT
-                               
+
+    
 class PulseSequence:
     def __init__(self):
         self.elements = []
@@ -203,6 +204,38 @@ def pulse_fill_color(el):
     else:
         return "white"
 
+#--------------
+#wvm attributes
+#--------------
+el_powerindex.value = ""
+el_subname.value = ""
+el_length.value = ""
+el_stepsize.value = ""
+el_bandwidth.value = ""
+el_Q.value = ""
+el_sweepdirection.value = ""
+
+wvm_box = VBox([
+    el_powerindex,
+    el_subname,
+    el_length,
+    el_stepsize,
+    el_bandwidth,
+    el_Q,
+    el_sweepdirection,
+])
+
+wvm_box.layout.display = "none"
+
+def update_wvm_visibility(change=None):
+    wvm_box.layout.display = "flex" if el_wvm.value else "none"
+
+el_wvm.observe(update_wvm_visibility, names="value")
+
+# ----------------
+# Allowed channels
+# ----------------
+
 allowed_channels = {
     "pulse": ["f1", "f2"],
     "shaped": ["f1", "f2"],
@@ -210,6 +243,10 @@ allowed_channels = {
     "flag": ["f1", "f2"],
     "grad": ["Gz"]
 }
+
+#----------------------
+#Nearest channel logic
+#----------------------
 
 drag_start_y = 0
 
@@ -221,6 +258,11 @@ def get_nearest_channel(y, kind=None):
     
     distances = {ch: abs(y - pos) for ch, pos in candidates.items()}
     return min(distances, key=distances.get)
+
+
+#---------------------
+# Delay related logic
+#---------------------
 
 def renumber_delays():
     delays = sorted(
@@ -254,6 +296,7 @@ def has_channel_time_conflict(channel, new_start, new_duration, ignore_el=None):
             return True
 
     return False
+    
 def remove_overlapping_delays():
     """
     Hard fix: if two delays occupy the same region,
@@ -352,6 +395,7 @@ def rebuild_global_delays():
 
     remove_overlapping_delays()
     renumber_delays()    
+
 
 # -----------------------
 # Program state
@@ -2010,15 +2054,15 @@ el_wvm = Checkbox(
     value=False,
     indent=False
 )
-    
-property_editor_content = VBox(
-    layout=Layout(width="100%")
-)
 
 el_sweepdirection = Dropdown(
     description="Sweep",
     options=["", "lowToHigh", "highToLow"],
     value=""
+)
+
+property_editor_content = VBox(
+    layout=Layout(width="100%")
 )
 
 property_editor_box = VBox(
@@ -2190,31 +2234,8 @@ def show_property_editor(el: SequenceElement):
     if hasattr(el, "visual_height"):
         el_height.value = el.visual_height
 
-    #wvm attributes
-    el_powerindex.value = ""
-    el_subname.value = ""
-    el_length.value = ""
-    el_stepsize.value = ""
-    el_bandwidth.value = ""
-    el_Q.value = ""
-    el_sweepdirection.value = ""
-
-    wvm_box = VBox([
-        el_powerindex,
-        el_subname,
-        el_length,
-        el_stepsize,
-        el_bandwidth,
-        el_Q,
-        el_sweepdirection,
-    ])
-    
-    wvm_box.layout.display = "none"
-
-    def update_wvm_visibility(change=None):
-        wvm_box.layout.display = "flex" if el_wvm.value else "none"
-    
-    el_wvm.observe(update_wvm_visibility, names="value")
+    el_wvm.value = getattr(el, "wvm", False)
+    update_wvm_visibility()   
     
     # ---------------------------
     # Build editor layout
@@ -2245,7 +2266,8 @@ def show_property_editor(el: SequenceElement):
             el_phase,
             el_duration,
             el_height,
-            el_wvm
+            el_wvm,
+            wvm_box
         ]
 
     elif kind == "grad":
