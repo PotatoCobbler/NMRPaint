@@ -1479,8 +1479,7 @@ def generate_program_button_click(b):
             print(f"Generation failed: {type(exc).__name__}: {exc}")
 
 def generate_and_phase(b):
-    """Populate phase rows, generate the phase cycle, save locally,
-    and display the pulse program."""
+    """Generate pulse program, display it, save it, and create download link."""
 
     generation_output.layout.display = "block"
     generation_output.clear_output(wait=True)
@@ -1492,20 +1491,27 @@ def generate_and_phase(b):
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
 
+        # Generate text once
         pulse_program_text = build_pulse_program_text(
             include_phase_cycle=phase_cycle_checkbox.value
         )
 
+        # Show in textbox
         pulse_program_output.value = pulse_program_text
 
-        filename = normalize_output_filename(
-            exp_title.value,
-            default="pulse_program"
+        # Save locally
+        output_path = save_pulse_program(
+            normalize_output_filename(
+                exp_title.value,
+                default="pulse_program"
+            ),
+            pulse_program_text
         )
 
-        output_path = save_pulse_program(
-            filename,
-            pulse_program_text
+        # Create browser download link
+        browser_download_link.value = build_text_download_href(
+            pulse_program_text,
+            filename=output_path.name
         )
 
         with generation_output:
@@ -1514,8 +1520,8 @@ def generate_and_phase(b):
     except Exception as exc:
         with generation_output:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
-
-def prepare_browser_download(b):
+    
+    def prepare_browser_download(b):
 
     populate_phase_rows()
 
