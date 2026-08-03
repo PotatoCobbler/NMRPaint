@@ -2091,20 +2091,7 @@ update_button.layout = Layout(
     margin="10px auto 0px auto"
 )
 
-el_wvm = Checkbox(
-    description="wvm",
-    value=False,
-    layout=field_layout,
-    style=label_style
-)
 
-el_sweepdirection = Dropdown(
-    description="Sweep",
-    options=["", "lowToHigh", "highToLow"],
-    value="",
-    layout=field_layout,
-    style=label_style
-)
 property_editor_content = VBox(
     layout=Layout(width="100%")
 )
@@ -2175,6 +2162,21 @@ el_duration = FloatText(
 
 el_height = IntText(
     description="Height",
+    layout=field_layout,
+    style=label_style
+)
+
+el_wvm = Checkbox(
+    description="wvm",
+    value=False,
+    layout=field_layout,
+    style=label_style
+)
+
+el_sweepdirection = Dropdown(
+    description="Sweep",
+    options=["", "lowToHigh", "highToLow"],
+    value="",
     layout=field_layout,
     style=label_style
 )
