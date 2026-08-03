@@ -207,7 +207,7 @@ def pulse_fill_color(el):
 #--------------
 #wvm attributes
 #--------------
-field_layout = Layout(width="210px")
+field_layout = Layout(width="200px")
 label_style = {"description_width": "85px"}
 
 el_powerindex = Text(
@@ -2301,8 +2301,17 @@ def show_property_editor(el: SequenceElement):
 
     if hasattr(el, "visual_height"):
         el_height.value = el.visual_height
-
+    
     el_wvm.value = getattr(el, "wvm", False)
+    
+    el_powerindex.value = getattr(el, "powerindex", "")
+    el_subname.value = getattr(el, "subname", "")
+    el_length.value = getattr(el, "length", "")
+    el_stepsize.value = getattr(el, "stepsize", "")
+    el_bandwidth.value = getattr(el, "bandwidth", "")
+    el_Q.value = getattr(el, "Q", "")
+    el_sweepdirection.value = getattr(el, "sweepdirection", "")
+    
     update_wvm_visibility(None)
    
     # ---------------------------
