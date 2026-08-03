@@ -1598,7 +1598,7 @@ phase_cycle_box = VBox([
     phase_cycle_output
 ])
 
-phase_cycle_box.layout = Layout(width="400px")
+phase_cycle_box.layout = Layout(width="440px")
 
 def populate_phase_rows():
 
