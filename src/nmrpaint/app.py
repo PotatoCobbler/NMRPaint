@@ -2094,15 +2094,17 @@ update_button.layout = Layout(
 el_wvm = Checkbox(
     description="wvm",
     value=False,
-    indent=False
+    layout=field_layout,
+    style=label_style
 )
 
 el_sweepdirection = Dropdown(
     description="Sweep",
     options=["", "lowToHigh", "highToLow"],
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
-
 property_editor_content = VBox(
     layout=Layout(width="100%")
 )
