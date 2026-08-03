@@ -243,12 +243,6 @@ el_sweepdirection = Dropdown(
     value=""
 )
 
-el_wvm = Checkbox(
-    description="wvm",
-    value=False,
-    indent=False
-)
-
 el_powerindex.value = ""
 el_subname.value = ""
 el_length.value = ""
@@ -2192,7 +2186,8 @@ property_editor_content.children = (
     el_power,
     el_phase,
     el_duration,
-    el_height
+    el_height,
+    wvm_box
 )
 
 def _coerce_for_widget(widget, value, *, default=None, dropdown_options=None):
