@@ -262,7 +262,7 @@ el_wvm = Checkbox(
 el_sweepdirection = Dropdown(
     description="Sweep",
     options=["", "lowToHigh", "highToLow"],
-    layout=Layout(width="210px", min_width="0px"),
+    layout=field_layout,
     style=label_style
 )
 
