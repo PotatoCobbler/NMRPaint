@@ -2018,9 +2018,7 @@ property_editor_content = VBox(
 el_sweepdirection = Dropdown(
     description="Sweep",
     options=["", "lowToHigh", "highToLow"],
-    value="",
-    layout=field_layout,
-    style=label_style
+    value=""
 )
 
 property_editor_box = VBox(
