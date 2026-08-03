@@ -3465,12 +3465,6 @@ main_vbox = VBox(
         main_top_row,
         copyright_footer,
     ],
-        layout=Layout(
-        display="flex",
-        flex_flow="row nowrap",
-        overflow_x="auto",
-        gap="10px",
-    ),
 )
 
 
