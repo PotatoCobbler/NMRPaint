@@ -71,7 +71,18 @@ class SequenceElement:
         self.phase = phase
         self.shape = shape
         self.visual_width = self.duration * timeline_scale
-                
+                     
+        #wavemaker specific attributes
+        self.wvm = False
+        self.powerindex = ""
+        self.subname = ""
+        self.length = ""
+        self.stepsize = ""
+        self.bandwidth = ""
+        self.Q = ""
+        self.sweepdirection = ""
+                     
+        #Specials; flags, delays, blocks
         if self.kind == "flag":
             self.duration = 0
             self.visual_width = 30
@@ -812,7 +823,38 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # Pulse sequence
     # -----------------------
+    for el in sequence.elements:
+
+        if not (el.kind.lower() == "shaped" and getattr(el, "wvm", False)):
+            continue
     
+        args = []
+    
+        args.append(el.shape)
+        args.append(el.title)
+    
+        def format_value(v):
+            if not v:
+                return None
+            if str(v).startswith("cnst"):
+                return "$" + str(v)
+            return str(v)
+    
+        for value in [
+            el.powerindex,
+            el.subname,
+            el.length,
+            el.stepsize,
+            el.bandwidth,
+            el.Q,
+            el.sweepdirection,
+        ]:
+            value = format_value(value)
+            if value is not None:
+                args.append(value)
+    
+        f.write(f"create_shape({', '.join(args)})\n")
+        
     f.write("1 ze\n")
     f.write("2 30m pl1:f1\n")
     fid_start = get_fid_start_time()
@@ -1238,14 +1280,28 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             f.write(f";gpnam{i}: {el.title}\n")
     
         f.write("\n")
+
+    # -----------------------
+    # Wavemaker statement
+    # -----------------------
     
+    if any(
+        el.kind.lower() == "shaped" and getattr(el, "wvm", False)
+        for el in sequence.elements
+    ):
+        f.write(";use AU-program proc_reset to process data\n")
+        f.write(";run wvm -q before zg or launch with xaua\n\n")
+        
     # -----------------------
     # Footer
     # -----------------------
     f.write(";$Id: Generated using NMRpaintv0.1.0$\n")
 
     return f.getvalue()
-
+    
+# ------------------------------------------    
+# ----- End of Pulse Program Generator -----
+# ------------------------------------------
 
 def save_pulse_program(
     filename: str | Path,
@@ -1938,9 +1994,6 @@ property_editor_header = HTML("""
 </div>
 """)
 
-property_editor_content = VBox(
-    layout=Layout(width="100%")
-)
 
 update_button = Button(
     description="Update Element",
@@ -1950,6 +2003,24 @@ update_button = Button(
 
 update_button.layout = Layout(
     margin="10px auto 0px auto"
+)
+
+el_wvm = Checkbox(
+    description="wvm",
+    value=False,
+    indent=False
+)
+    
+property_editor_content = VBox(
+    layout=Layout(width="100%")
+)
+
+el_sweepdirection = Dropdown(
+    description="Sweep",
+    options=["", "lowToHigh", "highToLow"],
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 property_editor_box = VBox(
@@ -2130,6 +2201,23 @@ def show_property_editor(el: SequenceElement):
     el_Q.value = ""
     el_sweepdirection.value = ""
 
+    wvm_box = VBox([
+        el_powerindex,
+        el_subname,
+        el_length,
+        el_stepsize,
+        el_bandwidth,
+        el_Q,
+        el_sweepdirection,
+    ])
+    
+    wvm_box.layout.display = "none"
+
+    def update_wvm_visibility(change=None):
+        wvm_box.layout.display = "flex" if el_wvm.value else "none"
+    
+    el_wvm.observe(update_wvm_visibility, names="value")
+    
     # ---------------------------
     # Build editor layout
     # ---------------------------
@@ -2158,7 +2246,8 @@ def show_property_editor(el: SequenceElement):
             el_power,
             el_phase,
             el_duration,
-            el_height
+            el_height,
+            el_wvm
         ]
 
     elif kind == "grad":
