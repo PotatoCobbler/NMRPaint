@@ -928,36 +928,56 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # Pulse sequence
     # -----------------------
     for el in sequence.elements:
-
+    
         if not (el.kind.lower() == "shaped" and getattr(el, "wvm", False)):
             continue
     
-        args = []
-    
-        args.append(el.shape)
-        args.append(el.title)
+        args = [el.shape, el.title]
     
         def format_value(v):
             if not v:
                 return None
-            if str(v).startswith("cnst"):
-                return "$" + str(v)
-            return str(v)
+            v = str(v).strip()
+            if v.startswith("cnst"):
+                v = "$" + v
+            return v
     
-        for value in [
-            el.powerindex,
-            el.subname,
-            el.length,
-            el.stepsize,
-            el.bandwidth,
-            el.Q,
-            el.sweepdirection,
-        ]:
-            value = format_value(value)
-            if value is not None:
-                args.append(value)
+        # powerIndex
+        v = format_value(el.powerindex)
+        if v:
+            args.append(f"powerIndex={v}")
     
-        f.write(f"create_shape({', '.join(args)})\n")
+        # name (subname)
+        v = format_value(el.subname)
+        if v:
+            args.append(f"name={v}")
+    
+        # length (ms)
+        v = format_value(el.length)
+        if v:
+            args.append(f"length={v} ms")
+    
+        # stepSize (us)
+        v = format_value(el.stepsize)
+        if v:
+            args.append(f"stepSize={v} us")
+    
+        # bandwidth (Hz)
+        v = format_value(el.bandwidth)
+        if v:
+            args.append(f"bandwidth={v} Hz")
+    
+        # Q
+        v = format_value(el.Q)
+        if v:
+            args.append(f"Q={v}")
+    
+        # sweepDirection
+        v = format_value(el.sweepdirection)
+        if v:
+            args.append(f"sweepDirection={v}")
+    
+        f.write(f"create_shape({', '.join(args)})\n\n")
         
     f.write("1 ze\n")
     f.write("2 30m pl1:f1\n")
