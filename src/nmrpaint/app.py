@@ -207,7 +207,7 @@ def pulse_fill_color(el):
 #--------------
 #wvm attributes
 #--------------
-field_layout = Layout(width="210px")
+field_layout = Layout(width="190px")
 label_style = {"description_width": "85px"}
 
 el_powerindex = Text(
@@ -1575,7 +1575,7 @@ phase_cycle_box = VBox([
     phase_cycle_output
 ])
 
-phase_cycle_box.layout = Layout(width="400px")
+phase_cycle_box.layout = Layout(width="350px")
 
 def populate_phase_rows():
 
@@ -2121,7 +2121,7 @@ property_editor_box = VBox(
         update_button
     ],
     layout=Layout(
-        width="300px",
+        width="230px",
         overflow="hidden"
     )
 )
@@ -3003,7 +3003,7 @@ canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
 elements_section.layout = Layout(width="220px",overflow="hidden")
-property_editor_box.layout.flex = "0 0 270px"
+property_editor_box.layout.flex = "0 0 230px"
 
 
 # -----------------------
