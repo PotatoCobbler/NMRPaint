@@ -212,32 +212,44 @@ label_style = {"description_width": "85px"}
 
 el_powerindex = Text(
     description="Power Index",
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 el_subname = Text(
     description="Subname",
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 el_length = Text(
     description="Length (ms)",
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 el_stepsize = Text(
     description="Step Size (us)",
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 el_bandwidth = Text(
     description="Bandwidth (kHz)",
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 el_Q = Text(
     description="Q",
-    value=""
+    value="",
+    layout=field_layout,
+    style=label_style
 )
 
 el_wvm = Checkbox(
