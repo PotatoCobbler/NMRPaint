@@ -1,0 +1,20 @@
+4u pl20:f1
+;  DAZ22622(ph27,ph28)
+
+1001 (DZ_TAU3) (DZ_THE3 ph27):f1
+     (DZ_TAU3) (DZ_THE3 ph28):f1
+     lo to 1001 times DZ_LC4      
+1002 (DZ_TAU3) (DZ_THE2 ph27):f1
+     (DZ_TAU3) (DZ_THE2 ph28):f1
+     lo to 1002 times DZ_LC4      
+1003 (DZ_TAU3) (DZ_THET ph27):f1
+     (DZ_TAU3) (DZ_THET ph28):f1
+     lo to 1003 times DZ_LC5      
+1004 (DZ_TAU3) (DZ_THE2 ph27):f1
+     (DZ_TAU3) (DZ_THE2 ph28):f1
+     lo to 1004 times DZ_LC4      
+1005 (DZ_TAU3) (DZ_THE3 ph27):f1
+     (DZ_TAU3) (DZ_THE3 ph28):f1
+     lo to 1005 times DZ_LC4
+
+  d12 pl1:f1
