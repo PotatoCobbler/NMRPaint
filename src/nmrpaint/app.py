@@ -207,7 +207,7 @@ def pulse_fill_color(el):
 #--------------
 #wvm attributes
 #--------------
-field_layout = Layout(width="190px")
+field_layout = Layout(width="230px")
 label_style = {"description_width": "85px"}
 
 el_powerindex = Text(
@@ -1525,7 +1525,7 @@ phase_cycle_header = HBox([
 
 phase_cycle_container = VBox([])
 phase_cycle_output = Textarea(
-    layout=Layout(width="416px", height="160px")
+    layout=Layout(width="436px", height="160px")
 )
 
 def add_phase_row(pulse, phase):
