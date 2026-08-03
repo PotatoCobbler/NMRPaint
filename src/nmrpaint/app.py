@@ -3308,7 +3308,7 @@ buttons_row = HBox(
         undo_button,
         clear_button,
         toggle_delays_btn,
-        browser_download_button,
+        print_names_button,
         phase_cycle_checkbox,
         browser_download_link,
         export_btn,
