@@ -1474,7 +1474,6 @@ def generate_program_button_click(b):
     with generation_output:
         try:
             output_path = _generate_local_pulse_program()
-            print(f"Pulse program saved to: {output_path.resolve()}")
 
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
@@ -1548,15 +1547,31 @@ pulse_program_output = Textarea(
     value="",
     description="",
     layout=Layout(
-        width="450px",
+        width="400px",
         height="500px"
     )
 )
 
-pulse_program_box = VBox([
-    HTML("<h4>Pulse Program</h4>"),
-    pulse_program_output
-])
+pulse_program_header = HTML("""
+<div style="
+    text-align:center;
+    font-size:15px;
+    font-weight:bold;
+">
+    Pulse program
+</div>
+""")
+
+pulse_program_box = VBox(
+    [
+        pulse_program_header,
+        pulse_program_output
+    ],
+    layout=Layout(
+        width="400px",
+        overflow="hidden"
+    )
+)
 
 phase_rows = []
 
@@ -2149,7 +2164,6 @@ property_editor_header = HTML("""
 </div>
 """)
 
-
 update_button = Button(
     description="Update Element",
     button_style="success",
@@ -2500,7 +2514,7 @@ def show_property_editor(el: SequenceElement):
 # Canvas Setup
 # -----------------------
 
-canvas_width = 970
+canvas_width = 900
 canvas_height = 450
 
 def get_fid_start_time():
