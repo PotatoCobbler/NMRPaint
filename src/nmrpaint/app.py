@@ -2121,7 +2121,7 @@ property_editor_box = VBox(
         update_button
     ],
     layout=Layout(
-        width="290px",
+        width="300px",
         overflow="hidden"
     )
 )
@@ -3003,7 +3003,7 @@ canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
 elements_section.layout = Layout(width="220px",overflow="hidden")
-property_editor_box.layout.flex = "0 0 250px"
+property_editor_box.layout.flex = "0 0 270px"
 
 
 # -----------------------
