@@ -2281,8 +2281,8 @@ def show_property_editor(el: SequenceElement):
         el_height.value = el.visual_height
 
     el_wvm.value = getattr(el, "wvm", False)
-    update_wvm_visibility()   
-    
+    update_wvm_visibility(None)
+   
     # ---------------------------
     # Build editor layout
     # ---------------------------
