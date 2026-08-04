@@ -615,9 +615,7 @@ browser_download_button = Button(
     button_style="primary"
 )
 
-browser_download_link = HTML(
-    value="",
-)
+browser_download_link = HTML()
 
 def export_png(b):
 
@@ -1481,9 +1479,17 @@ def generate_program(b):
         href = build_text_download_href(content)
         
         browser_download_link.value = f"""
-        <a id="nmrpaint_download"
-           href="{href}"
-           download="{filename}">
+        <a href="{href}"
+           download="{filename}"
+           style="
+              display:inline-block;
+              background:#f0ad4e;
+              color:white;
+              padding:6px 12px;
+              border-radius:4px;
+              text-decoration:none;
+              font-weight:bold;
+           ">
            Download pulse program
         </a>
         """
