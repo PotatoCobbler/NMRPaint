@@ -3055,7 +3055,7 @@ property_editor_box.layout.flex = "0 0 250px"
 canvas_width_input = IntText(
     description="Canvas width:",
     value=canvas_width,
-    layout=Layout(width="160px"),
+    layout=Layout(width="170px"),
     style={'description_width': '100px'}
 )
 
@@ -3083,7 +3083,7 @@ canvas_row = HBox(
     ],
     layout=Layout(
         spacing='10px',
-        padding='5px 0px'
+        padding='0px 0px'
     )
 )
 
