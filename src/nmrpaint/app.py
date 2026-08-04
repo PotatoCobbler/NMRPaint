@@ -1539,11 +1539,11 @@ def prepare_browser_download(b):
         default="pulse_program",
     )
 
-    href = build_text_download_href(pulse_program_text)
+    href = build_text_download_href(content)
     
     browser_download_link.value = f"""
-    {href}
-       Download
+    <a href="{href}"
+       download="{m
     </a>
     """
 
