@@ -3087,7 +3087,11 @@ canvas_section = VBox([
     canvas_row
 ])
 
-canvas_section.layout.flex = "0 0 auto"
+canvas_section.layout = Layout(
+    flex="1 1 auto",
+    height="100%",
+)
+
 canvas_container.layout.flex = "0 0 auto"
 canvas_container.layout.width  = f"{canvas_width}px"
 canvas_container.layout.height = f"{canvas_height}px"
@@ -3397,6 +3401,13 @@ main_top_row = HBox(
         justify_content="flex-start",
         gap="10px"
     )
+)
+
+main_top_row.layout = Layout(
+    width="100%",
+    flex="1 1 auto",
+    overflow="auto",
+    gap="10px",
 )
 
 exp_prop_row_1 = HBox(
