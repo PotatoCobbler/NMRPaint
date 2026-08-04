@@ -32,7 +32,8 @@ from ipywidgets import (
 )
 
 from ipycanvas import Canvas
-from IPython.display import display, FileLink, HTML
+from IPython.display import FileLink
+from IPython.display import display, HTML as DisplayHTML
 
 from .resource_manager import (
     list_resource_names,
@@ -3526,17 +3527,18 @@ draw_sequence()
 def create_app():
     """Return the complete NMRpaint widget application."""
 
-    display(HTML("""
+    display(DisplayHTML("""
     <style>
     body {
         background-color: #F5F5F5 !important;
     }
-
+    
     .jp-Notebook {
         background-color: #F5F5F5 !important;
     }
     </style>
     """))
+
 
     return main_vbox
 
