@@ -1766,12 +1766,10 @@ pulse_program_box = VBox(
         pulse_program_header,
         pulse_program_output,
         phase_cycle_box
-    ],
-    layout=Layout(
-        width="390px",
-        overflow="hidden"
-    )
+    ]
 )
+
+pulse_program_box.layout.flex = "0 0 auto"
 
 # -----------------------
 # Register Handlers
@@ -2165,12 +2163,10 @@ property_editor_box = VBox(
         property_editor_header,
         property_editor_content,
         update_button
-    ],
-    layout=Layout(
-        width="260px",
-        overflow="hidden"
-    )
+    ]
 )
+
+property_editor_box.layout.flex = "0 0 auto"
 
 el_title = Text(
     description="Title",
@@ -3037,7 +3033,7 @@ elements_section = VBox([
     elements_panel
 ])
 
-elements_section.layout = Layout(width="220px",overflow="hidden")
+elements_section.layout.flex = "0 0 auto"
 property_editor_box.layout.flex = "0 0 250px"
 
 # -----------------------
@@ -3092,17 +3088,15 @@ canvas_section = VBox([
     """),
     canvas_box,
     canvas_row
-],
-layout=Layout(
-    padding="0 25px 0 0"
-))
+])
 
-canvas_container.layout.min_width  = f"{canvas_width}px"
-canvas_container.layout.min_height = f"{canvas_height}px"
-canvas_container.layout.width  = f"{canvas_width}px"
-canvas_container.layout.height = f"{canvas_height}px"
-canvas_container.layout.overflow = "hidden"
-canvas_container.layout.align_items = "center"
+canvas_section.layout.flex = "1 1 auto"
+#canvas_container.layout.min_width  = f"{canvas_width}px"
+#canvas_container.layout.min_height = f"{canvas_height}px"
+#canvas_container.layout.width  = f"{canvas_width}px"
+#canvas_container.layout.height = f"{canvas_height}px"
+#canvas_container.layout.overflow = "hidden"
+#canvas_container.layout.align_items = "center"
 
 # -----------------------
 # Mouse actions
