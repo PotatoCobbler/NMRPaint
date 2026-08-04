@@ -1515,8 +1515,7 @@ def generate_and_phase(b):
 
         # Create browser download link
         browser_download_link.value = build_text_download_href(
-            pulse_program_text,
-            filename=output_path.name
+            pulse_program_text
         )
 
         with generation_output:
