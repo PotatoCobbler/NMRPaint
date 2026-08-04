@@ -1804,7 +1804,7 @@ ds_text = IntText(
 # -----------------------
 exp_title = Text(
     description="Title:",
-    layout=Layout(width="200px", margin="0px"),
+    layout=Layout(width="220px", margin="0px"),
     style={'description_width': '80px'}
 )
 
