@@ -1523,7 +1523,7 @@ pulse_program_output = Textarea(
     value="",
     description="",
     layout=Layout(
-        width="400px",
+        width="396px",
         height="450px"
     )
 )
@@ -3473,8 +3473,7 @@ app_wrapper = HTML("""
     height:100vh;
     background:#F5F5F5;
     z-index:0;
-">
-</div>
+"></div>
 """)
 
 background = HTML("""
@@ -3541,4 +3540,4 @@ def create_app():
 
 
 if __name__ == "__main__":
-    display(create_app())
+    display(app_wrapper, create_app())
