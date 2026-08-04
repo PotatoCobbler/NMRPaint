@@ -3090,12 +3090,11 @@ canvas_section = VBox([
     canvas_row
 ])
 
-canvas_section.layout.flex = "1 1 auto"
-#canvas_container.layout.min_width  = f"{canvas_width}px"
-#canvas_container.layout.min_height = f"{canvas_height}px"
-#canvas_container.layout.width  = f"{canvas_width}px"
-#canvas_container.layout.height = f"{canvas_height}px"
-#canvas_container.layout.overflow = "hidden"
+canvas_section.layout.flex = "0 0 auto"
+canvas_container.layout.flex = "0 0 auto"
+canvas_container.layout.width  = f"{canvas_width}px"
+canvas_container.layout.height = f"{canvas_height}px"
+canvas_container.layout.overflow = "hidden"
 #canvas_container.layout.align_items = "center"
 
 # -----------------------
