@@ -3036,6 +3036,25 @@ elements_panel = build_elements_panel()
 # Canvas + Coherence
 # -----------------------
 
+# Canvas size controls
+canvas_width_input = IntText(
+    description="Canvas width:",
+    value=canvas_width,
+    layout=Layout(width="160px"),
+    style={'description_width': '100px'}
+)
+
+apply_canvas_size_btn = Button(
+    description="Update",
+    button_style="info",
+    tooltip="Resize canvas"
+)
+
+def on_apply_canvas_size(_):
+    set_canvas_size(canvas_width_input.value, canvas_height)
+
+apply_canvas_size_btn.on_click(on_apply_canvas_size)
+
 canvas_row = HBox(
     [
         export_btn,
@@ -3091,7 +3110,6 @@ canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
 elements_section.layout = Layout(width="220px",overflow="hidden")
 property_editor_box.layout.flex = "0 0 250px"
-
 
 # -----------------------
 # Mouse actions
@@ -3291,27 +3309,6 @@ def on_canvas_mouse_up(x, y):
 canvas.on_mouse_down(on_canvas_mouse_down)
 canvas.on_mouse_move(on_canvas_mouse_move)
 canvas.on_mouse_up(on_canvas_mouse_up)
-
-# -----------------------
-# Canvas size controls
-# -----------------------
-canvas_width_input = IntText(
-    description="Canvas width:",
-    value=canvas_width,
-    layout=Layout(width="160px"),
-    style={'description_width': '100px'}
-)
-
-apply_canvas_size_btn = Button(
-    description="Update",
-    button_style="info",
-    tooltip="Resize canvas"
-)
-
-def on_apply_canvas_size(_):
-    set_canvas_size(canvas_width_input.value, canvas_height)
-
-apply_canvas_size_btn.on_click(on_apply_canvas_size)
 
 # -----------------------
 # Buttons row
