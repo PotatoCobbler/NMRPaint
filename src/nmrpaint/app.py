@@ -3087,11 +3087,6 @@ canvas_section = VBox([
     canvas_row
 ])
 
-canvas_section.layout = Layout(
-    flex="1 1 auto",
-    height="100%",
-)
-
 canvas_container.layout.flex = "0 0 auto"
 canvas_container.layout.width  = f"{canvas_width}px"
 canvas_container.layout.height = f"{canvas_height}px"
@@ -3403,13 +3398,6 @@ main_top_row = HBox(
     )
 )
 
-main_top_row.layout = Layout(
-    width="100%",
-    flex="1 1 auto",
-    overflow="auto",
-    gap="10px",
-)
-
 exp_prop_row_1 = HBox(
     [exp_title, exp_class, exp_dim],
     layout=Layout(spacing="1px"),
@@ -3491,6 +3479,7 @@ app_wrapper = HTML("""
 
 main_vbox = VBox(
     [
+        app_wrapper,
         app_title,
         top_bar,
         exp_prop_section,
@@ -3498,12 +3487,6 @@ main_vbox = VBox(
         main_top_row,
         copyright_footer,
     ],
-    layout=Layout(
-        width="100%",
-        height="100vh",
-        flex="1 1 auto",
-        overflow="auto",
-    ),
 )
 
 
