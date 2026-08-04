@@ -643,13 +643,11 @@ export_btn.on_click(export_png)
 # User-defined definitions
 # -----------------------
 definitions_text = Textarea(
-    description="Definitions",
     value="",
     layout=Layout(
         width="100%",
         height="120px"
-    ),
-    style={"description_width": "initial"}
+    )
 )
 
 # -----------------------
@@ -2169,6 +2167,16 @@ property_editor_header = HTML("""
 </div>
 """)
 
+definitions_header = HTML("""
+<div style="
+    text-align:center;
+    font-size:15px;
+    font-weight:bold;
+">
+    Definitions
+</div>
+""")
+
 update_button = Button(
     description="Update Element",
     button_style="success",
@@ -2189,6 +2197,7 @@ property_editor_box = VBox(
         property_editor_header,
         property_editor_content,
         update_button,
+        definitions_header,
         definitions_text
     ]
 )
