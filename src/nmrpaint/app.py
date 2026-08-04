@@ -32,7 +32,7 @@ from ipywidgets import (
 )
 
 from ipycanvas import Canvas
-from IPython.display import display, FileLink
+from IPython.display import display, FileLink, HTML
 
 from .resource_manager import (
     list_resource_names,
@@ -3490,17 +3490,21 @@ main_vbox = VBox(
     ],
     layout=Layout(
         width="100%",
-        height="calc(100vh - 10px)",
-        display="flex",
-        flex_flow="column",
+        height="100%",
         overflow="hidden",
     ),
 )
 
-
 main_vbox.layout.overflow = "hidden"
-main_top_row.layout.flex = "1 1 auto"
-copyright_footer.layout.flex = "0 0 auto"
+main_top_row.layout = Layout(
+    width="100%",
+    flex="1 1 auto",
+)
+
+copyright_footer.layout = Layout(
+    flex="0 0 auto",
+)
+
 
 #initial d1 arrow with update logic
 dash_x = 40
@@ -3521,8 +3525,20 @@ draw_sequence()
 
 def create_app():
     """Return the complete NMRpaint widget application."""
+
+    display(HTML("""
+    <style>
+    body {
+        background-color: #F5F5F5 !important;
+    }
+
+    .jp-Notebook {
+        background-color: #F5F5F5 !important;
+    }
+    </style>
+    """))
+
     return main_vbox
 
-
 if __name__ == "__main__":
-    display(app_wrapper, create_app())
+    display(create_app())
