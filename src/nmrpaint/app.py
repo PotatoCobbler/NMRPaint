@@ -645,7 +645,7 @@ export_btn.on_click(export_png)
 definitions_text = Textarea(
     value="",
     layout=Layout(
-        width="99%",
+        width="98%",
         height="250px"
     )
 )
