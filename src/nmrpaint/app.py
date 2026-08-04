@@ -3474,7 +3474,10 @@ html, body {
 
 #nmrpaint-background {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background: #F5F5F5;
     z-index: -1;
 }
@@ -3482,6 +3485,11 @@ html, body {
 
 <div id="nmrpaint-background"></div>
 """)
+
+app_wrapper.layout = Layout(
+    width="0px",
+    height="0px",
+)
 
 
 background = HTML("""
@@ -3542,10 +3550,24 @@ delay = SequenceElement(
     name="d1"
 )
 
+def create_app():
+    """Return the complete NMRpaint widget application."""
+
+    return VBox(
+        [
+            app_wrapper,
+            main_vbox,
+        ],
+        layout=Layout(
+            width="100%",
+            height="100%",
+            overflow="hidden",
+        ),
+    )
+
 sequence.add(delay)
 draw_sequence()
 
 if __name__ == "__main__":
-    display(app_wrapper)
-    display(main_vbox)
+    display(create_app())
 
