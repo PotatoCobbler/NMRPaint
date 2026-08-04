@@ -3054,7 +3054,7 @@ canvas_width_input = IntText(
     description="Canvas width:",
     value=canvas_width,
     layout=Layout(width="170px"),
-    style={'description_width': '100px'}
+    style={'description_width': '80px'}
 )
 
 apply_canvas_size_btn = Button(
