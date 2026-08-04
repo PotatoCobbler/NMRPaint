@@ -27,13 +27,15 @@ def test_save_pulse_program(tmp_path: Path):
     assert output_path.read_text(encoding="utf-8") == content
 
 
-def test_generate_pulse_program_creates_file(tmp_path: Path):
+def test_save_pulse_program_creates_file(tmp_path: Path):
+    content = "test pulse program"
     output_path = tmp_path / "generated_program"
 
-    result = app.generate_pulse_program(output_path)
+    result = app.save_pulse_program(output_path, content)
 
     assert result == output_path
     assert output_path.exists()
+    assert output_path.read_text() == content
 
     content = output_path.read_text(encoding="utf-8")
 
