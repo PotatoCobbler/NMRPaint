@@ -3493,6 +3493,7 @@ main_vbox = VBox(
         width="100%",
         height="100%",
         overflow="hidden",
+        background_color="#F5F5F5",
     ),
 )
 
