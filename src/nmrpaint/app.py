@@ -1540,12 +1540,14 @@ def prepare_browser_download(b):
     )
 
     href = build_text_download_href(content)
-    
-    browser_download_link.value = (
-        '<a hreff + ''
-        'Download pulse program'
-        '</a>'
-    )
+
+    browser_download_link.value = f"""
+    <a id="nmrpaint_download"
+       href="{href}"
+       download="{filename}">
+       Download
+    </a>
+    """
 
 # -----------------------
 # Phase Cycle GUI
