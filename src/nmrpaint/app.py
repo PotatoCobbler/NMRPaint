@@ -1456,11 +1456,16 @@ def generate_pulse_program(
 
 def _generate_local_pulse_program() -> Path:
     """Build and save the current pulse program locally."""
+    
     filename = normalize_output_filename(
         exp_title.value,
         default="pulse_program",
     )
 
+    content = build_pulse_program_text(
+        include_phase_cycle=phase_cycle_checkbox.value
+    )
+    
     return save_text_local(
         content=content,
         filename=filename,
@@ -1535,12 +1540,10 @@ def prepare_browser_download(b):
         default="pulse_program",
     )
 
-    href = build_text_download_href(content)
-
+    href = build_text_download_href(pulse_program_text)
+    
     browser_download_link.value = f"""
-    <a id="nmrpaint_download"
-       href="{href}"
-       download="{filename}">
+    {href}
        Download
     </a>
     """
