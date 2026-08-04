@@ -1443,66 +1443,58 @@ def save_pulse_program(
         content=content,
     )
 
-def generate_pulse_program(
-    filename: str | Path,
-    include_phase_cycle: bool = False,
-) -> Path:
-    """Build and save a pulse program while preserving the existing GUI API."""
+def generate_current_pulse_program():
+    """Generate the current pulse program text and filename."""
 
-    content = build_pulse_program_text(
-        include_phase_cycle=include_phase_cycle,
-    )
+    populate_phase_rows()
 
-    return save_pulse_program(
-        filename=filename,
-        content=content,
-    )
+    if phase_cycle_checkbox.value:
+        generate_phase_cycle()
 
+    content = build_pulse_program_text()
 
-def _generate_local_pulse_program() -> Path:
-    """Build and save the current pulse program locally."""
     filename = normalize_output_filename(
         exp_title.value,
         default="pulse_program",
     )
 
-    return save_text_local(
-        content=content,
-        filename=filename,
-    )
+    return content, filename
 
 
-def generate_program_button_click(b):
-    """Generate the current pulse program in the local output directory."""
+def generate_program(b):
     generation_output.layout.display = "block"
     generation_output.clear_output(wait=True)
 
-    with generation_output:
-        try:
-            output_path = _generate_local_pulse_program()
-            print(f"Pulse program saved to: {output_path.resolve()}")
-
-        except Exception as exc:
-            print(f"Generation failed: {type(exc).__name__}: {exc}")
-
-
-def generate_and_phase(b):
-    """Populate phase rows, generate the phase cycle, and save locally."""
-    generation_output.layout.display = "block"
-    generation_output.clear_output(wait=True)
     browser_download_link.value = ""
 
     with generation_output:
         try:
-            populate_phase_rows()
+            content, filename = generate_current_pulse_program()
+            
+            pulse_program_output.value = content
+            
+            output_path = save_pulse_program(
+                filename=filename,
+                content=content,
+            )
+            
+            href = build_text_download_href(content)
+            
+            browser_download_link.value = f"""
+            <a id="nmrpaint_download"
+               href="{href}"
+               download="{filename}">
+               Download pulse program
+            </a>
+            """
+            
+            print(f"Saved to: {output_path.resolve()}")
 
-            if phase_cycle_checkbox.value:
-                generate_phase_cycle()
 
-            output_path = _generate_local_pulse_program()
-            print(f"Pulse program saved to: {output_path.resolve()}")
         except Exception as exc:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
+
+
 
 def prepare_browser_download(b):
 
@@ -1527,9 +1519,9 @@ def prepare_browser_download(b):
        Download
     </a>
     """
-# -----------------------
-# Phase Cycle GUI
-# -----------------------
+# ----------------------------------
+# Print pulse program next to canvas
+# ----------------------------------
 pulse_program_output = Textarea(
     value="",
     description="",
@@ -1549,6 +1541,9 @@ pulse_program_header = HTML("""
 </div>
 """)
 
+# -----------------------
+# Phase Cycle GUI
+# -----------------------
 phase_rows = []
 
 PHASE_MAP = {
@@ -1789,10 +1784,9 @@ clear_button.on_click(clear_sequence)
 delete_button.on_click(delete_selected_element)
 
 print_names_button._click_handlers.callbacks.clear()
-print_names_button.on_click(generate_and_phase)
 
 browser_download_button._click_handlers.callbacks.clear()
-browser_download_button.on_click(prepare_browser_download)
+browser_download_button.on_click(generate_program)
 
 # Number of scans (ns) and dummy scans (ds)
 ns_text = IntText(
