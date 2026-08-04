@@ -1549,18 +1549,6 @@ pulse_program_header = HTML("""
 </div>
 """)
 
-pulse_program_box = VBox(
-    [
-        pulse_program_header,
-        pulse_program_output,
-        phase_cycle_box
-    ],
-    layout=Layout(
-        width="400px",
-        overflow="hidden"
-    )
-)
-
 phase_rows = []
 
 PHASE_MAP = {
@@ -1778,7 +1766,19 @@ def generate_phase_cycle():
     text += "\nph31=" + " ".join(map(str,ph31))
 
     phase_cycle_output.value = text
-    
+
+pulse_program_box = VBox(
+    [
+        pulse_program_header,
+        pulse_program_output,
+        phase_cycle_box
+    ],
+    layout=Layout(
+        width="400px",
+        overflow="hidden"
+    )
+)
+
 # -----------------------
 # Register Handlers
 # -----------------------
