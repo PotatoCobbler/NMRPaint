@@ -3492,8 +3492,7 @@ main_vbox = VBox(
     layout=Layout(
         width="100%",
         height="100%",
-        overflow="hidden",
-        background_color="#F5F5F5",
+        overflow="hidden"
     ),
 )
 
@@ -3530,18 +3529,21 @@ def create_app():
 
     display(DisplayHTML("""
     <style>
-    body {
+    html, body {
         background-color: #F5F5F5 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    
-    .jp-Notebook {
+
+    .voila-container {
         background-color: #F5F5F5 !important;
+        min-height: 100vh;
     }
     </style>
     """))
 
-
     return main_vbox
+
 
 if __name__ == "__main__":
     display(create_app())
