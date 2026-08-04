@@ -30,6 +30,7 @@ from ipywidgets import (
     Tab,
     Output,
 )
+
 from ipycanvas import Canvas
 from IPython.display import display, FileLink
 
@@ -40,6 +41,29 @@ from .resource_manager import (
 )
 
 VERSION = "0.1.0"
+
+# -----------------------
+# Textbox formatting
+# -----------------------
+from IPython.display import HTML, display
+
+display(HTML("""
+<style>
+/* Disable resizing */
+.jp-RenderedHTMLCommon .widget-textarea textarea,
+.jupyter-widgets textarea {
+    resize: none !important;
+
+    /* Left/right padding */
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+
+    /* Optional: include padding in the specified width */
+    box-sizing: border-box;
+}
+</style>
+"""))
+
 
 # -----------------------
 # Internal model
