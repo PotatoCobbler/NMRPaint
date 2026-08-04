@@ -3480,7 +3480,6 @@ app_wrapper = HTML("""
 
 main_vbox = VBox(
     [
-        app_wrapper,
         app_title,
         top_bar,
         exp_prop_section,
@@ -3488,8 +3487,13 @@ main_vbox = VBox(
         main_top_row,
         copyright_footer,
     ],
+    layout=Layout(
+        width="100%",
+        height="100vh",
+        flex="1 1 auto",
+        overflow="auto",
+    ),
 )
-
 
 
 #initial d1 arrow with update logic
