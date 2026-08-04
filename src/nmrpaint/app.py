@@ -586,8 +586,12 @@ delete_button = Button(
 phase_cycle_checkbox = Checkbox(
     value=False,
     description="phase table",
-    indent=False
+    indent=False,
+    layout=Layout(
+        width="auto",
+    ),
 )
+
 
 export_btn = Button(
     description="Export Canvas",
