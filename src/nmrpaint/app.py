@@ -1459,41 +1459,37 @@ def generate_current_pulse_program():
 
     return content, filename
 
-
 def generate_program(b):
-    generation_output.layout.display = "block"
-    generation_output.clear_output(wait=True)
-
     browser_download_link.value = ""
-
-    with generation_output:
-        try:
-            content, filename = generate_current_pulse_program()
-            
-            pulse_program_output.value = content
-            
-            output_path = save_pulse_program(
-                filename=filename,
-                content=content,
-            )
-            
-            href = build_text_download_href(content)
-            
-            browser_download_link.value = f"""
-            <a id="nmrpaint_download"
-               href="{href}"
-               download="{filename}">
-               Download pulse program
-            </a>
-            """
-            
-            #print(f"Saved to: {output_path.resolve()}")
-
-
-        except Exception as exc:
+    
+    try:
+        content, filename = generate_current_pulse_program()
+        
+        pulse_program_output.value = content
+        
+        output_path = save_pulse_program(
+            filename=filename,
+            content=content,
+        )
+        
+        href = build_text_download_href(content)
+        
+        browser_download_link.value = f"""
+        <a id="nmrpaint_download"
+           href="{href}"
+           download="{filename}">
+           Download pulse program
+        </a>
+        """
+        
+        #print(f"Saved to: {output_path.resolve()}")
+    
+    except Exception as exc:
+        generation_output.layout.display = "block"
+        generation_output.clear_output(wait=True)
+    
+        with generation_output:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
-
-
 
 def prepare_browser_download(b):
 
