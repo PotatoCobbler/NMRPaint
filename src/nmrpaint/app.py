@@ -3036,6 +3036,18 @@ elements_panel = build_elements_panel()
 # Canvas + Coherence
 # -----------------------
 
+canvas_row = HBox(
+    [
+        export_btn,
+        canvas_width_input,
+        apply_canvas_size_btn
+    ],
+    layout=Layout(
+        spacing='10px',
+        padding='5px 0px'
+    )
+)
+
 coherence_label = Label(
     value=sequence.coherence_summary()
 )
@@ -3051,7 +3063,8 @@ canvas_section = VBox([
     </div>
     """),
     canvas_box,
-    coherence_label
+    coherence_label,
+    canvas_row
 ],
 layout=Layout(
     padding="0 25px 0 0"
@@ -3312,10 +3325,7 @@ buttons_row = HBox(
         toggle_delays_btn,
         print_names_button,
         phase_cycle_checkbox,
-        browser_download_link,
-        export_btn,
-        canvas_width_input,
-        apply_canvas_size_btn,
+        browser_download_link
     ],
     layout=Layout(
         spacing='10px',
@@ -3323,6 +3333,8 @@ buttons_row = HBox(
     )
 )
 
+
+        
 # -----------------------
 # Definitions tabs
 # -----------------------
