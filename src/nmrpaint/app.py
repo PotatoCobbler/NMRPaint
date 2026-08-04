@@ -1776,13 +1776,13 @@ pulse_program_box = VBox(
 # -----------------------
 # Register Handlers
 # -----------------------
-
-toggle_delays_btn.on_click(toggle_delay_selection)
-undo_button.on_click(undo_last)
-clear_button.on_click(clear_sequence)
 delete_button.on_click(delete_selected_element)
 
+undo_button.on_click(undo_last)
+clear_button.on_click(clear_sequence)
+toggle_delays_btn.on_click(toggle_delay_selection)
 print_names_button._click_handlers.callbacks.clear()
+print_names_button.on_click(generate_program)
 
 browser_download_button._click_handlers.callbacks.clear()
 browser_download_button.on_click(generate_program)
