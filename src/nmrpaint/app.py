@@ -1483,13 +1483,14 @@ def generate_program(b):
            download="{filename}"
            style="
               display:inline-block;
-              background:#f0ad4e;
+              background:#eea236;
               color:white;
               padding:0px 5px;
-              border-radius:4px;
+              border-radius:2px;
               text-decoration:none;
+              font-family:Arial, sans-serif;
            ">
-           Download pulse program
+           Download
         </a>
         """
         
