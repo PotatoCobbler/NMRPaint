@@ -35,10 +35,4 @@ def test_save_pulse_program_creates_file(tmp_path: Path):
 
     assert result == output_path
     assert output_path.exists()
-    assert output_path.read_text() == content
-
-    content = output_path.read_text(encoding="utf-8")
-
-    assert "#include <Avance.incl>" in content
-    assert "go=2 ph31" in content
-    assert "exit" in content
+    assert output_path.read_text(encoding="utf-8") == content
