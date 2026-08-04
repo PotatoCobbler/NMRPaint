@@ -3465,15 +3465,19 @@ copyright_footer = HTML(f"""
 """)
 
 app_wrapper = HTML("""
-<div style="
-    position:fixed;
-    top:0;
-    left:0;
-    width:100vw;
-    height:100vh;
-    background:#F5F5F5;
-    z-index:0;
-"></div>
+<div id="nmrpaint-background"></div>
+
+<style>
+#nmrpaint-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #F5F5F5;
+    z-index: 0;
+}
+</style>
 """)
 
 background = HTML("""
@@ -3505,6 +3509,7 @@ main_vbox = VBox(
     ),
 )
 
+main_vbox.layout.z_index = "1"
 main_vbox.layout.overflow = "hidden"
 main_top_row.layout = Layout(
     width="100%",
@@ -3521,6 +3526,7 @@ dash_x = 40
 fid_start_time = (canvas.width - 83) / timeline_scale
 
 delay_file = DELAY_RESOURCE_ID
+
 delay = SequenceElement(
     kind="delay",
     file_path=delay_file,
@@ -3534,10 +3540,17 @@ sequence.add(delay)
 draw_sequence()
 
 def create_app():
-    """Return the complete NMRpaint widget application."""
-
-    return main_vbox
+    return VBox(
+        [
+            app_wrapper,
+            main_vbox,
+        ],
+        layout=Layout(
+            width="100%",
+            height="100%",
+        ),
+    )
 
 
 if __name__ == "__main__":
-    display(app_wrapper, create_app())
+    display(create_app())
