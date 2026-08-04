@@ -3465,20 +3465,24 @@ copyright_footer = HTML(f"""
 """)
 
 app_wrapper = HTML("""
-<div id="nmrpaint-background"></div>
-
 <style>
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #F5F5F5 !important;
+}
+
 #nmrpaint-background {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
     background: #F5F5F5;
-    z-index: -999;
+    z-index: -1;
 }
 </style>
+
+<div id="nmrpaint-background"></div>
 """)
+
 
 background = HTML("""
 <style>
@@ -3515,6 +3519,8 @@ main_top_row.layout = Layout(
     width="100%",
     flex="1 1 auto",
 )
+main_top_row.layout.width = "100%"
+main_top_row.layout.overflow = "hidden"
 
 copyright_footer.layout = Layout(
     flex="0 0 auto",
@@ -3539,18 +3545,7 @@ delay = SequenceElement(
 sequence.add(delay)
 draw_sequence()
 
-def create_app():
-    return VBox(
-        [
-            app_wrapper,
-            main_vbox,
-        ],
-        layout=Layout(
-            width="100%",
-            height="100%",
-        ),
-    )
-
-
 if __name__ == "__main__":
-    display(create_app())
+    display(app_wrapper)
+    display(main_vbox)
+
