@@ -1485,10 +1485,7 @@ def generate_program(b):
               display:inline-block;
               background:#f0ad4e;
               color:white;
-              padding:6px 12px;
-              border-radius:4px;
               text-decoration:none;
-              font-weight:bold;
            ">
            Download pulse program
         </a>
