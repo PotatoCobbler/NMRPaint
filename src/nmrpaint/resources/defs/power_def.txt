@@ -1,61 +1,59 @@
-pl0:	0W											
-pl1:	f1	channel	-	power	level	for	pulse					
-pl2:	f2	channel	-	power	level	for	pulse					
-pl3:	f3	channel	-	power	level	for	pulse					
-pl4:	f4	channel	-	power	level	for	pulse					
-pl5:	f5	channel	-	power	level	for	pulse					
-pl6:	f6	channel	-	power	level	for	pulse					
-pl7:	f7	channel	-	power	level	for	pulse					
-pl8:	f8	channel	-	power	level	for	pulse					
-pl9:	f1	channel	-	power	level	for	presaturation					
-pl10:	f1	channel	-	power	level	for	TOCSY-spinlock					
-pl11:	f1	channel	-	power	level	for	ROESY-spinlock					
-pl12:	f2	channel	-	power	level	for	CPD/BB	decoupling				
-pl13:	f2	channel	-	power	level	for	second	CPD/BB	decoupling			
-	or	f2	channel	-	power	level	for	Cbeta/CO	decoupling			
-pl14:	f2	channel	-	power	level	for	cw	saturation				
-	or	f2	channel	-	power	level	for	low	power	decoupling		
-pl15:	f2	channel	-	power	level	for	TOCSY-spinlock					
-pl16:	f3	channel	-	power	level	for	CPD/BB	decoupling				
-pl17:	f4	channel	-	power	level	for	CPD/BB	decoupling				
-pl18:	f1	channel	-	power	level	for	3-9-19-pulse	(watergate)				
-	or	f1	channel	-	power	level	for	TOCSY-spinlock	(high	sel.)		
-pl19:	f1	channel	-	power	level	for	CPD/BB	decoupling				
-pl20:	f1	channel	-	power	level	for	Dante-z	pulse				
-	or	f1	channel	-	power	level	for	TOCSY-spinlock	(matched	field)		
-	or	f2	channel	-	power	level	for	TOCSY-spinlock	(high	sel.)		
-	or	f2	channel	-	power	level	for	TOCSY-spinlock	(med.	sel.)		
-pl21:	f1	channel	-	power	level	for	TOCSY-spinlock	(med.	sel.)			
-	or	f2	channel	-	power	level	for	presaturation				
-pl22:	f2	channel	-	power	level	for	TOCSY-spinlock	(med.	sel.)			
-	or	f3	channel	-	power	level	for	presaturation				
-	or	f3	channel	-	power	level	for	TOCSY-spinlock	(med.	sel.)		
-pl23:	f3	channel	-	power	level	for	TOCSY-spinlock					
-	or	f3	channel	-	power	level	for	Rexchange/T2	spinlock			
-	or	f3	channel	-	power	level	for	TOCSY-spinlock				
-pl24:	f2	channel	-	power	level	for	hd/hc	decoupling				
-pl25:	f1	channel	-	power	level	for	TOCSY	spinlock	(higher	sel.)		
-	or	f1	channel	-	power	level	for	shaped	Ca/CO	decoupling		
-	or	f2	channel	-	power	level	for	Eretic				
-	or	f3	channel	-	power	level	for	T1rho	spinlock			
-pl26:	f2	channel	-	power	level	for	cw	decoupling				
-	or	f2	channel	-	power	level	for	TOCSY	spinlock	(higher	sel.	II)
-	or	f3	channel	-	power	level	for	low	power	decoupling		
-pl27:	f1	channel	-	power	level	for	pulsed	ROESY-spinlock				
-	or	f1	channel	-	power	level	for	cleanex	spinlock			
-	or	f2	channel	-	power	level	for	TOCSY	spinlock	(higher	sel.	III)
-	or	f3	channel	-	power	level	for	TOCSY-spinlock				
-pl28:	f2	channel	-	power	level	for	selective	Ca	or	CO	decoupling	
-	or	f2	channel	-	power	level	for	selective	decoupling			
-pl29:	f1	channel	-	power	level	for	trim	pulse	(T1rho	filter)	in	STD
-	or	f2	channel	-	power	level	for	low	power	decoupling	-2	
-	or	f2	channel	-	power	level	for	simultaneous	Ca	and	CO	decoupling
-pl30:	f2	channel	-	power	level	for	bilev	decoupling				
-pl31:	f2	channel	-	power	level	for	bilev	decoupling				
-pl32:	f1	channel	-	power	level	for	low	power	presaturation			
-pl33:	f1	channel	-	power	level	for	trim	pulse	(T1rho	filter)	in	STD
-	or	:	f3	channel	-	power	level	for	second	CPD/BB	decoupling	
-pl34:	f3	channel	-	power	level	for	HEROINE	(T1rho)	spinlock			
-pl37:	f2	channel	-	power	level	for	MPF	decoupling				
-												
-												
+pl0: 0W           
+pl1: f1 channel - power level for pulse
+pl2: f2 channel - power level for pulse
+pl3: f3 channel - power level for pulse
+pl4: f4 channel - power level for pulse
+pl5: f5 channel - power level for pulse
+pl6: f6 channel - power level for pulse
+pl7: f7 channel - power level for pulse
+pl8: f8 channel - power level for pulse
+pl9: f1 channel - power level for presaturation
+pl10: f1 channel - power level for TOCSY-spinlock
+pl11: f1 channel - power level for ROESY-spinlock
+pl12: f2 channel - power level for CPD/BB decoupling
+pl13: f2 channel - power level for second CPD/BB decoupling
+ or f2 channel - power level for Cbeta/CO decoupling
+pl14: f2 channel - power level for cw saturation
+ or f2 channel - power level for low power decoupling
+pl15: f2 channel - power level for TOCSY-spinlock
+pl16: f3 channel - power level for CPD/BB decoupling
+pl17: f4 channel - power level for CPD/BB decoupling
+pl18: f1 channel - power level for 3-9-19-pulse (watergate)
+ or f1 channel - power level for TOCSY-spinlock (high sel.)
+pl19: f1 channel - power level for CPD/BB decoupling
+pl20: f1 channel - power level for Dante-z pulse
+ or f1 channel - power level for TOCSY-spinlock (matched field)
+ or f2 channel - power level for TOCSY-spinlock (high sel.)
+ or f2 channel - power level for TOCSY-spinlock (med. sel.)
+pl21: f1 channel - power level for TOCSY-spinlock (med. sel.)
+ or f2 channel - power level for presaturation
+pl22: f2 channel - power level for TOCSY-spinlock (med. sel.)
+ or f3 channel - power level for presaturation
+ or f3 channel - power level for TOCSY-spinlock (med. sel.)
+pl23: f3 channel - power level for TOCSY-spinlock
+ or f3 channel - power level for Rexchange/T2 spinlock
+ or f3 channel - power level for TOCSY-spinlock
+pl24: f2 channel - power level for hd/hc decoupling
+pl25: f1 channel - power level for TOCSY spinlock (higher sel.)
+ or f1 channel - power level for shaped Ca/CO decoupling
+ or f2 channel - power level for Eretic
+ or f3 channel - power level for T1rho spinlock
+pl26: f2 channel - power level for cw decoupling
+ or f2 channel - power level for TOCSY spinlock (higher sel. II)
+ or f3 channel - power level for low power decoupling
+pl27: f1 channel - power level for pulsed ROESY-spinlock
+ or f1 channel - power level for cleanex spinlock
+ or f2 channel - power level for TOCSY spinlock (higher sel. III)
+ or f3 channel - power level for TOCSY-spinlock
+pl28: f2 channel - power level for selective Ca or CO decoupling
+ or f2 channel - power level for selective decoupling
+pl29: f1 channel - power level for trim pulse (T1rho filter) in STD
+ or f2 channel - power level for low power decoupling -2
+ or f2 channel - power level for simultaneous Ca and CO decoupling
+pl30: f2 channel - power level for bilev decoupling
+pl31: f2 channel - power level for bilev decoupling
+pl32: f1 channel - power level for low power presaturation
+pl33: f1 channel - power level for trim pulse (T1rho filter) in STD
+ or : f3 channel - power level for second CPD/BB decoupling
+pl34: f3 channel - power level for HEROINE (T1rho) spinlock
+pl37: f2 channel - power level for MPF decoupling
