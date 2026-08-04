@@ -1805,7 +1805,7 @@ ds_text = IntText(
 exp_title = Text(
     description="Title:",
     layout=Layout(width="200px", margin="0px"),
-    style={'description_width': '70px'}
+    style={'description_width': '80px'}
 )
 
 exp_class = Dropdown(
