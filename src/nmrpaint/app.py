@@ -3477,11 +3477,21 @@ app_wrapper = HTML("""
 </div>
 """)
 
+background = HTML("""
+<style>
+body {
+    background: #F5F5F5 !important;
+}
 
-#000000
+div.jp-OutputArea-output {
+    background: #F5F5F5 !important;
+}
+</style>
+""")
 
 main_vbox = VBox(
     [
+        background,
         app_title,
         top_bar,
         exp_prop_section,
@@ -3526,21 +3536,6 @@ draw_sequence()
 
 def create_app():
     """Return the complete NMRpaint widget application."""
-
-    display(DisplayHTML("""
-    <style>
-    html, body {
-        background-color: #F5F5F5 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    .voila-container {
-        background-color: #F5F5F5 !important;
-        min-height: 100vh;
-    }
-    </style>
-    """))
 
     return main_vbox
 
