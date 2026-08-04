@@ -3029,8 +3029,23 @@ def build_elements_panel():
 
     return panel
 
-
 elements_panel = build_elements_panel()
+
+elements_section = VBox([
+    HTML("""
+    <div style="
+        text-align:center;
+        font-size:15px;
+        font-weight:bold;
+    ">
+        Elements
+    </div>
+    """),
+    elements_panel
+])
+
+elements_section.layout = Layout(width="220px",overflow="hidden")
+property_editor_box.layout.flex = "0 0 250px"
 
 # -----------------------
 # Canvas + Coherence
@@ -3055,20 +3070,21 @@ def on_apply_canvas_size(_):
 
 apply_canvas_size_btn.on_click(on_apply_canvas_size)
 
+coherence_label = Label(
+    value=sequence.coherence_summary()
+)
+
 canvas_row = HBox(
     [
-        export_btn,
         canvas_width_input,
-        apply_canvas_size_btn
+        apply_canvas_size_btn,
+        export_btn,
+        coherence_label
     ],
     layout=Layout(
         spacing='10px',
         padding='5px 0px'
     )
-)
-
-coherence_label = Label(
-    value=sequence.coherence_summary()
 )
 
 canvas_section = VBox([
@@ -3082,25 +3098,11 @@ canvas_section = VBox([
     </div>
     """),
     canvas_box,
-    coherence_label,
     canvas_row
 ],
 layout=Layout(
     padding="0 25px 0 0"
 ))
-
-elements_section = VBox([
-    HTML("""
-    <div style="
-        text-align:center;
-        font-size:15px;
-        font-weight:bold;
-    ">
-        Elements
-    </div>
-    """),
-    elements_panel
-])
 
 canvas_container.layout.min_width  = f"{canvas_width}px"
 canvas_container.layout.min_height = f"{canvas_height}px"
@@ -3108,8 +3110,6 @@ canvas_container.layout.width  = f"{canvas_width}px"
 canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 canvas_container.layout.align_items = "center"
-elements_section.layout = Layout(width="220px",overflow="hidden")
-property_editor_box.layout.flex = "0 0 250px"
 
 # -----------------------
 # Mouse actions
