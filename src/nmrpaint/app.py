@@ -3471,10 +3471,11 @@ app_wrapper = HTML("""
     width:100vw;
     height:100vh;
     background:#F5F5F5;
-    z-index:-999;
+    z-index:0;
 ">
 </div>
 """)
+
 
 #000000
 
@@ -3489,10 +3490,17 @@ main_vbox = VBox(
     ],
     layout=Layout(
         width="100%",
-        height="100vh",
-        overflow="auto",
+        height="calc(100vh - 10px)",
+        display="flex",
+        flex_flow="column",
+        overflow="hidden",
     ),
 )
+
+
+main_vbox.layout.overflow = "hidden"
+main_top_row.layout.flex = "1 1 auto"
+copyright_footer.layout.flex = "0 0 auto"
 
 #initial d1 arrow with update logic
 dash_x = 40
