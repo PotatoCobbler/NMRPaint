@@ -640,6 +640,19 @@ def export_png(b):
 export_btn.on_click(export_png)
 
 # -----------------------
+# User-defined definitions
+# -----------------------
+definitions_text = Textarea(
+    description="Definitions",
+    value="",
+    layout=Layout(
+        width="100%",
+        height="120px"
+    ),
+    style={"description_width": "initial"}
+)
+
+# -----------------------
 # Main Pulse Program Generator
 # -----------------------
 
@@ -758,6 +771,11 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         and re.fullmatch(r"lo\s+to\s+\d+\s+times\s+c", getattr(el, "definition", "").lower().strip())
         for el in sequence.elements
     )
+    # -----------------------
+    # User definitions
+    # -----------------------
+    if definitions_text.value.strip():
+        f.write(definitions_text.value.rstrip() + "\n\n")
     
     # -----------------------
     # ACQT0 correction if last element is a pulse
@@ -2170,7 +2188,8 @@ property_editor_box = VBox(
     [
         property_editor_header,
         property_editor_content,
-        update_button
+        update_button,
+        definitions_text
     ]
 )
 
