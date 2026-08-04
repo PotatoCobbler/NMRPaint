@@ -1,130 +1,130 @@
 p0 : variable flip angle pulse
-p1 : f1 channel -  90 degree high power pulse
+p1 : f1 channel - 90 degree high power pulse
 p2 : f1 channel - 180 degree high power pulse
-p3 : f2 channel -  90 degree high power pulse
+p3 : f2 channel - 90 degree high power pulse
 p4 : f2 channel - 180 degree high power pulse
-p5 : f1 channel -  60 degree low power pulse
-p6 : f1 channel -  90 degree low power pulse
+p5 : f1 channel - 60 degree low power pulse
+p6 : f1 channel - 90 degree low power pulse
 p7 : f1 channel - 180 degree low power pulse
- or  f1 channel - 180 degree shaped pulse (cleanex sel. H2O)
- or  f2 channel -  90 degree pulse at pl20 (TOCSY, higher sel.)
-p8 : f2 channel -  60 degree low power pulse
- or  f1 channel -  90 degree shaped pulse (wet)
- or  f1 channel - 180 degree shaped pulse (adiabatic)
- or  f2 channel - 180 degree shaped pulse (adiabatic)
-p9 : f2 channel -  90 degree low power pulse (TOCSY)
-p10: f1 channel -  90 degree low power pulse (cleanex spinlock) 
- or  f2 channel - 180 degree low power pulse
- or  f2 channel - 180 degree shaped pulse (higher selectivity)
-p11: f1 channel -  90 degree shaped pulse (selective excitation)
- or  f1 channel -  90 degree shaped pulse (selective excitation)
- or  f1 channel -  90 degree shaped pulse (wet)
- or  f1 channel -  90 degree shaped pulse (water flipback/watergate)
+ or f1 channel - 180 degree shaped pulse (cleanex sel. H2O)
+ or f2 channel - 90 degree pulse at pl20 (TOCSY, higher sel.)
+p8 : f2 channel - 60 degree low power pulse
+ or f1 channel - 90 degree shaped pulse (wet)
+ or f1 channel - 180 degree shaped pulse (adiabatic)
+ or f2 channel - 180 degree shaped pulse (adiabatic)
+p9 : f2 channel - 90 degree low power pulse (TOCSY)
+p10: f1 channel - 90 degree low power pulse (cleanex spinlock) 
+ or f2 channel - 180 degree low power pulse
+ or f2 channel - 180 degree shaped pulse (higher selectivity)
+p11: f1 channel - 90 degree shaped pulse (selective excitation)
+ or f1 channel - 90 degree shaped pulse (selective excitation)
+ or f1 channel - 90 degree shaped pulse (wet)
+ or f1 channel - 90 degree shaped pulse (water flipback/watergate)
 p12: f1 channel - 180 degree shaped pulse (H, selective)
- or  f1 channel - 180 degree shaped pulse (C, selective)
- or  f1 channel - 180 degree shaped pulse (excitation sculpting)
- or  f1 channel - 180 degree shaped pulse (H, selective)
+ or f1 channel - 180 degree shaped pulse (C, selective)
+ or f1 channel - 180 degree shaped pulse (excitation sculpting)
+ or f1 channel - 180 degree shaped pulse (H, selective)
 p13: f1 channel - 180 degree shaped pulse (C, adiabatic)
- or  f2 channel -  90 degree shaped pulse
- or  f2 channel -  90 degree shaped pulse
- or  f2 channel -  90 degree shaped pulse (H, selective)
+ or f2 channel - 90 degree shaped pulse
+ or f2 channel - 90 degree shaped pulse
+ or f2 channel - 90 degree shaped pulse (H, selective)
 p14: f1 channel - 180 degree low power pulse (matched field)
- or  f2 channel - 180 degree shaped pulse (adiabatic)
- or  f2 channel - 180 degree shaped pulse (selective)
- or  f2 channel - 180 degree shaped pulse (selective)
+ or f2 channel - 180 degree shaped pulse (adiabatic)
+ or f2 channel - 180 degree shaped pulse (selective)
+ or f2 channel - 180 degree shaped pulse (selective)
 p15: f1 channel - pulse for ROESY spinlock
- or  f1 channel -  90 degree shaped pulse
- or  f2 channel - 180 degree shaped pulse
- or  f2 channel -  90 degree shaped pulse
- or  f3 channel - 180 degree pulse at pl23 (T2)
+ or f1 channel - 90 degree shaped pulse
+ or f2 channel - 180 degree shaped pulse
+ or f2 channel - 90 degree shaped pulse
+ or f3 channel - 180 degree pulse at pl23 (T2)
 p16: homospoil/gradient pulse
 p17: f1 channel - trim pulse at pl10 or pl15
 p18: f1 channel - shaped pulse (off resonance presaturation)
- or  f1 channel -  90 degree pulse at pl18 (TOCSY high sel.)
+ or f1 channel - 90 degree pulse at pl18 (TOCSY high sel.)
 p19: homospoil/gradient pulse 2
 p20: f2 channel - trim pulse
-p21: f3 channel -  90 degree high power pulse
+p21: f3 channel - 90 degree high power pulse
 p22: f3 channel - 180 degree high power pulse
 p23: f1 channel - 180 degree shaped pulse (med. selectivity)
- or  f2 channel -  90 degree shaped pulse (higher selectivity)
- or  f2 channel -  90 degree shaped pulse (twofold modulated)
- or  f4 channel -  90 degree high power pulse
+ or f2 channel - 90 degree shaped pulse (higher selectivity)
+ or f2 channel - 90 degree shaped pulse (twofold modulated)
+ or f4 channel - 90 degree high power pulse
 p24: f1 channel - 180 degree shaped pulse (adiabatic)
- or  f2 channel - 180 degree shaped pulse (adiabatic)
- or  f2 channel - 180 degree shaped pulse (higher selectivity)
- or  f3 channel -  90 degree pulse at pl22 (TOCSY, higher sel.)
- or  f4 channel - 180 degree high power pulse
-p25: f1 channel -  90 degree pulse at pl27 (pulsed ROESY)
- or  f1 channel -  90 degree shaped pulse (higher selectivity)
- or  f3 channel - pulse for t1rho experiment
- or  f3 channel - pulse for TOCSY-spinlock experiment
- or  f3 channel -  90 degree pulse at pl23 (TOCSY)
- or  f3 channel - 180 degree low power pulse (Rexchange)
-p26: f1 channel -  90 degree pulse at pl19
- or  f1 channel - 180 degree shaped pulse (adiabatic)
-p27: f1 channel -  90 degree pulse at pl18 (3-9-19 watergate)
-p28: f1 channel -  trim pulse at pl1
-p29: f1 channel -  90 degree shaped pulse (water flipback)
- or  f1 channel -  90 degree shaped pulse (water flipback2)
- or  f2 channel -  90 degree shaped pulse (water flipback)
- or  homospoil/gradient pulse 3
+ or f2 channel - 180 degree shaped pulse (adiabatic)
+ or f2 channel - 180 degree shaped pulse (higher selectivity)
+ or f3 channel - 90 degree pulse at pl22 (TOCSY, higher sel.)
+ or f4 channel - 180 degree high power pulse
+p25: f1 channel - 90 degree pulse at pl27 (pulsed ROESY)
+ or f1 channel - 90 degree shaped pulse (higher selectivity)
+ or f3 channel - pulse for t1rho experiment
+ or f3 channel - pulse for TOCSY-spinlock experiment
+ or f3 channel - 90 degree pulse at pl23 (TOCSY)
+ or f3 channel - 180 degree low power pulse (Rexchange)
+p26: f1 channel - 90 degree pulse at pl19
+ or f1 channel - 180 degree shaped pulse (adiabatic)
+p27: f1 channel - 90 degree pulse at pl18 (3-9-19 watergate)
+p28: f1 channel - trim pulse at pl1
+p29: f1 channel - 90 degree shaped pulse (water flipback)
+ or f1 channel - 90 degree shaped pulse (water flipback2)
+ or f2 channel - 90 degree shaped pulse (water flipback)
+ or homospoil/gradient pulse 3
 p30: f1 channel - 180 degree shaped pulse (sim. Ca + CO)
- or  f1 channel -  90 degree shaped pulse (water flipback2)
- or  f2 channel - 180 degree shaped pulse (sim. Ca + CO decoupling)
- or  f3 channel - 180 degree pulse at pl23 (T2)
- or  f3 channel - 180 degree shaped pulse
- or  homospoil/gradient pulse 4
- or  gradient pulse for diffusion (dosy)
+ or f1 channel - 90 degree shaped pulse (water flipback2)
+ or f2 channel - 180 degree shaped pulse (sim. Ca + CO decoupling)
+ or f3 channel - 180 degree pulse at pl23 (T2)
+ or f3 channel - 180 degree shaped pulse
+ or homospoil/gradient pulse 4
+ or gradient pulse for diffusion (dosy)
 p31: f2 channel - 180 degree shaped pulse (adiabatic matched sweep)
- or  f2 channel - 180 degree shaped pulse (sel. Ca or CO decoupling)
- or  f2 channel - 180 degree shaped pulse (Cbeta decoupling)
- or  f2 channel - 180 degree shaped pulse (sel. C decoupling)
- or  f2 channel -  90 degree pulse (low power decoupling)
- or  homospoil/gradient pulse 5
+ or f2 channel - 180 degree shaped pulse (sel. Ca or CO decoupling)
+ or f2 channel - 180 degree shaped pulse (Cbeta decoupling)
+ or f2 channel - 180 degree shaped pulse (sel. C decoupling)
+ or f2 channel - 90 degree pulse (low power decoupling)
+ or homospoil/gradient pulse 5
 p32: f1 channel - 180 degree shaped pulse (adiabatic sweep: z-spoil)
- or  f3 channel - 180 degree shaped pulse (adiabatic)
+ or f3 channel - 180 degree shaped pulse (adiabatic)
 p33: f1 channel - 180 degree shaped pulse (med. selectivity)
- or  f2 channel - 180 degree shaped pulse (med. selectivity)
- or  f3 channel - trim pulse
- or  f3 channel - pulse for t1rho experiment
+ or f2 channel - 180 degree shaped pulse (med. selectivity)
+ or f3 channel - trim pulse
+ or f3 channel - pulse for t1rho experiment
 p34: f1 channel - 180 degree shaped pulse (high selectivity)
- or  f2 channel - 180 degree shaped pulse (high selectivity)
- or  f4 channel -  90 degree pulse at pl17
-p35: f1 channel -  90 degree shaped pulse (high selectivity)
- or  f2 channel - 180 degree shaped pulse (C, broadband)
- or  f2 channel -  90 degree shaped pulse (high selectivity)
+ or f2 channel - 180 degree shaped pulse (high selectivity)
+ or f4 channel - 90 degree pulse at pl17
+p35: f1 channel - 90 degree shaped pulse (high selectivity)
+ or f2 channel - 180 degree shaped pulse (C, broadband)
+ or f2 channel - 90 degree shaped pulse (high selectivity)
 p36: f2 channel - 180 degree shaped pulse (C, selective)
 p39: f1 channel - 120 degree shaped pulse for excitation (best-)
- or  f2 channel - 180 degree shaped pulse (short, broadband)
- or  f3 channel -  90 degree shaped pulse (T1rho adiabatic ramp)
+ or f2 channel - 180 degree shaped pulse (short, broadband)
+ or f3 channel - 90 degree shaped pulse (T1rho adiabatic ramp)
 p40: f1 channel - 180 degree shaped pulse for refocussing (best-)
- or  f1 channel - 180 degree shaped pulse (excitation sculpting)
-p41: f1 channel -  90 degree shaped pulse for refocussing (best-)
- or: f1 channel -  90 degree shaped pulse (roesy adiabatic ramp)
+ or f1 channel - 180 degree shaped pulse (excitation sculpting)
+p41: f1 channel - 90 degree shaped pulse for refocussing (best-)
+ or: f1 channel - 90 degree shaped pulse (roesy adiabatic ramp)
 p42: f1 channel - 180 degree shaped pulse for refocussing (best-)
  or: f1 channel - pulse for saturation in STD
  or: f2 channel - 180 degree shaped pulse for refocussing (best-)
-p43: f1 channel -  90 degree shaped pulse for excitation (best-)
+p43: f1 channel - 90 degree shaped pulse for excitation (best-)
  or: f2 channel - 180 degree shaped pulse (C, bandsel.)
- or: f2 channel -  90 degree shaped pulse for excitation (best-)
+ or: f2 channel - 90 degree shaped pulse for excitation (best-)
 p44: f1 channel - 180 degree shaped pulse for refocussing (broadband)
  or: f2 channel - 180 degree shaped pulse for refocussing (broadband)
-p45: f2 channel -  90 degree pulse at pl20 ((hetero) TOCSY high sel.)
+p45: f2 channel - 90 degree pulse at pl20 ((hetero) TOCSY high sel.)
 p46: f1 channel - 180 degree shaped pulse (H, selective)
- or: f2 channel -  90 degree pulse at pl20 ((hetero) TOCSY med. sel.)
-p47: f1 channel -  90 degree shaped pulse (Zangger-Sterk)
+ or: f2 channel - 90 degree pulse at pl20 ((hetero) TOCSY med. sel.)
+p47: f1 channel - 90 degree shaped pulse (Zangger-Sterk)
  or: f2 channel - 180 degree shaped pulse for inversion (sharp)
 p48: f1 channel - 180 degree shaped pulse (ZS, instant)
  or: f2 channel - 180 degree shaped pulse for refocussing (sharp)
 p49: f1 channel - 180 degree shaped pulse (H2O)
  or: f1 channel - 180 degree shaped pulse (psyche)
-p50: f1 channel -  90 degree shaped pulse (Hmethyl)
+p50: f1 channel - 90 degree shaped pulse (Hmethyl)
  or: f1 channel - 180 degree shaped pulse (selective II)
  or: f2 channel - 180 degree shaped pulse (Cop shapes, set internally)
 p51: f1 channel - 180 degree shaped pulse (Halpha)
 p52: f1 channel - 180 degree shaped pulse (adiabatic matched sweep)
  or: f3 channel - 180 degree shaped pulse (N, selective)
-p53: f2 channel -  90 degree high power pulse
+p53: f2 channel - 90 degree high power pulse
 p54: f2 channel - 180 degree high power pulse
 p55: f1 channel - 180 degree shaped pulse (Hali)
 p56: f3 channel - 180 degree shaped pulse (N, broadband)
@@ -136,9 +136,9 @@ p58: f2 channel - 180 degree shaped pulse (adiabatic)
 p59: f3 channel - 180 degree shaped pulse (adiabatic refocussing)
  or: f3 channel - 180 degree shaped pulse (N, Pro selective)
 p60: f2 channel - 180 degree pulse (low power adiabatic decoupling)
- or: f2 channel -  90 degree pulse (low power decoupling (2))
+ or: f2 channel - 90 degree pulse (low power decoupling (2))
 p61: f1 channel - 180 degree pulse (Ca/CO decoupling)
  or: f2 channel - 180 degree pulse (low power MPF dec.)
- or: f2 channel -  90 degree pulse (low power decoupling)
-p62: f3 channel -  90 degree pulse (low power decoupling)
+ or: f2 channel - 90 degree pulse (low power decoupling)
+p62: f3 channel - 90 degree pulse (low power decoupling)
 p63: f2 channel - 180 degree shaped pulse (adiabatic bilev sweep)
