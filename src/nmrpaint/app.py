@@ -1523,7 +1523,7 @@ pulse_program_output = Textarea(
     value="",
     description="",
     layout=Layout(
-        width="392px",
+        width="390px",
         height="450px"
     )
 )
@@ -3466,20 +3466,12 @@ copyright_footer = HTML(f"""
 
 app_wrapper = HTML("""
 <style>
-html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #F5F5F5 !important;
-}
-
 #nmrpaint-background {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
+    min-height: 100dvh;
     background: #F5F5F5;
-    z-index: -999;
+    z-index: -1;
 }
 </style>
 
@@ -3553,17 +3545,25 @@ delay = SequenceElement(
 def create_app():
     """Return the complete NMRpaint widget application."""
 
-    return VBox(
-        [
-            app_wrapper,
-            main_vbox,
-        ],
-        layout=Layout(
-            width="100%",
-            height="100%",
-            overflow="hidden",
-        ),
-    )
+    display(DisplayHTML("""
+    <style>
+    html,
+    body,
+    .jp-Notebook,
+    .jp-NotebookPanel,
+    .jp-NotebookPanel-notebook,
+    .jp-OutputArea,
+    .jp-OutputArea-output,
+    .voila-container {
+        background-color: #F5F5F5 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 100% !important;
+    }
+    </style>
+    """))
+
+    return main_vbox
 
 sequence.add(delay)
 draw_sequence()
