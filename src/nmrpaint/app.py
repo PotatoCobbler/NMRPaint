@@ -1523,7 +1523,7 @@ pulse_program_output = Textarea(
     value="",
     description="",
     layout=Layout(
-        width="390px",
+        width="400px",
         height="450px"
     )
 )
@@ -1559,7 +1559,7 @@ phase_cycle_header = HBox([
 
 phase_cycle_container = VBox([])
 phase_cycle_output = Textarea(
-    layout=Layout(width="400px", height="160px")
+    layout=Layout(width="396px", height="160px")
 )
 
 def add_phase_row(pulse, phase):
@@ -3549,16 +3549,19 @@ def create_app():
     <style>
     html,
     body,
-    .jp-Notebook,
-    .jp-NotebookPanel,
-    .jp-NotebookPanel-notebook,
-    .jp-OutputArea,
-    .jp-OutputArea-output,
     .voila-container {
         background-color: #F5F5F5 !important;
         margin: 0 !important;
         padding: 0 !important;
-        min-height: 100% !important;
+        height: 100vh !important;
+    }
+    
+    .jp-Notebook,
+    .jp-NotebookPanel,
+    .jp-NotebookPanel-notebook,
+    .jp-OutputArea,
+    .jp-OutputArea-output {
+        background-color: #F5F5F5 !important;
     }
     </style>
     """))
