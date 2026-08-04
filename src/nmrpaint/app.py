@@ -645,8 +645,8 @@ export_btn.on_click(export_png)
 definitions_text = Textarea(
     value="",
     layout=Layout(
-        width="100%",
-        height="120px"
+        width="99%",
+        height="250px"
     )
 )
 
@@ -2172,6 +2172,7 @@ definitions_header = HTML("""
     text-align:center;
     font-size:15px;
     font-weight:bold;
+    padding-top:10px;
 ">
     Definitions
 </div>
