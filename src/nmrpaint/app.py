@@ -1535,7 +1535,7 @@ pulse_program_output = Textarea(
     description="",
     layout=Layout(
         width="400px",
-        height="500px"
+        height="450px"
     )
 )
 
