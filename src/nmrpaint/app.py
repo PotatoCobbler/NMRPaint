@@ -1763,7 +1763,8 @@ pulse_program_box = VBox(
         pulse_program_header,
         pulse_program_output,
         phase_cycle_box
-    ]
+    ],
+    layout=layout(padding='5px 0px')
 )
 
 pulse_program_box.layout.flex = "0 0 auto"
