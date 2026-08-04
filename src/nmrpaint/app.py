@@ -666,7 +666,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     f.write(f";{exp_title.value}\n")
     f.write(f";avance-version ({datetime.now().strftime('%Y-%m-%d')})\n")
-    f.write(f";{exp_comment.value}\n")
     f.write(";\n")
     f.write(f";$CLASS={exp_class.value}\n")
     f.write(f";$DIM={exp_dim.value}\n")
@@ -770,9 +769,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             p_var = last_el.name
     
             if p_var == "p1":
-                f.write("acqt0=-p1*2/3.1416\n\n")
+                f.write("acqt0=-p1*2/PI\n\n")
             else:
-                f.write(f"acqt0=-tan(({p_var}/p1)*(PI/4))*p1*2/3.1416\n\n")
+                f.write(f"acqt0=-tan(({p_var}/p1)*(PI/4))*p1*2/PI\n\n")
                 f.write("\n")
     
     # -----------------------
