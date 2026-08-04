@@ -1774,7 +1774,7 @@ pulse_program_box = VBox(
         phase_cycle_box
     ],
     layout=Layout(
-        width="400px",
+        width="396px",
         overflow="hidden"
     )
 )
