@@ -1523,7 +1523,7 @@ pulse_program_output = Textarea(
     value="",
     description="",
     layout=Layout(
-        width="394px",
+        width="392px",
         height="450px"
     )
 )
@@ -3475,7 +3475,7 @@ app_wrapper = HTML("""
     width: 100vw;
     height: 100vh;
     background: #F5F5F5;
-    z-index: 0;
+    z-index: -999;
 }
 </style>
 """)
