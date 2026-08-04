@@ -1425,9 +1425,13 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
 
     return f.getvalue()
     
-# ------------------------------------------    
-# ----- End of Pulse Program Generator -----
-# ------------------------------------------
+    # ------------------------------------------
+    # ----- End of Pulse Program Generator -----
+    # ------------------------------------------
+
+# -----------------------------------------------#
+# Print pulse program and generate download link #
+# -----------------------------------------------#
 
 def save_pulse_program(
     filename: str | Path,
@@ -1438,7 +1442,6 @@ def save_pulse_program(
         path=filename,
         content=content,
     )
-
 
 def generate_pulse_program(
     filename: str | Path,
@@ -1549,7 +1552,8 @@ pulse_program_header = HTML("""
 pulse_program_box = VBox(
     [
         pulse_program_header,
-        pulse_program_output
+        pulse_program_output,
+        phase_cycle_box
     ],
     layout=Layout(
         width="400px",
@@ -3402,8 +3406,6 @@ main_top_row = HBox(
         gap="10px"
     )
 )
-
-#phase_cycle_box,
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_class, exp_dim],
