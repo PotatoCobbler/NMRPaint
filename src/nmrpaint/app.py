@@ -1485,7 +1485,7 @@ def generate_program(b):
               display:inline-block;
               background:#eea236;
               color:white;
-              padding:0px 5px;
+              padding:0px 12px;
               border-radius:2px;
               text-decoration:none;
               font-family:Arial, sans-serif;
