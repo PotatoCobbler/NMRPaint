@@ -1752,20 +1752,7 @@ def generate_phase_cycle():
         tableA[row["phase"]] = cycles[i]
     
     cols = len(cycles[0])
-    
-    # ---- Table B (receiver)
-    ph31 = []
-    
-    for c in range(cols):
-        s = 0
-    
-        for row in phase_rows:
-            phase = tableC[row["phase"]][c]
-            delta = int(row["delta"].value)
-            s += phase * delta
-    
-        ph31.append(s % 4)
-    
+      
     # ---- Table C
     tableC = {}
 
@@ -1780,6 +1767,19 @@ def generate_phase_cycle():
     # phases included in the calculation but with Δp = 0
     for row in excluded:
         tableC[row["phase"]] = [row["nominal"]] * cols
+
+    # ---- Table B (receiver)
+    ph31 = []
+    
+    for c in range(cols):
+        s = 0
+    
+        for row in phase_rows:
+            phase = tableC[row["phase"]][c]
+            delta = int(row["delta"].value)
+            s += phase * delta
+    
+        ph31.append(s % 4)
 
     # ---- Print result
     text = ";Phase table\n"
