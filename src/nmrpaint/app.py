@@ -60,21 +60,26 @@ timeline_positions = {"f1": 150, "f2": 250, "Gz": 350}
 # Coherence-order positions
 # -----------------------
 
-coherence_positions = {
-     1: 70,
-     2: 90,
-     3: 110,
-     4: 130,
-    5: 150,
-    6: 170,
-    7: 190,
-     8: 220,
-     9: 240,
-     10: 260,
-    11: 280,
-    12: 300,
-    13: 320,
-    14: 340,
+ctp_channel_positions = {
+    "f1": {
+         3:  25,
+         2:  60,
+         1:  95,
+         0: 130,
+        -1: 165,
+        -2: 200,
+        -3: 235,
+    },
+
+    "f2": {
+         3: 285,
+         2: 320,
+         1: 355,
+         0: 390,
+        -1: 425,
+        -2: 460,
+        -3: 495,
+    }
 }
 
 class SequenceElement:
@@ -2602,7 +2607,6 @@ def draw_ctp_background():
 
     c.clear()
 
-    # white background
     c.fill_style = "white"
     c.fill_rect(0, 0, c.width, c.height)
 
@@ -2615,30 +2619,38 @@ def draw_ctp_background():
     c.stroke_line(40, 0, 40, c.height)
     c.set_line_dash([])
 
-    # coherence-order lines
-    for coherence, y in sorted(coherence_positions.items(), reverse=True):
+    for channel in ["f1", "f2"]:
 
-        if coherence == 0:
+        levels = ctp_channel_positions[channel]
 
-            c.stroke_style = "black"
-            c.line_width = 2
-            c.set_line_dash([])
-
-        else:
-
-            c.stroke_style = "#BFBFBF"
-            c.line_width = 1
-            c.set_line_dash([8,6])
-
-        c.stroke_line(0, y, c.width, y)
-
+        # Channel label
         c.fill_style = "black"
-        c.text_align = "center"
+        c.font = "18px Arial"
+        c.text_align = "left"
         c.text_baseline = "middle"
-        c.fill_text(str(coherence), 18, y)
+        c.fill_text(channel.upper(), 55, levels[3])
+
+        for coherence, y in sorted(levels.items(), reverse=True):
+
+            if coherence == 0:
+                c.stroke_style = "black"
+                c.line_width = 2
+                c.set_line_dash([])
+            else:
+                c.stroke_style = "#BFBFBF"
+                c.line_width = 1
+                c.set_line_dash([8,6])
+
+            c.stroke_line(0, y, c.width, y)
+
+            c.fill_style = "black"
+            c.font = "15px Arial"
+            c.text_align = "center"
+            c.text_baseline = "middle"
+            c.fill_text(str(coherence), 18, y)
 
     c.set_line_dash([])
-
+    
 draw_ctp_background()
 
 # -----------------------
