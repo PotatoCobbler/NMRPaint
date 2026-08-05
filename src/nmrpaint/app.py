@@ -1618,7 +1618,7 @@ def add_phase_row(pulse, phase):
 
     label = Label(f"{pulse}:{phase}", layout=Layout(width="120px"))
 
-    row_widget = HBox([include, label, nominal, delta, disallowed])
+    row_widget = HBox([label, nominal, delta, disallowed, include])
 
     phase_rows.append({
         "include": include,
@@ -1714,7 +1714,7 @@ def nested_cycles(bases):
     
 def generate_phase_cycle():
 
-    active = []
+    included = []
     excluded = []
     
     for r in phase_rows:
@@ -1727,67 +1727,60 @@ def generate_phase_cycle():
             "nominal": PHASE_MAP[r["nominal"].value],
             "disallowed": r["disallowed"].value.strip()
         }
-    
+        
         if r["include"].value:
-            active.append(row)
+            included.append(row)
         else:
             excluded.append(row)
-    
+            
     # sort phases numerically (ph1, ph2, ph3, ...)
-    active.sort(key=lambda r: int(r["phase"][2:]))
-    inactive.sort(key=lambda r: int(r["phase"][2:]))
+    included.sort(key=lambda r: int(r["phase"][2:]))
+    excluded.sort(key=lambda r: int(r["phase"][2:]))
     
-    if not active:
-        phase_cycle_output.value = "No active phase cycles"
+    if not included:
+        phase_cycle_output.value = "Not included in phase cycles"
         return
 
-    # ---- determine steps for each phase
-    bases = [determine_steps(r["delta"], r["disallowed"]) for r in active]
-    
+    bases = [determine_steps(r["delta"], r["disallowed"]) for r in included]    
     print("base_steps per phase =", bases)
     
-    # ---- nested cycles
+    # ---- nested cycle
     cycles = nested_cycles(bases)
     
     tableA = {}
-    for i,row in enumerate(active):
+    for i,row in enumerate(included):
         tableA[row["phase"]] = cycles[i]
     
     cols = len(cycles[0])
     
     # ---- Table B (receiver)
     ph31 = []
-
+    
     for c in range(cols):
-
         s = 0
-
-        for r,row in enumerate(active):
-            s += cycles[r][c] * row["delta"]
-
+    
+        for row in phase_rows:
+            phase = tableC[row["phase"]][c]
+            delta = int(row["delta"].value)
+            s += phase * delta
+    
         ph31.append(s % 4)
-
+    
     # ---- Table C
     tableC = {}
 
-    # active phases
-    for r,row in enumerate(active):
+    # included phases
+    for r,row in enumerate(included):
 
         vals = tableA[row["phase"]]
         nominal = row["nominal"]
 
         tableC[row["phase"]] = [(v + nominal) % 4 for v in vals]
 
-    # phases participating in the calculation but with Δp = 0
-    for row in inactive:
-        nominal = row["nominal"]
-        tableC[row["phase"]] = [nominal] * cols
-    
-    # phases excluded from the calculation
+    # phases included in the calculation but with Δp = 0
     for row in excluded:
-        nominal = row["nominal"]
-        tableC[row["phase"]] = [nominal] * cols
-        
+        tableC[row["phase"]] = [row["nominal"]] * cols
+
     # ---- Print result
     text = ";Phase table\n"
 
