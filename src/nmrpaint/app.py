@@ -916,6 +916,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         kind = el.kind.lower()
     
         if kind == "pulse":
+            
             return f"({el.name} {el.phase}):{el.channel}"
     
         if kind == "shaped":
@@ -933,7 +934,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # Element dictionary
     # -----------------------        
     ELEMENT_WRITERS = {
-        "flag": write_flag,
         "delay": write_delay,
         "grad": write_grad,
         "block": write_block,
