@@ -1060,26 +1060,31 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         # multiple elements (centered elements)
         # -----------------------
           
-        else:
+        centerable = {"pulse", "shaped"}   # maybe "grad" too, depending on your rules
         
-            flags = [e for e in els if e.kind.lower() == "flag"]
-            
-            for e in flags:
-                f.write(write_flag(e) + "\n")
-            
-            center_parts = []
-            
-            for e in els:
-                if e.kind.lower() == "flag":
-                    continue
+        center_parts = []
+        
+        for e in els:
+            kind = e.kind.lower()
+        
+            if kind in centerable:
                 text = write_center_element(e)
                 if text:
                     center_parts.append(text)
-            
-            if center_parts:
-                line = " (center " + " ".join(center_parts) + " )"
-                f.write(line + "\n")
-            
+            else:
+                # flush any accumulated centered elements
+                if center_parts:
+                    f.write(" (center " + " ".join(center_parts) + " )\n")
+                    center_parts = []
+        
+                writer = ELEMENT_WRITERS.get(kind)
+                if writer:
+                    f.write(writer(e) + "\n")
+        
+        # flush any remaining centered elements
+        if center_parts:
+            f.write(" (center " + " ".join(center_parts) + " )\n")
+
     # -----------------------
     # Acquisition logic
     # -----------------------    
