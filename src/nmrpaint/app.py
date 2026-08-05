@@ -463,6 +463,7 @@ def rebuild_global_delays():
 # -----------------------
 # Program state
 # -----------------------
+
 sequence = PulseSequence()
 selected_element = {"kind": None, "file_path": None}
 history = []
@@ -592,7 +593,6 @@ phase_cycle_checkbox = Checkbox(
     ),
 )
 
-
 export_btn = Button(
     description="Export Canvas",
     button_style="warning",
@@ -617,6 +617,9 @@ browser_download_button = Button(
 
 browser_download_link = HTML()
 
+#-----------------------------------
+# Export png function (not working)
+#-----------------------------------
 def export_png(b):
 
     # redraw everything
@@ -639,9 +642,10 @@ def export_png(b):
     
 export_btn.on_click(export_png)
 
-# -----------------------
+# ------------------------
 # User-defined definitions
-# -----------------------
+# ------------------------
+
 definitions_text = Textarea(
     value="",
     layout=Layout(
@@ -704,6 +708,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         f.write(f"#include <{exp_incl.value.strip()}>\n")
 
     f.write("\n")
+    
     # -----------------------
     # 2D acquisition parameters
     # -----------------------
@@ -2482,7 +2487,7 @@ def show_property_editor(el: SequenceElement):
     update_button.on_click(update_el)
     
 # -----------------------
-# Canvas Setup
+# Main canvas Setup
 # -----------------------
 
 canvas_width = 900
@@ -2573,6 +2578,13 @@ def set_canvas_size(new_width: int, new_height: int = None):
     draw_sequence()
     coherence_label.value = sequence.coherence_summary()
     
+# -----------------------
+# CTP canvas
+# -----------------------
+ctp_canvas = Canvas(
+    width=canvas.width,
+    height=220
+)
 
 # -----------------------
 # Element Button
@@ -3081,7 +3093,8 @@ canvas_section = VBox([
     </div>
     """),
     canvas_box,
-    canvas_row
+    canvas_row,
+    ctp_canvas
 ])
 
 canvas_container.layout.flex = "0 0 auto"
