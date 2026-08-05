@@ -1738,48 +1738,55 @@ def generate_phase_cycle():
     excluded.sort(key=lambda r: int(r["phase"][2:]))
     
     if not included:
-        phase_cycle_output.value = "Not included in phase cycles"
-        return
-
-    bases = [determine_steps(r["delta"], r["disallowed"]) for r in included]    
-    print("base_steps per phase =", bases)
     
-    # ---- nested cycle
-    cycles = nested_cycles(bases)
+        cols = 1
+        tableC = {}
     
-    tableA = {}
-    for i,row in enumerate(included):
-        tableA[row["phase"]] = cycles[i]
+        for row in excluded:
+            tableC[row["phase"]] = [row["nominal"]]
     
-    cols = len(cycles[0])
-      
-    # ---- Table C
-    tableC = {}
-
-    # included phases
-    for r,row in enumerate(included):
-
-        vals = tableA[row["phase"]]
-        nominal = row["nominal"]
-
-        tableC[row["phase"]] = [(v + nominal) % 4 for v in vals]
-
-    # phases included in the calculation but with Δp = 0
-    for row in excluded:
-        tableC[row["phase"]] = [row["nominal"]] * cols
-
-    # ---- Table B (receiver)
-    ph31 = []
+        ph31 = [0]
+    else:
     
-    for c in range(cols):
-        s = 0
+        bases = [determine_steps(r["delta"], r["disallowed"]) for r in included]    
+        print("base_steps per phase =", bases)
+        
+        # ---- nested cycle
+        cycles = nested_cycles(bases)
+        
+        tableA = {}
+        for i,row in enumerate(included):
+            tableA[row["phase"]] = cycles[i]
+        
+        cols = len(cycles[0])
+          
+        # ---- Table C
+        tableC = {}
     
-        for row in phase_rows:
-            phase = tableC[row["phase"]][c]
-            delta = int(row["delta"].value)
-            s += phase * delta
+        # included phases
+        for r,row in enumerate(included):
     
-        ph31.append(s % 4)
+            vals = tableA[row["phase"]]
+            nominal = row["nominal"]
+    
+            tableC[row["phase"]] = [(v + nominal) % 4 for v in vals]
+    
+        # phases excluded from the nested cycle
+        for row in excluded:
+            tableC[row["phase"]] = [row["nominal"]] * cols
+    
+        # ---- Table B (receiver)
+        ph31 = []
+        
+        for c in range(cols):
+            s = 0
+        
+            for row in phase_rows:
+                phase = tableC[row["phase"]][c]
+                delta = int(row["delta"].value)
+                s += phase * delta
+        
+            ph31.append(s % 4)
 
     # ---- Print result
     text = ";Phase table\n"
@@ -1791,6 +1798,7 @@ def generate_phase_cycle():
 
     phase_cycle_output.value = text
 
+# Pulse program GUI layout
 pulse_program_box = VBox(
     [
         pulse_program_header,
