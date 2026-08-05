@@ -1813,7 +1813,9 @@ print_names_button.on_click(generate_program)
 browser_download_button._click_handlers.callbacks.clear()
 browser_download_button.on_click(generate_program)
 
+# -----------------------------------------
 # Number of scans (ns) and dummy scans (ds)
+# -----------------------------------------
 ns_text = IntText(
     description="ns:",
     value=1,
@@ -1828,9 +1830,9 @@ ds_text = IntText(
     style={'description_width': '30px'}
 )
 
-# -----------------------
+# -------------------------
 # Experiment Properties Row
-# -----------------------
+# -------------------------
 exp_title = Text(
     description="Title:",
     layout=Layout(width="220px", margin="0px"),
@@ -1861,7 +1863,9 @@ exp_2d_option = Dropdown(
 )
 exp_2d_option.layout.display = "none"
 
-#pulses
+# ---------------------------
+# Pulse dropdowns for 2D exps
+# ---------------------------
 pulse_dropdowns = []
 
 pulse_section_label = Label(
@@ -1950,9 +1954,9 @@ def update_2d_dropdowns(change=None):
     pulse_section.layout.display = "none"
     shape_section.layout.display = "none"
 
-    # ======================================================
+    #---------------
     # Echo-Antiecho
-    # ======================================================
+    #---------------
     if exp_2d_option.value == "Echo-Antiecho":
 
         pulse_section.layout.display = "flex"
@@ -2000,7 +2004,6 @@ def update_2d_dropdowns(change=None):
         add_pulse_dropdown()
 
         # ----------------- Gradients -----------------
-
         gradients = sorted(
             [el for el in sequence.elements if el.kind.lower() == "grad"],
             key=lambda el: el.start
@@ -2091,7 +2094,8 @@ def update_2d_dropdowns(change=None):
             )
 
         add_pulse_dropdown()
-
+        
+#----------
 exp_2d_option.observe(update_2d_dropdowns, names="value")
 update_2d_dropdowns()
 
@@ -2139,7 +2143,6 @@ exp_dim.observe(on_dim_change, names="value")
 element_types = ["pulse", "shaped", "grad", "block", "flag"]
 element_files: dict[str, list[str]] = {}
 
-
 def load_element_files() -> None:
     """Load element resource identifiers from the installed package."""
     element_files.clear()
@@ -2154,7 +2157,6 @@ def load_element_files() -> None:
             f"elements/{element_type}/{filename}"
             for filename in filenames
         ]
-
 
 load_element_files()
 
@@ -2264,9 +2266,9 @@ el_height = IntText(
     style=label_style
 )
 
-
-
-# Initial contents shown when NMRpaint starts
+#---------------------------------
+# Initialize content on start up
+#---------------------------------
 property_editor_content.children = (
     el_title,
     el_name,
@@ -2280,66 +2282,6 @@ property_editor_content.children = (
     wvm_box
 )
 
-def _coerce_for_widget(widget, value, *, default=None, dropdown_options=None):
-    """
-    Coerces 'value' into something acceptable for the given ipywidget.
-
-    - Text/Textarea -> str
-    - (FloatText, IntText) -> number
-    - Checkbox -> bool
-    - Dropdown -> member of options (or fallback to default or first option)
-    """
-    from ipywidgets import Text, Textarea, FloatText, IntText, Checkbox, Dropdown
-
-    # Text-like: ensure string (never None)
-    if isinstance(widget, (Text, Textarea)):
-        if value is None:
-            return "" if default is None else str(default)
-        return str(value)
-
-    # Numeric: ensure number (FloatText/IntText)
-    if isinstance(widget, (FloatText, IntText)):
-        if value is None or (isinstance(value, str) and not value.strip()):
-            return float(default) if default is not None else 0.0
-        try:
-            # keep ints as ints for IntText, floats for FloatText
-            if isinstance(widget, IntText):
-                return int(value)
-            else:
-                return float(value)
-        except Exception:
-            # bad input -> fallback
-            return float(default) if default is not None and not isinstance(widget, IntText) else (
-                int(default) if default is not None else (0 if isinstance(widget, IntText) else 0.0)
-            )
-
-    # Checkbox: ensure bool
-    if isinstance(widget, Checkbox):
-        return bool(value) if value is not None else bool(default) if default is not None else False
-
-    # Dropdown: ensure a valid option
-    if isinstance(widget, Dropdown):
-        opts = list(dropdown_options) if dropdown_options is not None else list(widget.options)
-        # Normalize (tuple of (label, value)) to raw values if needed
-        def opt_values(options):
-            vals = []
-            for o in options:
-                if isinstance(o, tuple) and len(o) == 2:
-                    vals.append(o[1])
-                else:
-                    vals.append(o)
-            return vals
-
-        values = opt_values(opts)
-        # If provided value is invalid, fallback to default or first option (or None if empty)
-        chosen = value
-        if chosen not in values:
-            chosen = default if default in values else (values[0] if values else None)
-        return chosen
-
-    # Fallback: return value or default
-    return value if value is not None else default
-    
 def show_property_editor(el: SequenceElement):
     global current_element
     current_element = el
