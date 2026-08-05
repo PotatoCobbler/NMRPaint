@@ -999,6 +999,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
         f.write(f"create_shape({', '.join(args)})\n\n")
         
+#------
+#
+#------
+    
     f.write("1 ze\n")
     f.write("2 30m pl1:f1\n")
     fid_start = get_fid_start_time()
@@ -1024,44 +1028,59 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         elements_by_start.setdefault(start_key, []).append(el)
     
     # write elements in chronological order
-    if len(els) == 1:
+    for start in sorted(elements_by_start.keys()):
+
+        els = elements_by_start[start]
     
-        el = els[0]
-        kind = el.kind.lower()
+        # remove blocks that start after the FID
+        els = [
+            e for e in els
+            if not (e.kind.lower() == "block" and e.start >= fid_start)
+        ]
     
-        if kind == "block" and el.start >= fid_start:
+        if not els:
             continue
-    
-        writer = ELEMENT_WRITERS.get(kind)
-    
-        if writer:
-            f.write(writer(el) + "\n")
-        else:
-            f.write(f"; unknown element type: {kind}\n")
-    
-    else:
-        centerable = {"pulse", "shaped"}
-    
-        center_parts = []
-    
-        for e in els:
-            kind = e.kind.lower()
-    
-            if kind in centerable:
-                text = write_center_element(e)
-                if text:
-                    center_parts.append(text)
+        # -----------------------
+        # single element
+        # -----------------------   
+        if len(els) == 1:
+        
+            el = els[0]
+            kind = el.kind.lower()
+        
+            writer = ELEMENT_WRITERS.get(kind)
+        
+            if writer:
+                f.write(writer(el) + "\n")
             else:
-                if center_parts:
-                    f.write(" (center " + " ".join(center_parts) + " )\n")
-                    center_parts = []
-    
-                writer = ELEMENT_WRITERS.get(kind)
-                if writer:
-                    f.write(writer(e) + "\n")
-    
-        if center_parts:
-            f.write(" (center " + " ".join(center_parts) + " )\n")
+                f.write(f"; unknown element type: {kind}\n")
+        # -----------------------
+        # multiple elements
+        # -----------------------        
+        else:
+            centerable = {"pulse", "shaped"}
+        
+            center_parts = []
+        
+            for e in els:
+                kind = e.kind.lower()
+        
+                if kind in centerable:
+                    text = write_center_element(e)
+                    if text:
+                        center_parts.append(text)
+                else:
+                    # write any pending centered elements first
+                    if center_parts:
+                        f.write(" (center " + " ".join(center_parts) + " )\n")
+                        center_parts = []
+        
+                    writer = ELEMENT_WRITERS.get(kind)
+                    if writer:
+                        f.write(writer(e) + "\n")
+        
+            if center_parts:
+                f.write(" (center " + " ".join(center_parts) + " )\n")
 
 
     # -----------------------
