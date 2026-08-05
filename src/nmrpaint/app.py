@@ -1714,31 +1714,25 @@ def nested_cycles(bases):
     
 def generate_phase_cycle():
 
-    print("generate_phase_cycle() called")
-
     active = []
-    inactive = []
-
+    excluded = []
+    
     for r in phase_rows:
-
-        # Skip rows whose checkbox is not checked
-        if not r["include"].value:
-            continue
-
+    
         delta = int(r["delta"].value)
-
+    
         row = {
             "phase": r["phase"],
             "delta": delta,
             "nominal": PHASE_MAP[r["nominal"].value],
             "disallowed": r["disallowed"].value.strip()
         }
-
-        if delta != 0:
+    
+        if r["include"].value:
             active.append(row)
         else:
-            inactive.append(row)
-            
+            excluded.append(row)
+    
     # sort phases numerically (ph1, ph2, ph3, ...)
     active.sort(key=lambda r: int(r["phase"][2:]))
     inactive.sort(key=lambda r: int(r["phase"][2:]))
@@ -1784,12 +1778,16 @@ def generate_phase_cycle():
 
         tableC[row["phase"]] = [(v + nominal) % 4 for v in vals]
 
-    # inactive phases (Δp = 0)
+    # phases participating in the calculation but with Δp = 0
     for row in inactive:
-
         nominal = row["nominal"]
         tableC[row["phase"]] = [nominal] * cols
-
+    
+    # phases excluded from the calculation
+    for row in excluded:
+        nominal = row["nominal"]
+        tableC[row["phase"]] = [nominal] * cols
+        
     # ---- Print result
     text = ";Phase table\n"
 
