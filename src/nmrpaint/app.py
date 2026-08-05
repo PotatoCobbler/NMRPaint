@@ -61,13 +61,13 @@ timeline_positions = {"f1": 150, "f2": 250, "Gz": 350}
 # -----------------------
 
 coherence_positions = {
-     3:  25,
-     2:  60,
-     1:  95,
+     3: 100,
+     2: 110,
+     1: 120,
      0: 130,
-    -1: 165,
-    -2: 200,
-    -3: 235,
+    -1: 140,
+    -2: 150,
+    -3: 160,
 }
 
 class SequenceElement:
@@ -2551,7 +2551,7 @@ canvas_box = canvas_container
 # -----------------------
 # CTP canvas setup
 # -----------------------
-ctp_canvas_height = 260
+ctp_canvas_height = 400
 
 ctp_canvas = Canvas(
     width=canvas_width,
