@@ -2631,7 +2631,8 @@ def draw_ctp_background():
         c.fill_text(str(coherence), 18, y)
 
     c.set_line_dash([])
-    draw_ctp_background() #not sure if correct position
+
+draw_ctp_background()
 
 # -----------------------
 # Canvas resizing utility
