@@ -1063,18 +1063,19 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         else:
         
             flags = [e for e in els if e.kind.lower() == "flag"]
-            if flags:
-                for e in flags:
-                    f.write(write_flag(e) + "\n")
-                continue
-        
+            
+            for e in flags:
+                f.write(write_flag(e) + "\n")
+            
             center_parts = []
-        
+            
             for e in els:
+                if e.kind.lower() == "flag":
+                    continue
                 text = write_center_element(e)
                 if text:
                     center_parts.append(text)
-        
+            
             if center_parts:
                 line = " (center " + " ".join(center_parts) + " )"
                 f.write(line + "\n")
