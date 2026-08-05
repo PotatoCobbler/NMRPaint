@@ -1583,7 +1583,8 @@ phase_cycle_header = HBox([
     Label("pulse:phase", layout=Layout(width="120px")),
     Label("nominal phase", layout=Layout(width="120px")),
     HTML("Δ<i>p</i>", layout=Layout(width="100px")),
-    HTML("disallowed Δ<i>p</i>", layout=Layout(width="150px"))
+    HTML("disallowed Δ<i>p</i>", layout=Layout(width="150px")),
+    Label("Use", layout=Layout(width="60px"))
 ])
 
 phase_cycle_container = VBox([])
@@ -1592,6 +1593,12 @@ phase_cycle_output = Textarea(
 )
 
 def add_phase_row(pulse, phase):
+
+    include = Checkbox(
+        value=True,
+        indent=False,
+        layout=Layout(width="60px")
+    )
 
     nominal = Dropdown(
         options=["x","y","-x","-y"],
@@ -1611,18 +1618,21 @@ def add_phase_row(pulse, phase):
 
     label = Label(f"{pulse}:{phase}", layout=Layout(width="120px"))
 
-    row_widget = HBox([label, nominal, delta, disallowed])
+    row_widget = HBox([include, label, nominal, delta, disallowed])
 
     phase_rows.append({
-        "pulse":pulse,
-        "phase":phase,
-        "nominal":nominal,
-        "delta":delta,
-        "disallowed":disallowed
+        "include": include,
+        "pulse": pulse,
+        "phase": phase,
+        "nominal": nominal,
+        "delta": delta,
+        "disallowed": disallowed
     })
 
-    phase_cycle_container.children = list(phase_cycle_container.children) + [row_widget]
-
+    phase_cycle_container.children = (
+        list(phase_cycle_container.children) + [row_widget]
+    )
+    
 phase_cycle_box = VBox([
     HTML("""
     <div style="
@@ -1652,8 +1662,6 @@ def populate_phase_rows():
 
                 add_phase_row(el.name, el.phase)
                 
-import itertools
-
 def determine_steps(delta, disallowed):
 
     delta = int(delta)
@@ -1710,8 +1718,12 @@ def generate_phase_cycle():
 
     active = []
     inactive = []
-    
+
     for r in phase_rows:
+
+        # Skip rows whose checkbox is not checked
+        if not r["include"].value:
+            continue
 
         delta = int(r["delta"].value)
 
@@ -1726,7 +1738,7 @@ def generate_phase_cycle():
             active.append(row)
         else:
             inactive.append(row)
-
+            
     # sort phases numerically (ph1, ph2, ph3, ...)
     active.sort(key=lambda r: int(r["phase"][2:]))
     inactive.sort(key=lambda r: int(r["phase"][2:]))
