@@ -56,6 +56,20 @@ timeline_scale = 5
 # Timeline positions
 timeline_positions = {"f1": 150, "f2": 250, "Gz": 350}
 
+# -----------------------
+# Coherence-order positions
+# -----------------------
+
+coherence_positions = {
+     3:  25,
+     2:  60,
+     1:  95,
+     0: 130,
+    -1: 165,
+    -2: 200,
+    -3: 235,
+}
+
 class SequenceElement:
     def __init__(self, kind, file_path, start, duration, channel="f1",
                  title=None, name=None, definition="", power=None, phase=None, shape=None):
@@ -2535,6 +2549,91 @@ canvas_container = Box(
 canvas_box = canvas_container
 
 # -----------------------
+# CTP canvas setup
+# -----------------------
+ctp_canvas_height = 260
+
+ctp_canvas = Canvas(
+    width=canvas_width,
+    height=ctp_canvas_height,
+    sync_image_data=False
+)
+
+ctp_dynamic_canvas = Canvas(
+    width=canvas_width,
+    height=ctp_canvas_height,
+    sync_image_data=False
+)
+
+for c in (ctp_canvas, ctp_dynamic_canvas):
+    c.layout.position = "absolute"
+    c.layout.left = "0px"
+    c.layout.top = "0px"
+    c.layout.width = f"{canvas_width}px"
+    c.layout.height = f"{ctp_canvas_height}px"
+
+ctp_dynamic_canvas.layout.pointer_events = "none"
+
+ctp_canvas.layout.border = "1px solid black"
+
+ctp_container = Box(
+    children=[ctp_canvas, ctp_dynamic_canvas],
+    layout=Layout(
+        position="relative",
+        width=f"{canvas_width}px",
+        height=f"{ctp_canvas_height}px",
+        display="block",
+        overflow="hidden",
+    )
+)
+
+ctp_box = ctp_container
+
+def draw_ctp_background():
+
+    c = ctp_canvas
+
+    c.clear()
+
+    # white background
+    c.fill_style = "white"
+    c.fill_rect(0, 0, c.width, c.height)
+
+    c.font = "15px Arial"
+
+    # vertical reference line
+    c.stroke_style = "black"
+    c.line_width = 1
+    c.set_line_dash([6,6])
+    c.stroke_line(40, 0, 40, c.height)
+    c.set_line_dash([])
+
+    # coherence-order lines
+    for coherence, y in sorted(coherence_positions.items(), reverse=True):
+
+        if coherence == 0:
+
+            c.stroke_style = "black"
+            c.line_width = 2
+            c.set_line_dash([])
+
+        else:
+
+            c.stroke_style = "#BFBFBF"
+            c.line_width = 1
+            c.set_line_dash([8,6])
+
+        c.stroke_line(0, y, c.width, y)
+
+        c.fill_style = "black"
+        c.text_align = "center"
+        c.text_baseline = "middle"
+        c.fill_text(str(coherence), 18, y)
+
+    c.set_line_dash([])
+    draw_ctp_background() #not sure if correct position
+
+# -----------------------
 # Canvas resizing utility
 # -----------------------
 def set_canvas_size(new_width: int, new_height: int = None):
@@ -2555,16 +2654,30 @@ def set_canvas_size(new_width: int, new_height: int = None):
     
     dynamic_canvas.width = canvas_width
     dynamic_canvas.height = canvas_height
+
+    ctp_canvas.width = canvas_width
+    ctp_dynamic_canvas.width = canvas_width
     
-    for c in (canvas, dynamic_canvas):
+    for c in (
+        canvas,
+        dynamic_canvas,
+        ctp_canvas,
+        ctp_dynamic_canvas
+    ):
         c.layout.width = f"{canvas_width}px"
         c.layout.height = f"{canvas_height}px"
     
     canvas_container.layout.width = f"{canvas_width}px"
     canvas_container.layout.height = f"{canvas_height}px"
 
+    ctp_container.layout.width = f"{canvas_width}px"
+    ctp_container.layout.height = f"{ctp_canvas_height}px"
+
     canvas_container.layout.min_width  = f"{canvas_width}px"
     canvas_container.layout.min_height = f"{canvas_height}px"
+
+    ctp_container.layout.min_width = f"{canvas_width}px"
+    ctp_container.layout.min_height = f"{ctp_canvas_height}px"
 
     canvas_container.layout.width  = f"{canvas_width}px"
     canvas_container.layout.height = f"{canvas_height}px"
@@ -2573,22 +2686,18 @@ def set_canvas_size(new_width: int, new_height: int = None):
     canvas_container.layout.overflow_y = "visible"
     canvas_container.layout.align_items = "center"
     canvas_container.layout.box_sizing = "border-box"
+
+    ctp_container.layout.overflow_x = "hidden"
+    ctp_container.layout.overflow_y = "visible"
+    ctp_container.layout.align_items = "center"
+    ctp_container.layout.box_sizing = "border-box"
     
     rebuild_global_delays()
     draw_sequence()
+    draw_ctp_background()
+    draw_ctp()
     coherence_label.value = sequence.coherence_summary()
     
-# -----------------------
-# CTP canvas
-# -----------------------
-ctp_canvas = Canvas(
-    width=canvas.width,
-    height=220
-)
-
-# -----------------------
-# Element Button
-# -----------------------
 def draw_preview(preview_canvas, kind, file_path):
 
     preview_canvas.clear()
@@ -2617,7 +2726,11 @@ def draw_preview(preview_canvas, kind, file_path):
     # Restore global settings
     timeline_positions["f1"] = original_pos
     globals()["timeline_scale"] = original_scale
+
     
+# -----------------------
+# Element Button
+# -----------------------
 def create_element_button(kind, file_path):
 
     base = resource_filename(file_path).lower()
@@ -3094,7 +3207,7 @@ canvas_section = VBox([
     """),
     canvas_box,
     canvas_row,
-    ctp_canvas
+    ctp_box
 ])
 
 canvas_container.layout.flex = "0 0 auto"
