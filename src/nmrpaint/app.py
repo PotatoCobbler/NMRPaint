@@ -1024,66 +1024,45 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         elements_by_start.setdefault(start_key, []).append(el)
     
     # write elements in chronological order
-    for start in sorted(elements_by_start.keys()):
+    if len(els) == 1:
     
-        els = elements_by_start[start]
+        el = els[0]
+        kind = el.kind.lower()
     
-        # remove blocks that start after the FID
-        els = [
-            e for e in els
-            if not (e.kind.lower() == "block" and e.start >= fid_start)
-        ]
-    
-        if not els:
+        if kind == "block" and el.start >= fid_start:
             continue
     
-        # -----------------------
-        # single element
-        # -----------------------
-        if len(els) == 1:
-        
-            el = els[0]
-            kind = el.kind.lower()
-        
-            # Skip blocks starting after FID
-            if kind == "block" and el.start >= fid_start:
-                continue
-        
-            writer = ELEMENT_WRITERS.get(kind)
-        
-            if writer:
-                f.write(writer(el) + "\n")
-            else:
-                f.write(f"; unknown element type: {kind}\n")
-        
-        # -----------------------
-        # multiple elements (centered elements)
-        # -----------------------
-          
-        centerable = {"pulse", "shaped"}   # maybe "grad" too, depending on your rules
-        
+        writer = ELEMENT_WRITERS.get(kind)
+    
+        if writer:
+            f.write(writer(el) + "\n")
+        else:
+            f.write(f"; unknown element type: {kind}\n")
+    
+    else:
+        centerable = {"pulse", "shaped"}
+    
         center_parts = []
-        
+    
         for e in els:
             kind = e.kind.lower()
-        
+    
             if kind in centerable:
                 text = write_center_element(e)
                 if text:
                     center_parts.append(text)
             else:
-                # flush any accumulated centered elements
                 if center_parts:
                     f.write(" (center " + " ".join(center_parts) + " )\n")
                     center_parts = []
-        
+    
                 writer = ELEMENT_WRITERS.get(kind)
                 if writer:
                     f.write(writer(e) + "\n")
-        
-        # flush any remaining centered elements
+    
         if center_parts:
             f.write(" (center " + " ".join(center_parts) + " )\n")
+
 
     # -----------------------
     # Acquisition logic
