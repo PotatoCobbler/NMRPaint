@@ -2896,37 +2896,46 @@ def set_canvas_size(new_width: int, new_height: int = None):
     ctp_canvas.width = canvas_width
     ctp_dynamic_canvas.width = canvas_width
     
-    for c in (
-        canvas,
-        dynamic_canvas,
-        ctp_canvas,
-        ctp_dynamic_canvas
-    ):
+    for c in (canvas, dynamic_canvas):
         c.layout.width = f"{canvas_width}px"
         c.layout.height = f"{canvas_height}px"
     
+    for c in (ctp_canvas, ctp_dynamic_canvas):
+        c.layout.width = f"{canvas_width}px"
+        c.layout.height = f"{ctp_canvas_height}px"
+
     canvas_container.layout.width = f"{canvas_width}px"
     canvas_container.layout.height = f"{canvas_height}px"
-
-    ctp_container.layout.width = f"{canvas_width}px"
-    ctp_container.layout.height = f"{ctp_canvas_height}px"
-
     canvas_container.layout.min_width  = f"{canvas_width}px"
     canvas_container.layout.min_height = f"{canvas_height}px"
-
-    ctp_container.layout.min_width = f"{canvas_width}px"
-    ctp_container.layout.min_height = f"{ctp_canvas_height}px"
-
+    
     canvas_container.layout.overflow_x = "hidden"
     canvas_container.layout.overflow_y = "visible"
     canvas_container.layout.align_items = "center"
     canvas_container.layout.box_sizing = "border-box"
 
+    ctp_container.layout.width = f"{canvas_width}px"
+    ctp_container.layout.height = f"{ctp_canvas_height}px"
+    ctp_container.layout.min_width = f"{canvas_width}px"
+    ctp_container.layout.min_height = f"{ctp_canvas_height}px"
+    
     ctp_container.layout.overflow_x = "hidden"
     ctp_container.layout.overflow_y = "visible"
     ctp_container.layout.align_items = "center"
     ctp_container.layout.box_sizing = "border-box"
+
+    canvas_section.layout.width = f"{canvas_width}px"
+    canvas_section.layout.min_width = f"{canvas_width}px"
     
+    ctp_section.layout.width = f"{canvas_width}px"
+    ctp_section.layout.min_width = f"{canvas_width}px"
+    
+    canvas_box.layout.width = f"{canvas_width}px"
+    canvas_box.layout.min_width = f"{canvas_width}px"
+    
+    ctp_box.layout.width = f"{canvas_width}px"
+    ctp_box.layout.min_width = f"{canvas_width}px"
+
     rebuild_global_delays()
     draw_sequence()
     draw_ctp_background()
@@ -3780,6 +3789,8 @@ main_top_row = HBox(
         gap="10px"
     )
 )
+
+main_top_row.layout.flex_wrap = "nowrap"
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_dim],
