@@ -3777,10 +3777,21 @@ top_bar = HBox(
     )
 )
 
+canvas_scroll_box = Box(
+    children=[canvas_section],
+    layout=Layout(
+        width="900px",
+        overflow_x="auto",
+        overflow_y="hidden"
+    )
+)
+
+canvas_scroll_box.layout.min_width = "0px"
+
 main_top_row = HBox(
     [
         elements_section,
-        canvas_section,
+        canvas_scroll_box,
         pulse_program_box,  
         property_editor_box
     ],
