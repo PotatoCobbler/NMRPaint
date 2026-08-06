@@ -1863,10 +1863,7 @@ def generate_phase_cycle():
     text += "\nph31=" + " ".join(map(str,ph31))
 
     phase_cycle_output.value = text
-
-# -----------------------
-# CTP logic
-# -----------------------
+    
 # Pulse program GUI layout
 pulse_program_box = VBox(
     [
@@ -1879,6 +1876,9 @@ pulse_program_box = VBox(
 
 pulse_program_box.layout.flex = "0 0 auto"
 
+# -----------------------
+# CTP logic
+# -----------------------
 def get_ctp_events():
 
     events = []
@@ -3458,6 +3458,9 @@ canvas_section = VBox([
     canvas_row,
     ctp_section
 ])
+
+canvas_section.layout.width = f"{canvas_width}px"
+canvas_section.layout.flex = "0 0 auto"
 
 canvas_container.layout.flex = "0 0 auto"
 canvas_container.layout.width  = f"{canvas_width}px"
