@@ -1582,6 +1582,8 @@ def generate_program(b):
     
         with generation_output:
             print(f"Generation failed: {type(exc).__name__}: {exc}")
+            
+    draw_ctp()
 
 def prepare_browser_download(b):
 
@@ -1989,21 +1991,48 @@ def draw_ctp():
 
             continue
 
-        # ----------------------------
-        # FID
-        # ----------------------------
-
-        if el.kind == "fid":
-            x1 = c.width
-
+    # ---------------------------------------
+    # Extend all channels to the FID
+    # ---------------------------------------
+    
+    fid_x = get_fid_start_time() * timeline_scale
+    
+    for channel in ("f1", "f2"):
+    
+        levels = ctp_channel_positions[channel]
+    
+        if xpos[channel] < fid_x:
+    
             draw_ctp_horizontal(
                 c,
-                xpulse,
-                x1,
-                levels[-1]
+                xpos[channel],
+                fid_x,
+                levels[coherence[channel]]
             )
+    
+            xpos[channel] = fid_x
 
-            xpos[channel] = x1
+    # ---------------------------------------
+    # Draw acquisition (-1 coherence)
+    # ---------------------------------------
+    
+    for channel in ("f1", "f2"):
+    
+        levels = ctp_channel_positions[channel]
+    
+        # vertical jump onto the detected coherence
+        c.begin_path()
+        c.move_to(fid_x, levels[coherence[channel]])
+        c.line_to(fid_x, levels[-1])
+        c.stroke()
+    
+        # acquisition line
+        draw_ctp_horizontal(
+            c,
+            fid_x,
+            c.width,
+            levels[-1]
+        )
             
 # -----------------------
 # Register Handlers
