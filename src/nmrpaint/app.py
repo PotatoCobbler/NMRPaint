@@ -62,13 +62,13 @@ timeline_positions = {"f1": 150, "f2": 250, "Gz": 350}
 
 ctp_channel_positions = {
     "f1": {
-         3:  70,
-         2:  90,
-         1: 110,
-         0: 130,
-        -1: 150,
-        -2: 170,
-        -3: 190,
+         3:  60,
+         2:  80,
+         1: 100,
+         0: 120,
+        -1: 140,
+        -2: 160,
+        -3: 180,
     },
 
     "f2": {
@@ -231,6 +231,34 @@ def pulse_fill_color(el):
     else:
         return "white"
 
+def get_phase_delta(phase_name):
+
+    if not phase_name:
+        return 0
+
+    for row in phase_rows:
+        if row["phase"] == phase_name:
+            try:
+                return int(row["delta"].value)
+            except:
+                return 0
+
+    return 0
+
+def draw_ctp_horizontal(c, x0, x1, y):
+
+    c.begin_path()
+    c.move_to(x0, y)
+    c.line_to(x1, y)
+    c.stroke()
+
+def draw_ctp_diagonal(c, x0, x1, y0, y1):
+
+    c.begin_path()
+    c.move_to(x0, y0)
+    c.line_to(x1, y1)
+    c.stroke()
+    
 #--------------
 #wvm attributes
 #--------------
@@ -509,6 +537,7 @@ def save_state():
     history.append(copy.deepcopy(sequence))
 def refresh_ui():
     draw_sequence()
+    draw_ctp()
     coherence_label.value = sequence.coherence_summary()
 
 allow_delay_selection = False
@@ -576,6 +605,7 @@ def delete_selected_element(b):
         rebuild_global_delays()
         renumber_delays()
         draw_sequence()
+        draw_ctp()
         coherence_label.value = sequence.coherence_summary()
         print(f"Deleted element: {current_element.name}")
 
@@ -1829,6 +1859,9 @@ def generate_phase_cycle():
 
     phase_cycle_output.value = text
 
+# -----------------------
+# CTP logic
+# -----------------------
 # Pulse program GUI layout
 pulse_program_box = VBox(
     [
@@ -1841,6 +1874,137 @@ pulse_program_box = VBox(
 
 pulse_program_box.layout.flex = "0 0 auto"
 
+def get_ctp_events():
+
+    events = []
+
+    for el in sorted(sequence.elements, key=lambda e: e.start):
+
+        # Only RF pulses affect coherence
+        if el.kind not in ("pulse", "shaped"):
+            continue
+
+        events.append({
+            "name": el.name,
+            "channel": el.channel,
+            "phase": el.phase,
+            "delta": get_phase_delta(el.phase),
+            "x0": el.start * timeline_scale,
+            "x1": (el.start + el.duration) * timeline_scale,
+            "width": el.visual_width,
+            "kind": el.kind
+
+        })
+
+    return events
+
+def draw_ctp():
+
+    draw_ctp_background()
+
+    c = ctp_canvas
+
+    c.stroke_style = "green"
+    c.line_width = 3
+
+    # current coherence order
+    coherence = {
+        "f1": 0,
+        "f2": 0,
+    }
+
+    # current x-position
+    xpos = {
+        "f1": 40,
+        "f2": 40,
+    }
+
+    elements = sorted(sequence.elements, key=lambda e: e.start)
+
+    for el in elements:
+
+        if el.channel not in ("f1", "f2"):
+            continue
+
+        channel = el.channel
+
+        levels = ctp_channel_positions[channel]
+
+        current = coherence[channel]
+
+        x0 = xpos[channel]
+        xpulse = el.start * timeline_scale
+
+        # horizontal before element
+        if xpulse > x0:
+
+            draw_ctp_horizontal(
+                c,
+                x0,
+                xpulse,
+                levels[current]
+            )
+
+        # ----------------------------
+        # delay
+        # ----------------------------
+        if el.kind == "delay":
+
+            xpos[channel] = (
+                el.start + el.duration
+            ) * timeline_scale
+
+            draw_ctp_horizontal(
+                c,
+                xpulse,
+                xpos[channel],
+                levels[current]
+            )
+
+            continue
+
+        # ----------------------------
+        # pulse
+        # ----------------------------
+        if el.kind in ("pulse", "shaped"):
+
+            delta = get_phase_delta(el.phase)
+
+            new = max(-3, min(3, current + delta))
+
+            x1 = (
+                el.start + el.duration
+            ) * timeline_scale
+
+            draw_ctp_diagonal(
+                c,
+                xpulse,
+                x1,
+                levels[current],
+                levels[new]
+            )
+
+            coherence[channel] = new
+            xpos[channel] = x1
+
+            continue
+
+        # ----------------------------
+        # FID
+        # ----------------------------
+
+        if el.kind == "fid":
+            x1 = c.width
+
+            draw_ctp_horizontal(
+                c,
+                xpulse,
+                x1,
+                levels[-1]
+            )
+
+            xpos[channel] = x1
+            
 # -----------------------
 # Register Handlers
 # -----------------------
@@ -2504,6 +2668,7 @@ def show_property_editor(el: SequenceElement):
     
         renumber_delays()
         draw_sequence()
+        draw_ctp()
         coherence_label.value = sequence.coherence_summary()
     
         populate_phase_rows()
@@ -3080,6 +3245,7 @@ def draw_sequence():
     draw_dragging_element()
     canvas.flush()
     dynamic_canvas.flush()
+    draw_ctp()
 
 
 # -----------------------
@@ -3297,6 +3463,7 @@ def on_canvas_mouse_down(x, y):
             drag_temp_height = el.visual_height
     
             draw_sequence()
+            draw_ctp()
             show_property_editor(el)
             return
                 
@@ -3347,6 +3514,7 @@ def on_canvas_mouse_down(x, y):
     rebuild_global_delays()
     renumber_delays()
     draw_sequence()
+    draw_ctp()
     coherence_label.value = sequence.coherence_summary()
     
 def on_canvas_mouse_move(x, y):
@@ -3429,6 +3597,7 @@ def on_canvas_mouse_up(x, y):
 
     dynamic_canvas.clear()
     draw_sequence()
+    draw_ctp()
     coherence_label.value = sequence.coherence_summary()
     
 canvas.on_mouse_down(on_canvas_mouse_down)
@@ -3711,6 +3880,7 @@ def create_app():
 
 sequence.add(delay)
 draw_sequence()
+draw_ctp()
 
 if __name__ == "__main__":
     display(create_app())
