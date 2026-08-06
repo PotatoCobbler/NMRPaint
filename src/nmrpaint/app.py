@@ -3774,7 +3774,7 @@ main_top_row = HBox(
 )
 
 exp_prop_row_1 = HBox(
-    [exp_title, exp_class, exp_dim],
+    [exp_title, exp_dim],
     layout=Layout(spacing="1px"),
     padding='20px 20px' 
 )
@@ -3786,7 +3786,7 @@ exp_prop_row_2 = HBox(
 )
 
 exp_prop_row_3 = HBox(
-    [exp_type, exp_subtype, exp_incl, ns_text, ds_text, exp_comment],
+    [exp_class, exp_type, exp_subtype, exp_incl, ns_text, ds_text, exp_comment],
     layout=Layout(spacing="1px"),
     padding='20px 20px' 
 )
