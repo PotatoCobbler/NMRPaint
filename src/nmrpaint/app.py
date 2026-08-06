@@ -3468,6 +3468,11 @@ canvas_container.layout.height = f"{canvas_height}px"
 canvas_container.layout.overflow = "hidden"
 #canvas_container.layout.align_items = "center"
 
+canvas_box.layout.flex = "0 0 auto"
+
+ctp_section.layout.flex = "0 0 auto"
+ctp_box.layout.flex = "0 0 auto"
+
 # -----------------------
 # Mouse actions
 # -----------------------
