@@ -54,7 +54,7 @@ DEFAULT_HEIGHT = 60
 timeline_scale = 5
 
 # Timeline positions
-timeline_positions = {"f1": 150, "f2": 250, "Gz": 350}
+timeline_positions = {"f1": 100, "f2": 200, "Gz": 300}
 
 # -----------------------
 # Coherence-order positions
@@ -3428,6 +3428,19 @@ canvas_row = HBox(
     )
 )
 
+ctp_section = VBox([
+    HTML("""
+    <div style="
+        text-align:center;
+        font-size:15px;
+        font-weight:bold;
+    ">
+        &nbsp;
+    </div>
+    """),
+    ctp_box
+])
+
 canvas_section = VBox([
     HTML("""
     <div style="
@@ -3440,7 +3453,7 @@ canvas_section = VBox([
     """),
     canvas_box,
     canvas_row,
-    ctp_box
+    ctp_section
 ])
 
 canvas_container.layout.flex = "0 0 auto"
