@@ -706,7 +706,7 @@ definitions_text = Textarea(
     value="",
     layout=Layout(
         width="98%",
-        height="303px"
+        height="253px"
     )
 )
 
@@ -1616,7 +1616,7 @@ pulse_program_output = Textarea(
     description="",
     layout=Layout(
         width="400px",
-        height="450px"
+        height="400px"
     )
 )
 
@@ -1711,7 +1711,10 @@ phase_cycle_box = VBox([
     phase_cycle_output
 ])
 
-phase_cycle_box.layout = Layout(width="400px")
+phase_cycle_box.layout = Layout(
+    width="400px",
+    margin="50px 0 0 0"
+)
 
 def populate_phase_rows():
 
