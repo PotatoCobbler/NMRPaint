@@ -2008,26 +2008,37 @@ def draw_ctp():
             continue
 
     # ---------------------------------------
-    # Extend all channels to the FID
+    # Extend channels after the last pulse
     # ---------------------------------------
     
     fid_x = get_fid_start_time() * timeline_scale
     
-    for channel in ("f1", "f2"):
-        c.stroke_style = channel_color[channel]
-        levels = ctp_channel_positions[channel]
+    # ---------- F1 ----------
+    c.stroke_style = channel_color["f1"]
     
-        if xpos[channel] < fid_x:
+    levels = ctp_channel_positions["f1"]
     
-            draw_ctp_horizontal(
-                c,
-                xpos[channel],
-                fid_x,
-                levels[coherence[channel]]
-            )
+    if xpos["f1"] < fid_x:
     
-            xpos[channel] = fid_x
-
+        draw_ctp_horizontal(
+            c,
+            xpos["f1"],
+            fid_x,
+            levels[coherence["f1"]]
+        )
+    
+    # ---------- F2 ----------
+    c.stroke_style = channel_color["f2"]
+    
+    levels = ctp_channel_positions["f2"]
+    
+    draw_ctp_horizontal(
+        c,
+        xpos["f2"],
+        c.width,
+        levels[coherence["f2"]]
+    )
+    
     # ---------------------------------------
     # Draw acquisition (-1 coherence)
     # ---------------------------------------
