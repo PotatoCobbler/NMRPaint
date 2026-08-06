@@ -170,3 +170,59 @@ def build_text_download_link_html(
         f"{safe_label}"
         "</a>"
     )
+
+def build_png_download_href(
+    png_bytes: bytes,
+) -> str:
+    """
+    Build a browser download href for PNG bytes.
+    """
+    encoded_content = base64.b64encode(
+        png_bytes
+    ).decode("ascii")
+
+    return (
+        "data:image/png;base64,"
+        f"{encoded_content}"
+    )
+
+
+def build_png_download_link_html(
+    *,
+    png_bytes: bytes,
+    filename: str,
+    label: str = "Download PNG",
+) -> str:
+    """
+    Build an HTML download link for PNG content.
+    """
+    safe_filename = normalize_output_filename(
+        filename,
+        default="canvas",
+    )
+
+    if not safe_filename.lower().endswith(".png"):
+        safe_filename += ".png"
+
+    safe_label = escape(label)
+    escaped_filename = escape(
+        safe_filename,
+        quote=True,
+    )
+
+    href = build_png_download_href(png_bytes)
+
+    return (
+        f'<a href="{href}" '
+        f'download="{escaped_filename}" '
+        'style="'
+        'display:inline-block;'
+        'padding:6px 12px;'
+        'border:1px solid #777;'
+        'border-radius:4px;'
+        'text-decoration:none;'
+        'font-weight:500;'
+        '">'
+        f"{safe_label}"
+        "</a>"
+    )
