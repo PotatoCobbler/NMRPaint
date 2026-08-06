@@ -1906,8 +1906,7 @@ def draw_ctp():
 
     c = ctp_canvas
 
-    c.stroke_style = "green"
-    c.line_width = 3
+    c.line_width = 5
 
     # current coherence order
     coherence = {
@@ -1922,16 +1921,33 @@ def draw_ctp():
     }
 
     elements = sorted(sequence.elements, key=lambda e: e.start)
-
+    
+    # Determine pathway colors
+    final_coherence = {"f1": 0, "f2": 0}
+    
+    for el in elements:
+    
+        if el.kind not in ("pulse", "shaped"):
+            continue
+    
+        if el.channel not in ("f1", "f2"):
+            continue
+    
+        final_coherence[el.channel] += get_phase_delta(el.phase)
+    
+    channel_color = {
+        "f1": "green" if final_coherence["f1"] == -1 else "red",
+        "f2": "green"
+    }
+    
     for el in elements:
 
         if el.channel not in ("f1", "f2"):
             continue
 
         channel = el.channel
-
+        c.stroke_style = channel_color[channel]
         levels = ctp_channel_positions[channel]
-
         current = coherence[channel]
 
         x0 = xpos[channel]
@@ -1998,7 +2014,7 @@ def draw_ctp():
     fid_x = get_fid_start_time() * timeline_scale
     
     for channel in ("f1", "f2"):
-    
+        c.stroke_style = channel_color[channel]
         levels = ctp_channel_positions[channel]
     
         if xpos[channel] < fid_x:
@@ -2016,24 +2032,16 @@ def draw_ctp():
     # Draw acquisition (-1 coherence)
     # ---------------------------------------
     
-    for channel in ("f1", "f2"):
+    c.stroke_style = channel_color["f1"]
     
-        levels = ctp_channel_positions[channel]
+    levels = ctp_channel_positions["f1"]
     
-        # vertical jump onto the detected coherence
-        c.begin_path()
-        c.move_to(fid_x, levels[coherence[channel]])
-        c.line_to(fid_x, levels[-1])
-        c.stroke()
-    
-        # acquisition line
-        draw_ctp_horizontal(
-            c,
-            fid_x,
-            c.width,
-            levels[-1]
-        )
-            
+    draw_ctp_horizontal(
+        c,
+        fid_x,
+        c.width,
+        levels[-1]
+    )
 # -----------------------
 # Register Handlers
 # -----------------------
