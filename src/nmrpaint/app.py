@@ -2732,7 +2732,7 @@ def show_property_editor(el: SequenceElement):
 # -----------------------
 
 canvas_width = 900
-canvas_height = 450
+canvas_height = 400
 
 def get_fid_start_time():
     return (canvas.width - 83) / timeline_scale
@@ -2913,9 +2913,6 @@ def set_canvas_size(new_width: int, new_height: int = None):
 
     ctp_container.layout.min_width = f"{canvas_width}px"
     ctp_container.layout.min_height = f"{ctp_canvas_height}px"
-
-    canvas_container.layout.width  = f"{canvas_width}px"
-    canvas_container.layout.height = f"{canvas_height}px"
 
     canvas_container.layout.overflow_x = "hidden"
     canvas_container.layout.overflow_y = "visible"
