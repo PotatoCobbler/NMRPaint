@@ -706,7 +706,7 @@ definitions_text = Textarea(
     value="",
     layout=Layout(
         width="98%",
-        height="253px"
+        height="231px"
     )
 )
 
