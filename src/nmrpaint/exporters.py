@@ -226,3 +226,4 @@ def build_png_download_link_html(
         f"{safe_label}"
         "</a>"
     )
+
