@@ -3913,10 +3913,10 @@ delay = SequenceElement(
     name="d1"
 )
 
+from IPython.display import HTML, display
+
 def create_app():
     """Return the complete NMRpaint widget application."""
-
-from IPython.display import HTML, display
 
     display(HTML("""
     <style>
@@ -3924,13 +3924,12 @@ from IPython.display import HTML, display
         --fill-color: #F5F5F5 !important;
         --neutral-layer-1: #F5F5F5 !important;
         --neutral-fill-layer-rest: #F5F5F5 !important;
-    
-        /* JupyterLab variables */
+
         --jp-layout-color0: #F5F5F5 !important;
         --jp-layout-color1: #F5F5F5 !important;
         --jp-layout-color2: #F5F5F5 !important;
     }
-    
+
     body,
     #jp-main-content-panel,
     #rendered_cells {
@@ -3938,7 +3937,6 @@ from IPython.display import HTML, display
     }
     </style>
     """))
-
 
     return main_vbox
 
