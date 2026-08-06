@@ -3856,7 +3856,6 @@ app_wrapper.layout = Layout(
     height="0px",
 )
 
-
 background = HTML("""
 <style>
 body {
@@ -3899,7 +3898,6 @@ copyright_footer.layout = Layout(
     flex="0 0 auto",
 )
 
-
 #initial d1 arrow with update logic
 dash_x = 40
 fid_start_time = (canvas.width - 83) / timeline_scale
@@ -3918,26 +3916,29 @@ delay = SequenceElement(
 def create_app():
     """Return the complete NMRpaint widget application."""
 
-    display(DisplayHTML("""
+from IPython.display import HTML, display
+
+    display(HTML("""
     <style>
-    html,
-    body,
-    .voila-container {
-        background-color: #F5F5F5 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        height: 100vh !important;
+    :root {
+        --fill-color: #F5F5F5 !important;
+        --neutral-layer-1: #F5F5F5 !important;
+        --neutral-fill-layer-rest: #F5F5F5 !important;
+    
+        /* JupyterLab variables */
+        --jp-layout-color0: #F5F5F5 !important;
+        --jp-layout-color1: #F5F5F5 !important;
+        --jp-layout-color2: #F5F5F5 !important;
     }
     
-    .jp-Notebook,
-    .jp-NotebookPanel,
-    .jp-NotebookPanel-notebook,
-    .jp-OutputArea,
-    .jp-OutputArea-output {
-        background-color: #F5F5F5 !important;
+    body,
+    #jp-main-content-panel,
+    #rendered_cells {
+        background: #F5F5F5 !important;
     }
     </style>
     """))
+
 
     return main_vbox
 
@@ -3947,4 +3948,3 @@ draw_ctp()
 
 if __name__ == "__main__":
     display(create_app())
-
