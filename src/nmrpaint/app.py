@@ -3920,15 +3920,7 @@ def create_app():
 
     display(HTML("""
     <style>
-    :root {
-        --fill-color: #F5F5F5 !important;
-        --neutral-layer-1: #F5F5F5 !important;
-        --neutral-fill-layer-rest: #F5F5F5 !important;
 
-        --jp-layout-color0: #F5F5F5 !important;
-        --jp-layout-color1: #F5F5F5 !important;
-        --jp-layout-color2: #F5F5F5 !important;
-    }
 
     body,
     #jp-main-content-panel,
