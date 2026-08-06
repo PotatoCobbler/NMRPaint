@@ -1947,6 +1947,7 @@ def draw_ctp():
 
         channel = el.channel
         c.stroke_style = channel_color[channel]
+        c.line_cap = "round"
         levels = ctp_channel_positions[channel]
         current = coherence[channel]
 
@@ -2053,6 +2054,7 @@ def draw_ctp():
         c.width,
         levels[-1]
     )
+
 # -----------------------
 # Register Handlers
 # -----------------------
