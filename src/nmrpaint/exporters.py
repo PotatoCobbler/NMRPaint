@@ -186,6 +186,7 @@ def build_png_download_href(
         f"{encoded_content}"
     )
 
+
 def build_png_download_link_html(
     *,
     png_bytes: bytes,
@@ -216,12 +217,13 @@ def build_png_download_link_html(
         f'download="{escaped_filename}" '
         'style="'
         'display:inline-block;'
-        'padding:0px 10px;'
+        'padding:6px 12px;'
         'border:1px solid #777;'
-        'border-radius:2px;'
+        'border-radius:4px;'
         'text-decoration:none;'
         'font-weight:500;'
         '">'
         f"{safe_label}"
         "</a>"
     )
+    
