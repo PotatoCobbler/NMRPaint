@@ -1679,10 +1679,10 @@ W_USE = "60px"
 
 phase_cycle_header = HBox([
     Label("", layout=Layout(width=W_LABEL)),
-    Label("φ", layout=Layout(width=W_DROPDOWN)),
-    HTML("= Δp", layout=Layout(width=W_TEXT)),
-    HTML("≠ Δp", layout=Layout(width=W_TEXT)),
-    Label("Use", layout=Layout(width=W_USE))
+    Label("   φ", layout=Layout(width=W_DROPDOWN)),
+    HTML("   = Δp", layout=Layout(width=W_TEXT)),
+    HTML("   ≠ Δp", layout=Layout(width=W_TEXT)),
+    Label("   Use", layout=Layout(width=W_USE))
 ])
 
 phase_cycle_container = VBox([])
