@@ -740,7 +740,7 @@ definitions_text = Textarea(
     value="",
     layout=Layout(
         width="98%",
-        height="231px"
+        height="245px"
     )
 )
 
@@ -2595,7 +2595,7 @@ el_name = Text(
 )
 
 el_definition = Text(
-    description="Definitions",
+    description="Definition",
     layout=field_layout,
     style=label_style
 )
