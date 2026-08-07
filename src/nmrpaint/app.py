@@ -1891,6 +1891,7 @@ def nested_cycles(bases):
 #------------------------------------------------
 # Make sure the requested phase cycle is physical
 #------------------------------------------------
+
 def validate_phase_cycle():
 
     phase_deltas = {}
@@ -1919,6 +1920,7 @@ def validate_phase_cycle():
         messages = []
 
         for phase, deltas in conflicts.items():
+
             delta_string = ", ".join(
                 f"{d:+d}" for d in sorted(deltas)
             )
@@ -1932,101 +1934,139 @@ def validate_phase_cycle():
 
     return True, ""
 
-valid, message = validate_phase_cycle()
 
-if not valid:
-    phase_cycle_output.value = message
-    return
-    
 #----------------------
 # Generate phase cycle
 #----------------------
+
 def generate_phase_cycle():
+
+    # Validate BEFORE doing anything else
+    valid, message = validate_phase_cycle()
+
+    if not valid:
+        phase_cycle_output.value = message
+        return
 
     included = []
     excluded = []
-    
+
     for r in phase_rows:
-    
+
         delta = int(r["delta"].value)
-    
+
         row = {
             "phase": r["phase"],
             "delta": delta,
             "nominal": PHASE_MAP[r["nominal"].value],
             "disallowed": r["disallowed"].value.strip()
         }
-        
+
         if r["include"].value:
             included.append(row)
         else:
             excluded.append(row)
-            
+
     # sort phases numerically (ph1, ph2, ph3, ...)
-    included.sort(key=lambda r: int(r["phase"][2:]))
-    excluded.sort(key=lambda r: int(r["phase"][2:]))
-    
+    included.sort(
+        key=lambda r: int(r["phase"][2:])
+    )
+
+    excluded.sort(
+        key=lambda r: int(r["phase"][2:])
+    )
+
     if not included:
-    
+
         cols = 1
         tableC = {}
-    
+
         for row in excluded:
             tableC[row["phase"]] = [row["nominal"]]
-    
+
         ph31 = [0]
+
     else:
-    
-        bases = [determine_steps(r["delta"], r["disallowed"]) for r in included]    
+
+        bases = [
+            determine_steps(
+                r["delta"],
+                r["disallowed"]
+            )
+            for r in included
+        ]
+
         print("base_steps per phase =", bases)
-        
+
         # ---- nested cycle
         cycles = nested_cycles(bases)
-        
+
         tableA = {}
-        for i,row in enumerate(included):
+
+        for i, row in enumerate(included):
             tableA[row["phase"]] = cycles[i]
-        
+
         cols = len(cycles[0])
-          
+
         # ---- Table C
         tableC = {}
-    
+
         # included phases
-        for r,row in enumerate(included):
-    
+        for r, row in enumerate(included):
+
             vals = tableA[row["phase"]]
             nominal = row["nominal"]
-    
-            tableC[row["phase"]] = [(v + nominal) % 4 for v in vals]
-    
+
+            tableC[row["phase"]] = [
+                (v + nominal) % 4
+                for v in vals
+            ]
+
         # phases excluded from the nested cycle
         for row in excluded:
-            tableC[row["phase"]] = [row["nominal"]] * cols
-    
+
+            tableC[row["phase"]] = [
+                row["nominal"]
+            ] * cols
+
         # ---- Table B (receiver)
         ph31 = []
-        
+
         for c in range(cols):
+
             s = 0
-        
+
             for row in phase_rows:
+
                 phase = tableC[row["phase"]][c]
                 delta = int(row["delta"].value)
+
                 s += phase * delta
-        
+
             ph31.append(s % 4)
 
     # ---- Print result
     text = ";Phase table\n"
 
-    for ph in sorted(tableC.keys(), key=lambda x: int(x[2:])):
+    for ph in sorted(
+        tableC.keys(),
+        key=lambda x: int(x[2:])
+    ):
+
         v = tableC[ph]
-        text += f"{ph}={' '.join(map(str,v))}\n"
-    text += "\nph31=" + " ".join(map(str,ph31))
+
+        text += (
+            f"{ph}={' '.join(map(str, v))}\n"
+        )
+
+    text += (
+        "\nph31="
+        + " ".join(map(str, ph31))
+    )
 
     phase_cycle_output.value = text
-    
+
+
 # Pulse program GUI layout
 pulse_program_box = VBox(
     [
