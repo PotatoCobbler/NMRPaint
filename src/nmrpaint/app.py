@@ -1635,6 +1635,7 @@ def prepare_browser_download(b):
        Download
     </a>
     """
+    
 # ----------------------------------
 # Print pulse program next to canvas
 # ----------------------------------
@@ -1660,55 +1661,83 @@ pulse_program_header = HTML("""
 # -----------------------
 # Phase Cycle GUI
 # -----------------------
+
 phase_rows = []
 
 PHASE_MAP = {
-    "x":0,
-    "y":1,
-    "-x":2,
-    "-y":3
+    "x": 0,
+    "y": 1,
+    "-x": 2,
+    "-y": 3
 }
 
+# Column widths — use these everywhere
+W_LABEL = "120px"
+W_DROPDOWN = "60px"
+W_TEXT = "60px"
+W_USE = "60px"
+
 phase_cycle_header = HBox([
-    Label("", layout=Layout(width="50px")),
-    Label("φ", layout=Layout(width="100px")),
-    HTML("= Δ<i>p</i>", layout=Layout(width="100px")),
-    HTML("≠ Δ<i>p</i>", layout=Layout(width="100px")),
-    Label("Use", layout=Layout(width="60px"))
+    Label("", layout=Layout(width=W_LABEL)),
+    Label("φ", layout=Layout(width=W_DROPDOWN)),
+    HTML("= Δp", layout=Layout(width=W_TEXT)),
+    HTML("≠ Δp", layout=Layout(width=W_TEXT)),
+    Label("Use", layout=Layout(width=W_USE))
 ])
 
 phase_cycle_container = VBox([])
+
 phase_cycle_output = Textarea(
     layout=Layout(width="396px", height="160px")
 )
+
 
 def add_phase_row(pulse, phase):
 
     include = Checkbox(
         value=True,
         indent=False,
-        layout=Layout(width="60px")
+        layout=Layout(
+            width=W_USE,
+            display="flex",
+            justify_content="center"
+        )
     )
 
     nominal = Dropdown(
-        options=["x","y","-x","-y"],
+        options=["x", "y", "-x", "-y"],
         value="x",
-        layout=Layout(width="60px")
+        layout=Layout(
+            width=W_DROPDOWN
+        )
     )
 
     delta = Text(
         value="0",
-        layout=Layout(width="60px")
+        layout=Layout(
+            width=W_TEXT
+        )
     )
 
     disallowed = Text(
         value="",
-        layout=Layout(width="60px")
+        layout=Layout(
+            width=W_TEXT
+        )
     )
 
-    label = Label(f"{pulse}:{phase}", layout=Layout(width="120px"))
+    label = Label(
+        f"{pulse}:{phase}",
+        layout=Layout(width=W_LABEL)
+    )
 
-    row_widget = HBox([label, nominal, delta, disallowed, include])
+    row_widget = HBox(
+        [label, nominal, delta, disallowed, include],
+        layout=Layout(
+            width="100%",
+            justify_content="flex-start"
+        )
+    )
 
     phase_rows.append({
         "include": include,
@@ -1722,17 +1751,10 @@ def add_phase_row(pulse, phase):
     phase_cycle_container.children = (
         list(phase_cycle_container.children) + [row_widget]
     )
-    
+
+
 phase_cycle_box = VBox([
-    HTML("""
-    <div style="
-        text-align:center;
-        font-size:15px;
-        font-weight:bold;
-    ">
-        Phase Cycle Generator
-    </div>
-    """),
+    HTML("Phase Cycle Generator"),
     phase_cycle_header,
     phase_cycle_container,
     phase_cycle_output
