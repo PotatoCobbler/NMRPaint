@@ -1651,7 +1651,7 @@ pulse_program_output = Textarea(
     description="",
     layout=Layout(
         width="400px",
-        height="400px"
+        height="410px"
     )
 )
 
@@ -1767,8 +1767,18 @@ def add_phase_row(pulse, phase):
     )
 
 
+phase_cycle_title = HTML("""
+<div style="
+    text-align:center;
+    font-size:15px;
+    font-weight:bold;
+">
+    Phase Cycle Generator
+</div>
+""")
+
 phase_cycle_box = VBox([
-    HTML("Phase Cycle Generator"),
+    phase_cycle_title,
     phase_cycle_header,
     phase_cycle_container,
     phase_cycle_output
