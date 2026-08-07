@@ -688,16 +688,8 @@ def export_png(b):
         draw_sequence()
 
         canvas.flush()
-        for _ in range(20):
-            if canvas.image_data is not None:
-                break
-            time.sleep(0.05)
-
-        if canvas.image_data is None:
-            raise RuntimeError(
-                "Canvas image data was not available."
-            )
-
+        time.sleep(0.5)
+        
         filename = normalize_output_filename(
             exp_title.value,
             default="sequence",
