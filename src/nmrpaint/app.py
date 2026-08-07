@@ -634,7 +634,7 @@ undo_button = Button(
     description="Undo"
 )
 
-clear_button = Button(,
+clear_button = Button(
     button_style="danger",
     description="Clear",
     tooltip="Reset everything"
