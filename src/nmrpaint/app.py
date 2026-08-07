@@ -1678,17 +1678,13 @@ W_TEXT = "60px"
 W_USE = "60px"
 
 def centered_label(text, width):
-    return Label(
-        text,
-        layout=Layout(
-            width=width,
-            text_align="center"
-        )
+    return HTML(
+        f'<div style="width:{width}; text-align:center;">{text}</div>'
     )
 
 
 phase_cycle_header = HBox([
-    Label("", layout=Layout(width=W_LABEL)),
+    HTML(f'<div style="width:{W_LABEL};"></div>'),
 
     centered_label("φ", W_DROPDOWN),
     centered_label("= Δp", W_TEXT),
@@ -1697,11 +1693,9 @@ phase_cycle_header = HBox([
 ])
 
 phase_cycle_container = VBox([])
-
 phase_cycle_output = Textarea(
     layout=Layout(width="396px", height="160px")
 )
-
 
 def add_phase_row(pulse, phase):
 
