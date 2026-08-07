@@ -1888,6 +1888,59 @@ def nested_cycles(bases):
 
     return cycles
     
+#------------------------------------------------
+# Make sure the requested phase cycle is physical
+#------------------------------------------------
+def validate_phase_cycle():
+
+    phase_deltas = {}
+
+    for row in phase_rows:
+
+        if not row["include"].value:
+            continue
+
+        phase = row["phase"]
+
+        try:
+            delta = int(row["delta"].value)
+        except (ValueError, TypeError):
+            continue
+
+        phase_deltas.setdefault(phase, set()).add(delta)
+
+    conflicts = {
+        phase: deltas
+        for phase, deltas in phase_deltas.items()
+        if len(deltas) > 1
+    }
+
+    if conflicts:
+        messages = []
+
+        for phase, deltas in conflicts.items():
+            delta_string = ", ".join(
+                f"{d:+d}" for d in sorted(deltas)
+            )
+
+            messages.append(
+                f"Warning: {phase} is assigned different Δp values "
+                f"({delta_string}) among included pulses."
+            )
+
+        return False, "\n".join(messages)
+
+    return True, ""
+
+valid, message = validate_phase_cycle()
+
+if not valid:
+    phase_cycle_output.value = message
+    return
+    
+#----------------------
+# Generate phase cycle
+#----------------------
 def generate_phase_cycle():
 
     included = []
