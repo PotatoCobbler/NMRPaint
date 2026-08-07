@@ -261,6 +261,11 @@ def draw_ctp_diagonal(c, x0, x1, y0, y1):
     c.move_to(x0, y0)
     c.line_to(x1, y1)
     c.stroke()
+
+def clear_phase_cycle_gui():
+    phase_rows.clear()
+    phase_cycle_container.children = ()
+    phase_cycle_output.value = ""
     
 #--------------
 #wvm attributes
@@ -578,7 +583,8 @@ def clear_sequence(b):
 
     save_state()
     sequence.elements.clear()
-
+    clear_phase_cycle_gui()
+    
     dash_x = 40 / timeline_scale
     fid_start_time = (canvas.width - 83) / timeline_scale
     delay_file = DELAY_RESOURCE_ID
@@ -628,8 +634,10 @@ undo_button = Button(
     description="Undo"
 )
 
-clear_button = Button(
-    description="Clear"
+clear_button = Button(,
+    button_style="danger",
+    description="Clear",
+    tooltip="Reset everything"
 )
 
 print_names_button = Button(
@@ -639,7 +647,6 @@ print_names_button = Button(
 
 delete_button = Button(
     description="Delete",
-    button_style="danger",
     tooltip="Delete selected element"
 )
 
@@ -3787,9 +3794,9 @@ canvas.on_mouse_up(on_canvas_mouse_up)
 
 buttons_row = HBox(
     [
-        delete_button,
-        undo_button,
         clear_button,
+        undo_button,
+        delete_button,
         toggle_delays_btn,
         print_names_button,
         phase_cycle_checkbox,
