@@ -128,8 +128,7 @@ class SequenceElement:
             else:
                 self.visual_height = DEFAULT_HEIGHT
 
-    
-class PulseSequence:
+Class PulseSequence:
     def __init__(self):
         self.elements = []
     def add(self, element):
