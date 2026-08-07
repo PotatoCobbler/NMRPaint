@@ -1677,12 +1677,23 @@ W_DROPDOWN = "60px"
 W_TEXT = "60px"
 W_USE = "60px"
 
+def centered_label(text, width):
+    return Label(
+        text,
+        layout=Layout(
+            width=width,
+            text_align="center"
+        )
+    )
+
+
 phase_cycle_header = HBox([
     Label("", layout=Layout(width=W_LABEL)),
-    Label("   φ", layout=Layout(width=W_DROPDOWN)),
-    HTML("   = Δp", layout=Layout(width=W_TEXT)),
-    HTML("   ≠ Δp", layout=Layout(width=W_TEXT)),
-    Label("   Use", layout=Layout(width=W_USE))
+
+    centered_label("φ", W_DROPDOWN),
+    centered_label("= Δp", W_TEXT),
+    centered_label("≠ Δp", W_TEXT),
+    centered_label("Use", W_USE)
 ])
 
 phase_cycle_container = VBox([])
