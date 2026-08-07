@@ -57,7 +57,7 @@ DEFAULT_HEIGHT = 60
 timeline_scale = 5
 
 # Timeline positions
-timeline_positions = {"f1": 100, "f2": 200, "Gz": 300}
+timeline_positions = {"f1": 110, "f2": 210, "Gz": 310}
 
 # -----------------------
 # Coherence-order positions
@@ -2789,7 +2789,7 @@ def show_property_editor(el: SequenceElement):
 # -----------------------
 
 canvas_width = 900
-canvas_height = 400
+canvas_height = 410
 
 def get_fid_start_time():
     return (canvas.width - 83) / timeline_scale
@@ -2835,7 +2835,7 @@ canvas_box = canvas_container
 # -----------------------
 # CTP canvas setup
 # -----------------------
-ctp_canvas_height = 400
+ctp_canvas_height = canvas_height
 
 ctp_canvas = Canvas(
     width=canvas_width,
