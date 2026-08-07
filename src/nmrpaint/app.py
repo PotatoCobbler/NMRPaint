@@ -3485,7 +3485,6 @@ canvas_row = HBox(
     [
         canvas_width_input,
         apply_canvas_size_btn,
-        export_btn,
         canvas_download_link,
         coherence_label
     ],
@@ -3494,6 +3493,8 @@ canvas_row = HBox(
         padding='0px 0px'
     )
 )
+
+#export_btn
 
 ctp_section = VBox([
     HTML("""
