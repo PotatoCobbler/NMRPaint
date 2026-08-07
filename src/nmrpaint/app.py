@@ -1670,8 +1670,8 @@ PHASE_MAP = {
 }
 
 phase_cycle_header = HBox([
-    Label("", layout=Layout(width="100px")),
-    Label("nom. phase", layout=Layout(width="100px")),
+    Label("", layout=Layout(width="50px")),
+    Label("φ", layout=Layout(width="100px")),
     HTML("= Δ<i>p</i>", layout=Layout(width="100px")),
     HTML("≠ Δ<i>p</i>", layout=Layout(width="100px")),
     Label("Use", layout=Layout(width="60px"))
@@ -1693,17 +1693,17 @@ def add_phase_row(pulse, phase):
     nominal = Dropdown(
         options=["x","y","-x","-y"],
         value="x",
-        layout=Layout(width="120px")
+        layout=Layout(width="60px")
     )
 
     delta = Text(
         value="0",
-        layout=Layout(width="100px")
+        layout=Layout(width="60px")
     )
 
     disallowed = Text(
         value="",
-        layout=Layout(width="150px")
+        layout=Layout(width="60px")
     )
 
     label = Label(f"{pulse}:{phase}", layout=Layout(width="120px"))
