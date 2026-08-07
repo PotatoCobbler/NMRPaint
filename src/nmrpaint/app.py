@@ -234,16 +234,13 @@ def pulse_fill_color(el):
     else:
         return "white"
 
-def get_phase_delta(phase_name):
-
-    if not phase_name:
-        return 0
+def get_phase_delta(el):
 
     for row in phase_rows:
-        if row["phase"] == phase_name:
+        if row["element"] is el:
             try:
                 return int(row["delta"].value)
-            except:
+            except (ValueError, TypeError):
                 return 0
 
     return 0
@@ -2006,7 +2003,7 @@ def get_ctp_events():
             "name": el.name,
             "channel": el.channel,
             "phase": el.phase,
-            "delta": get_phase_delta(el.phase),
+            "delta": get_phase_delta(el),
             "x0": el.start * timeline_scale,
             "x1": (el.start + el.duration) * timeline_scale,
             "width": el.visual_width,
@@ -2049,7 +2046,7 @@ def draw_ctp():
         if el.channel not in ("f1", "f2"):
             continue
     
-        final_coherence[el.channel] += get_phase_delta(el.phase)
+        final_coherence[el.channel] += get_phase_delta(el)
     
     channel_color = {
         "f1": "green" if final_coherence["f1"] == -1 else "red",
@@ -2103,7 +2100,7 @@ def draw_ctp():
         # ----------------------------
         if el.kind in ("pulse", "shaped"):
 
-            delta = get_phase_delta(el.phase)
+            delta = get_phase_delta(el)
 
             new = max(-3, min(3, current + delta))
 
