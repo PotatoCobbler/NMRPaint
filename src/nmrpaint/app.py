@@ -1700,11 +1700,15 @@ phase_cycle_output = Textarea(
 def add_phase_row(pulse, phase):
 
     include = Checkbox(
-        value=False,
+        value=True,
         indent=False,
+        layout=Layout(width="20px")
+    )
+
+    include_container = HBox(
+        [include],
         layout=Layout(
             width=W_USE,
-            display="flex",
             justify_content="center"
         )
     )
@@ -1712,23 +1716,17 @@ def add_phase_row(pulse, phase):
     nominal = Dropdown(
         options=["x", "y", "-x", "-y"],
         value="x",
-        layout=Layout(
-            width=W_DROPDOWN
-        )
+        layout=Layout(width=W_DROPDOWN)
     )
 
     delta = Text(
         value="0",
-        layout=Layout(
-            width=W_TEXT
-        )
+        layout=Layout(width=W_TEXT)
     )
 
     disallowed = Text(
         value="",
-        layout=Layout(
-            width=W_TEXT
-        )
+        layout=Layout(width=W_TEXT)
     )
 
     label = Label(
@@ -1736,22 +1734,26 @@ def add_phase_row(pulse, phase):
         layout=Layout(width=W_LABEL)
     )
 
-    row_widget = HBox(
-        [label, nominal, delta, disallowed, include],
-        layout=Layout(
-            width="100%",
-            justify_content="flex-start"
-        )
-    )
+    row_widget = HBox([
+        label,
+        nominal,
+        delta,
+        disallowed,
+        include_container
+    ])
 
-    phase_rows.append({
+    row_data = {
         "include": include,
         "pulse": pulse,
         "phase": phase,
         "nominal": nominal,
         "delta": delta,
-        "disallowed": disallowed
-    })
+        "disallowed": disallowed,
+        "label": label,
+        "widget": row_widget
+    }
+
+    phase_rows.append(row_data)
 
     phase_cycle_container.children = (
         list(phase_cycle_container.children) + [row_widget]
@@ -1772,16 +1774,55 @@ phase_cycle_box.layout = Layout(
 
 def populate_phase_rows():
 
-    existing = {row["phase"] for row in phase_rows}
+    # Unique pulse:phase combinations currently in the sequence
+    sequence_combinations = []
 
     for el in sequence.elements:
 
         if el.phase and el.phase.startswith("ph"):
 
-            if el.phase not in existing:
+            combination = (el.name, el.phase)
 
-                add_phase_row(el.name, el.phase)
-                
+            if combination not in sequence_combinations:
+                sequence_combinations.append(combination)
+
+    # Existing rows indexed by their pulse:phase combination
+    existing_rows = {
+        (row["pulse"], row["phase"]): row
+        for row in phase_rows
+    }
+
+    # Update existing rows / create new ones
+    for pulse, phase in sequence_combinations:
+
+        key = (pulse, phase)
+
+        if key in existing_rows:
+            row = existing_rows[key]
+
+            # Update displayed information
+            row["pulse"] = pulse
+            row["phase"] = phase
+            row["label"].value = f"{pulse}:{phase}"
+
+        else:
+            add_phase_row(pulse, phase)
+
+    # Remove rows that no longer exist in the sequence
+    sequence_keys = set(sequence_combinations)
+
+    phase_rows[:] = [
+        row for row in phase_rows
+        if (row["pulse"], row["phase"]) in sequence_keys
+    ]
+
+    # Rebuild the displayed rows in sequence order
+    phase_cycle_container.children = tuple(
+        row["widget"]
+        for row in phase_rows
+        if (row["pulse"], row["phase"]) in sequence_keys
+    )
+
 def determine_steps(delta, disallowed):
 
     delta = int(delta)
