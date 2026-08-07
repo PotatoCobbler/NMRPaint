@@ -6,10 +6,18 @@ from .exporters import (
     write_text_file,
 )
 
+from .resource_manager import (
+    list_resource_names,
+    read_resource_text,
+    resource_exists,
+)
+
 import copy
 import math
 import re
 import time
+import tempfile
+
 from datetime import datetime
 from io import StringIO
 from pathlib import Path, PurePosixPath
@@ -33,14 +41,8 @@ from ipywidgets import (
 )
 
 from ipycanvas import Canvas
-from IPython.display import FileLink
+from IPython.display import FileLink, 
 from IPython.display import display, HTML as DisplayHTML
-
-from .resource_manager import (
-    list_resource_names,
-    read_resource_text,
-    resource_exists,
-)
 
 VERSION = "0.1.0"
 
@@ -135,7 +137,7 @@ class PulseSequence:
     def add(self, element):
         self.elements.append(element)
     def coherence_summary(self):
-        return f"Total elements: {len(self.elements)}"
+        return f"          Total elements: {len(self.elements)}"
 
 # -----------------------
 # Helper functions
@@ -679,19 +681,13 @@ browser_download_link = HTML()
 #-----------------------------------
 # Export png function (not working)
 #-----------------------------------
-import tempfile
-
-
 def export_png(b):
 
     try:
         # redraw everything
         draw_sequence()
 
-        # force pixel sync from browser
-        canvas.sync_image_data = True
         canvas.flush()
-
         time.sleep(0.15)
 
         filename = normalize_output_filename(
@@ -724,10 +720,9 @@ def export_png(b):
             f"<pre>Export failed: {exc}</pre>"
         )
 
-    finally:
-        canvas.sync_image_data = False
+#    finally:
+#        canvas.sync_image_data = False
 
-    
 export_btn.on_click(export_png)
 
 # ------------------------
@@ -2776,7 +2771,7 @@ def get_fid_start_time():
 canvas = Canvas(
     width=canvas_width,
     height=canvas_height,
-    sync_image_data=False
+    sync_image_data=True
 )
 
 # Overlay canvas
@@ -3975,8 +3970,6 @@ delay = SequenceElement(
     channel="f1",
     name="d1"
 )
-
-from IPython.display import HTML, display
 
 def create_app():
     """Return the complete NMRpaint widget application."""
