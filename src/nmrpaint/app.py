@@ -1700,7 +1700,7 @@ phase_cycle_output = Textarea(
 def add_phase_row(pulse, phase):
 
     include = Checkbox(
-        value=True,
+        value=False,
         indent=False,
         layout=Layout(
             width=W_USE,
