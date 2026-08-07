@@ -128,13 +128,14 @@ class SequenceElement:
             else:
                 self.visual_height = DEFAULT_HEIGHT
 
+    
 class PulseSequence:
     def __init__(self):
         self.elements = []
     def add(self, element):
         self.elements.append(element)
     def coherence_summary(self):
-        return f"          Total elements: {len(self.elements)}"
+        return f"Total elements: {len(self.elements)}"
 
 # -----------------------
 # Helper functions
