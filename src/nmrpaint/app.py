@@ -1926,7 +1926,7 @@ def validate_phase_cycle():
             )
 
             messages.append(
-                f"Warning: {phase} is assigned different Δp values "
+                f"⚠ Warning: {phase} is assigned different Δp values "
                 f"({delta_string}) among included pulses."
             )
 
