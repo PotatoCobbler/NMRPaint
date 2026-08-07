@@ -684,11 +684,19 @@ browser_download_link = HTML()
 def export_png(b):
 
     try:
-        # redraw everything
+        canvas.sync_image_data = True
         draw_sequence()
 
         canvas.flush()
-        time.sleep(0.15)
+        for _ in range(20):
+            if canvas.image_data is not None:
+                break
+            time.sleep(0.05)
+
+        if canvas.image_data is None:
+            raise RuntimeError(
+                "Canvas image data was not available."
+            )
 
         filename = normalize_output_filename(
             exp_title.value,
@@ -720,8 +728,8 @@ def export_png(b):
             f"<pre>Export failed: {exc}</pre>"
         )
 
-#    finally:
-#        canvas.sync_image_data = False
+    finally:
+        canvas.sync_image_data = False
 
 export_btn.on_click(export_png)
 
@@ -2771,7 +2779,7 @@ def get_fid_start_time():
 canvas = Canvas(
     width=canvas_width,
     height=canvas_height,
-    sync_image_data=True
+    sync_image_data=False
 )
 
 # Overlay canvas
