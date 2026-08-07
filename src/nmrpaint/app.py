@@ -1704,7 +1704,10 @@ phase_cycle_output = Textarea(
     layout=Layout(width="396px", height="160px")
 )
 
-def add_phase_row(pulse, phase):
+def add_phase_row(el):
+
+    pulse = el.name
+    phase = el.phase
 
     include = Checkbox(
         value=True,
@@ -1750,6 +1753,7 @@ def add_phase_row(pulse, phase):
     ])
 
     row_data = {
+        "element": el,       # <-- identity of this particular pulse
         "include": include,
         "pulse": pulse,
         "phase": phase,
@@ -1765,7 +1769,6 @@ def add_phase_row(pulse, phase):
     phase_cycle_container.children = (
         list(phase_cycle_container.children) + [row_widget]
     )
-
 
 phase_cycle_title = HTML("""
 <div style="
@@ -1791,55 +1794,53 @@ phase_cycle_box.layout = Layout(
 
 def populate_phase_rows():
 
-    # Unique pulse:phase combinations currently in the sequence
-    sequence_combinations = []
+    # All phase-cycling elements, in their order of appearance
+    sequence_elements = [
+        el for el in sequence.elements
+        if el.phase and el.phase.startswith("ph")
+    ]
 
-    for el in sequence.elements:
-
-        if el.phase and el.phase.startswith("ph"):
-
-            combination = (el.name, el.phase)
-
-            if combination not in sequence_combinations:
-                sequence_combinations.append(combination)
-
-    # Existing rows indexed by their pulse:phase combination
+    # Existing rows indexed by the actual SequenceElement
     existing_rows = {
-        (row["pulse"], row["phase"]): row
+        id(row["element"]): row
         for row in phase_rows
     }
 
-    # Update existing rows / create new ones
-    for pulse, phase in sequence_combinations:
+    new_phase_rows = []
 
-        key = (pulse, phase)
+    for el in sequence_elements:
+
+        key = id(el)
 
         if key in existing_rows:
+
+            # Existing row: update its information
             row = existing_rows[key]
 
-            # Update displayed information
-            row["pulse"] = pulse
-            row["phase"] = phase
-            row["label"].value = f"{pulse}:{phase}"
+            row["element"] = el
+            row["pulse"] = el.name
+            row["phase"] = el.phase
+
+            row["label"].value = f"{el.name}:{el.phase}"
+
+            new_phase_rows.append(row)
 
         else:
-            add_phase_row(pulse, phase)
 
-    # Remove rows that no longer exist in the sequence
-    sequence_keys = set(sequence_combinations)
+            # New element: create a new row
+            add_phase_row(el)
 
-    phase_rows[:] = [
-        row for row in phase_rows
-        if (row["pulse"], row["phase"]) in sequence_keys
-    ]
+            new_phase_rows.append(phase_rows[-1])
 
-    # Rebuild the displayed rows in sequence order
+    # Replace phase_rows with the rows that still exist
+    phase_rows[:] = new_phase_rows
+
+    # Display them in exactly the same order as sequence.elements
     phase_cycle_container.children = tuple(
         row["widget"]
         for row in phase_rows
-        if (row["pulse"], row["phase"]) in sequence_keys
     )
-
+    
 def determine_steps(delta, disallowed):
 
     delta = int(delta)
