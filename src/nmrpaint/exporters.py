@@ -216,7 +216,7 @@ def build_png_download_link_html(
         f'download="{escaped_filename}" '
         'style="'
         'display:inline-block;'
-        'padding:6px 12px;'
+        'padding:0px 12px;'
         'border:1px solid #777;'
         'border-radius:4px;'
         'text-decoration:none;'
