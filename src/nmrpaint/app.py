@@ -41,7 +41,7 @@ from ipywidgets import (
 )
 
 from ipycanvas import Canvas
-from IPython.display import FileLink, 
+from IPython.display import FileLink
 from IPython.display import display, HTML as DisplayHTML
 
 VERSION = "0.1.0"
