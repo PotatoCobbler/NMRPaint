@@ -1,4 +1,5 @@
 from .exporters import (
+    build_png_download_link_html,
     build_text_download_href,
     normalize_output_filename,
     save_text_local,
@@ -655,6 +656,8 @@ export_btn = Button(
     tooltip="Download pulse sequence image"
 )
 
+canvas_download_link = HTML()
+
 # Visible status area for generation success and errors.
 generation_output = Output(
     layout=Layout(
@@ -676,25 +679,54 @@ browser_download_link = HTML()
 #-----------------------------------
 # Export png function (not working)
 #-----------------------------------
+import tempfile
+
+
 def export_png(b):
 
-    # redraw everything
-    draw_sequence()
+    try:
+        # redraw everything
+        draw_sequence()
 
-    # force pixel sync from browser
-    canvas.sync_image_data = True
-    canvas.flush()
+        # force pixel sync from browser
+        canvas.sync_image_data = True
+        canvas.flush()
 
-    # allow browser time to finish rendering
-    time.sleep(0.15)
+        time.sleep(0.15)
 
-    filename = f"{exp_title.value or 'sequence'}.png"
+        filename = normalize_output_filename(
+            exp_title.value,
+            default="sequence",
+        )
 
-    canvas.to_file(filename)
+        if not filename.lower().endswith(".png"):
+            filename += ".png"
 
-    canvas.sync_image_data = False
+        with tempfile.NamedTemporaryFile(
+            suffix=".png",
+            delete=False,
+        ) as tmp:
+            tmp_path = tmp.name
 
-    print("Saved:", filename)
+        canvas.to_file(tmp_path)
+
+        with open(tmp_path, "rb") as file:
+            png_bytes = file.read()
+
+        canvas_download_link.value = build_png_download_link_html(
+            png_bytes=png_bytes,
+            filename=filename,
+            label="Download Canvas PNG",
+        )
+
+    except Exception as exc:
+        canvas_download_link.value = (
+            f"<pre>Export failed: {exc}</pre>"
+        )
+
+    finally:
+        canvas.sync_image_data = False
+
     
 export_btn.on_click(export_png)
 
@@ -3432,6 +3464,7 @@ canvas_row = HBox(
         canvas_width_input,
         apply_canvas_size_btn,
         export_btn,
+        canvas_download_link,
         coherence_label
     ],
     layout=Layout(
