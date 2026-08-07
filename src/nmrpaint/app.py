@@ -1670,10 +1670,10 @@ PHASE_MAP = {
 }
 
 phase_cycle_header = HBox([
-    Label("pulse:phase", layout=Layout(width="120px")),
-    Label("nominal phase", layout=Layout(width="120px")),
-    HTML("Δ<i>p</i>", layout=Layout(width="100px")),
-    HTML("disallowed Δ<i>p</i>", layout=Layout(width="150px")),
+    Label("", layout=Layout(width="100px")),
+    Label("nom. phase", layout=Layout(width="100px")),
+    HTML("= Δ<i>p</i>", layout=Layout(width="100px")),
+    HTML("≠ Δ<i>p</i>", layout=Layout(width="100px")),
     Label("Use", layout=Layout(width="60px"))
 ])
 
