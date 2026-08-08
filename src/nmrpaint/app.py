@@ -2517,18 +2517,23 @@ def update_2d_dropdowns(change=None):
 
         pulse_section.layout.display = "flex"
 
-        pulse_names = sorted({
+        phase_names = sorted({
             el.phase for el in sequence.elements
             if el.kind.lower() in ["pulse", "shaped"] and el.phase
         })
-
+        
+        phase_names = [
+            p for p in phase_names
+            if p != "ph31"
+        ] + ["ph31"]
+        
         def add_pulse_dropdown(change=None):
 
             if change is not None and not change["new"]:
                 return
 
             phase_dd = Dropdown(
-                options=[""] + pulse_names,
+                options=[""] + phase_names,
                 layout=Layout(width="90px")
             )
 
