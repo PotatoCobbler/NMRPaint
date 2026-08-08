@@ -4189,12 +4189,12 @@ app_title = HTML(f"""
 <span style="
     display:inline-block;
     border-bottom:5px solid #BC4B00;
-    padding-bottom:8px;">
+    padding-bottom:5px;">
     NMR
 </span>p<span style="
     display:inline-block;
     border-bottom:5px solid #BC4B00;
-    padding-bottom:8px;
+    padding-bottom:5px;
     padding-right:0.5em;">
     aint
 </span><span style="
