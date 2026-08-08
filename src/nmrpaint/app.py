@@ -877,7 +877,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     if not sequence.elements:
     
-        f.write("acqt0=0\n\n")
+        f.write(""acqt0=0"\n\n")
     
     else:
     
@@ -896,7 +896,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             # Final pulse is p1 or p3
             if pulse in ("p1", "p3"):
     
-                f.write(f"acqt0=-{pulse}*2/PI\n\n")
+                f.write(f""acqt0=-{pulse}*2/PI"\n\n")
     
             else:
     
