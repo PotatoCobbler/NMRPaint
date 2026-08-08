@@ -870,6 +870,16 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # ACQT0 correction based on last sequence element
     # -----------------------
+    print("Sequence elements:")
+
+    for i, el in enumerate(sequence.elements):
+        print(
+            i,
+            "kind =", repr(el.kind),
+            "name =", repr(el.name),
+            "channel =", repr(el.channel)
+        )
+        
     if sequence.elements:
     
         last_el = sequence.elements[-1]
