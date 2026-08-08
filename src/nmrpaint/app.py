@@ -999,20 +999,20 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         channel = el.channel.strip().lower()
     
         cpd_filename = f"{title}_{channel}.txt"
-
+    
+        # ---------------------------------------
+        # Get block text
+        # ---------------------------------------
+    
         if resource_exists("cpdlib", cpd_filename):
-            text = read_resource_text("cpdlib", cpd_filename)
-
     
-            # extract parameters
-            cpd_pulses.update(re.findall(r"\bp\d+\b", text))
-            cpd_delays.update(re.findall(r"\bd\d+\b", text))
-            cpd_powers.update(re.findall(r"\bpl\d+\b", text))
-            cpd_phases.update(re.findall(r"\bph\d+\b", text))
-            cpd_shapes.update(re.findall(r":([A-Za-z0-9_]+)", text))        
-            return text.strip()
+            text = read_resource_text(
+                "cpdlib",
+                cpd_filename
+            )
     
-        if channel == "f2":
+        elif channel == "f2":
+    
             text = "\n".join([
                 " 4u pl13",
                 " d19 cpd2:f2",
@@ -1021,6 +1021,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             ])
     
         elif channel == "f1":
+    
             text = "\n".join([
                 " 4u pl9",
                 " d19 cpd1:f1",
@@ -1029,14 +1030,48 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             ])
     
         else:
+    
             return f"; unknown block channel {channel}"
     
-        # also parse fallback
-        cpd_delays.update(re.findall(r"\bd\d+\b", text))
-        cpd_powers.update(re.findall(r"\bpl\d+\b", text))
+        # ---------------------------------------
+        # Extract CPD parameters
+        # ---------------------------------------
     
-        return text
+        cpd_pulses.update(
+            re.findall(r"\bp\d+\b", text)
+        )
     
+        cpd_delays.update(
+            re.findall(r"\bd\d+\b", text)
+        )
+    
+        cpd_powers.update(
+            re.findall(r"\bpl\d+\b", text)
+        )
+    
+        cpd_phases.update(
+            re.findall(r"\bph\d+\b", text)
+        )
+    
+        shape_matches = re.findall(
+            r"\bp\d+:([A-Za-z0-9_]+)",
+            text
+        )
+    
+        for shape in shape_matches:
+    
+            # Exclude gradient/channel identifiers
+            if shape.lower() in {
+                "f1", "f2", "f3", "f4",
+                "gp1", "gp2", "gp3", "gp4", "gp5", "gp6", "gp7", "gp8",
+                "gpx", "gpy", "gpz",
+            }:
+                continue
+    
+            cpd_shapes.add(shape)
+    
+        return text.strip()
+        
     def write_shaped(el):
         return f" ({el.name}:{el.shape} {el.phase}):{el.channel}"
         
