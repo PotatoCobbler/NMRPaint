@@ -865,19 +865,19 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         and re.fullmatch(r"lo\s+to\s+\d+\s+times\s+c", getattr(el, "definition", "").lower().strip())
         for el in sequence.elements
     )
+    
     # -----------------------
     # User definitions
     # -----------------------
     if definitions_text.value.strip():
         f.write(definitions_text.value.rstrip() + "\n\n")
-        
-    # -----------------------
+            
+    # ----------------------------------------
     # ACQT0 correction based on final element
-    # -----------------------
-    
+    # ----------------------------------------
     if not sequence.elements:
     
-        f.write(""acqt0=0"\n\n")
+        f.write('"acqt0=0"\n\n')
     
     else:
     
@@ -896,7 +896,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             # Final pulse is p1 or p3
             if pulse in ("p1", "p3"):
     
-                f.write(f""acqt0=-{pulse}*2/PI"\n\n")
+                f.write(f'"acqt0=-{pulse}*2/PI"\n\n')
     
             else:
     
@@ -911,17 +911,20 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                     basepulse = None
     
                 if basepulse is not None:
+    
                     f.write(
-                        f"acqt0=-tan(({pulse}/{basepulse})*(PI/4))*"
-                        f"{basepulse}*2/PI\n\n"
+                        f'"acqt0=-tan(({pulse}/{basepulse})*(PI/4))*'
+                        f'{basepulse}*2/PI"\n\n'
                     )
+    
                 else:
-                    f.write("acqt0=0\n\n")
+    
+                    f.write('"acqt0=0"\n\n')
     
         else:
     
             # Final element is a delay, gradient, etc.
-            f.write("acqt0=0\n\n")
+            f.write('"acqt0=0"\n\n')    
             
     # -----------------------
     # Pulse program body
@@ -1000,10 +1003,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
         cpd_filename = f"{title}_{channel}.txt"
     
-        # ---------------------------------------
         # Get block text
-        # ---------------------------------------
-    
         if resource_exists("cpdlib", cpd_filename):
     
             text = read_resource_text(
@@ -1033,10 +1033,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
             return f"; unknown block channel {channel}"
     
-        # ---------------------------------------
         # Extract CPD parameters
-        # ---------------------------------------
-    
         cpd_pulses.update(
             re.findall(r"\bp\d+\b", text)
         )
