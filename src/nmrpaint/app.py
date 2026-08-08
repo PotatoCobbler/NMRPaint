@@ -4223,7 +4223,7 @@ app_wrapper = HTML("""
     position: fixed;
     inset: 0;
     min-height: 100dvh;
-    background: #F5F5F5;
+    background: #EDF1F9;
     z-index: -1;
 }
 </style>
@@ -4239,11 +4239,11 @@ app_wrapper.layout = Layout(
 background = HTML("""
 <style>
 body {
-    background: #F5F5F5 !important;
+    background: #EDF1F9 !important;
 }
 
 div.jp-OutputArea-output {
-    background: #F5F5F5 !important;
+    background: #EDF1F9 !important;
 }
 </style>
 """)
@@ -4303,7 +4303,7 @@ def create_app():
     body,
     #jp-main-content-panel,
     #rendered_cells {
-        background: #F5F5F5 !important;
+        background: #EDF1F9 !important;
     }
     </style>
     """))
