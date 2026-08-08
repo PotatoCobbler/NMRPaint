@@ -754,6 +754,7 @@ cpd_delays = set()
 cpd_powers = set()
 cpd_phases = set()
 cpd_shapes = set()
+cpd_gradients = set()
 
 def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     """Build and return the Bruker pulse-program text."""
@@ -763,9 +764,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     cpd_powers.clear()
     cpd_phases.clear()
     cpd_shapes.clear()
-
+    cpd_gradients.clear()
+    
     f = StringIO()
-
 
     # -----------------------
     # Header section
@@ -783,8 +784,11 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # Include files
     # -----------------------
     f.write("#include <Avance.incl>\n")
-
-    if any(el.kind.lower() == "grad" for el in sequence.elements):
+    
+    if (
+        any(el.kind.lower() == "grad" for el in sequence.elements)
+        or cpd_gradients
+    ):
         f.write("#include <Grad.incl>\n")
 
     delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon"]
@@ -1053,6 +1057,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         shape_matches = re.findall(
             r"\bp\d+:([A-Za-z0-9_]+)",
             text
+        )
+
+        cpd_gradients.update(
+            re.findall(r"\bgp\d+\b", text)
         )
     
         for shape in shape_matches:
