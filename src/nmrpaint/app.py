@@ -866,53 +866,55 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     if definitions_text.value.strip():
         f.write(definitions_text.value.rstrip() + "\n\n")
-    
-    # -----------------------
-    # ACQT0 correction based on last sequence element
-    # -----------------------
-    print("Sequence elements:")
-
-    for i, el in enumerate(sequence.elements):
-        print(
-            i,
-            "kind =", repr(el.kind),
-            "name =", repr(el.name),
-            "channel =", repr(el.channel)
-        )
         
-    if sequence.elements:
+    # -----------------------
+    # ACQT0 correction based on final element
+    # -----------------------
+    
+    if not sequence.elements:
+    
+        f.write("acqt0=0\n\n")
+    
+    else:
     
         last_el = sequence.elements[-1]
     
-        kind = last_el.kind.strip().lower()
+        kind = str(last_el.kind).strip().lower()
     
-        if kind in ["pulse", "shaped"]:
+        if kind in ("pulse", "shaped"):
     
             pulse = last_el.name
     
-            # Last pulse is p1 or p3
-            if pulse in ["p1", "p3"]:
+            # If final pulse is p1 or p3
+            if pulse in ("p1", "p3"):
     
-                f.write(f"acqt0=-{pulse}*2/PI\n\n")
+                f.write(
+                    f"acqt0=-{pulse}*2/PI\n\n"
+                )
     
             else:
     
-                # Determine the reference/base pulse from the channel
+                # Reference pulse depends on channel
                 if last_el.channel == "f1":
                     basepulse = "p1"
+    
                 elif last_el.channel == "f2":
                     basepulse = "p3"
-                else:
-                    basepulse = "p1"  # fallback, if needed
     
-                f.write(
-                    f"acqt0=-tan(({pulse}/{basepulse})*(PI/4))*"
-                    f"{basepulse}*2/PI\n\n"
-                )
+                else:
+                    # Unknown channel
+                    f.write("acqt0=0\n\n")
+                    basepulse = None
+    
+                if basepulse is not None:
+                    f.write(
+                        f"acqt0=-tan(({pulse}/{basepulse})*(PI/4))*"
+                        f"{basepulse}*2/PI\n\n"
+                    )
     
         else:
     
-            # Last element is a delay, gradient, etc.
+            # Final element is a delay, gradient, etc.
             f.write("acqt0=0\n\n")
             
     # -----------------------
