@@ -785,24 +785,49 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     f.write("#include <Avance.incl>\n")
     
-    if (
-        any(el.kind.lower() == "grad" for el in sequence.elements)
-        or cpd_gradients
-    ):
+    has_gradients = any(
+        el.kind.lower() == "grad"
+        for el in sequence.elements
+    )
+    
+    # Check blocks for gradient references
+    for el in sequence.elements:
+    
+        if el.kind.lower() != "block":
+            continue
+    
+        title = el.title.strip().lower()
+        channel = el.channel.strip().lower()
+    
+        cpd_filename = f"{title}_{channel}.txt"
+    
+        if resource_exists("cpdlib", cpd_filename):
+    
+            block_text = read_resource_text(
+                "cpdlib",
+                cpd_filename
+            )
+    
+            if re.search(r"\bgp\d+\b", block_text):
+                has_gradients = True
+                break
+    
+    if has_gradients:
         f.write("#include <Grad.incl>\n")
-
+    
     delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon"]
+    
     if any(
         el.kind.lower() == "delay" and el.name
         for el in sequence.elements
         if any(k in el.name for k in delay_keywords)
     ):
         f.write("#include <Delay.incl>\n")
-
+    
     if exp_incl.value.strip():
         f.write(f"#include <{exp_incl.value.strip()}>\n")
-
-    f.write("\n")
+    
+    f.write("\n")    
     
     # -----------------------
     # 2D acquisition parameters
