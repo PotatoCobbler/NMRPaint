@@ -783,9 +783,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # Include files
     # -----------------------
-    # -----------------------
-    # Include files
-    # -----------------------
     f.write("#include <Avance.incl>\n")
     
     has_gradients = any(
@@ -1072,7 +1069,29 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         else:
     
             return f"; unknown block channel {channel}"
+
+        # ---------------------------------------
+        # Normalize whitespace
+        # ---------------------------------------
     
+        # Convert non-breaking spaces to ordinary spaces
+        text = text.replace("\u00a0", " ")
+    
+        # Remove trailing whitespace from every line
+        lines = [
+            line.rstrip()
+            for line in text.splitlines()
+        ]
+    
+        # Remove completely empty lines at beginning/end
+        while lines and not lines[0].strip():
+            lines.pop(0)
+    
+        while lines and not lines[-1].strip():
+            lines.pop()
+    
+        text = "\n".join(lines)
+        
         # Extract CPD parameters
         cpd_pulses.update(
             re.findall(r"\bp\d+\b", text)
