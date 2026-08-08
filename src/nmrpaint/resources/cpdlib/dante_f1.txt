@@ -1,5 +1,6 @@
 4u pl20:f1
 ;  DAZ22622(ph27,ph28)
+;"P_TOTAL=DZ_180c"
 
 1001 (DZ_TAU3) (DZ_THE3 ph27):f1
      (DZ_TAU3) (DZ_THE3 ph28):f1
