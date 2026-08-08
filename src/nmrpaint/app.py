@@ -868,20 +868,43 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         f.write(definitions_text.value.rstrip() + "\n\n")
     
     # -----------------------
-    # ACQT0 correction if last element is a pulse
+    # ACQT0 correction based on last sequence element
     # -----------------------
     if sequence.elements:
+    
         last_el = sequence.elements[-1]
     
-        if last_el.kind.strip().lower() in ["pulse", "shaped"]:
-            p_var = last_el.name
+        kind = last_el.kind.strip().lower()
     
-            if p_var == "p1":
-                f.write("acqt0=-p1*2/PI\n\n")
+        if kind in ["pulse", "shaped"]:
+    
+            pulse = last_el.name
+    
+            # Last pulse is p1 or p3
+            if pulse in ["p1", "p3"]:
+    
+                f.write(f"acqt0=-{pulse}*2/PI\n\n")
+    
             else:
-                f.write(f"acqt0=-tan(({p_var}/p1)*(PI/4))*p1*2/PI\n\n")
-                f.write("\n")
     
+                # Determine the reference/base pulse from the channel
+                if last_el.channel == "f1":
+                    basepulse = "p1"
+                elif last_el.channel == "f2":
+                    basepulse = "p3"
+                else:
+                    basepulse = "p1"  # fallback, if needed
+    
+                f.write(
+                    f"acqt0=-tan(({pulse}/{basepulse})*(PI/4))*"
+                    f"{basepulse}*2/PI\n\n"
+                )
+    
+        else:
+    
+            # Last element is a delay, gradient, etc.
+            f.write("acqt0=0\n\n")
+            
     # -----------------------
     # Pulse program body
     # -----------------------
@@ -2425,11 +2448,15 @@ def update_2d_dropdowns(change=None):
         shape_section.layout.display = "flex"
 
         # ----------------- Pulses -----------------
-
-        pulse_names = sorted({
+        phase_names = sorted({
             el.phase for el in sequence.elements
             if el.kind.lower() in ["pulse", "shaped"] and el.phase
         })
+        
+        phase_names = [
+            p for p in phase_names
+            if p != "ph31"
+        ] + ["ph31"]
 
         def add_pulse_dropdown(change=None):
 
@@ -2437,7 +2464,7 @@ def update_2d_dropdowns(change=None):
                 return
 
             phase_dd = Dropdown(
-                options=[""] + pulse_names,
+                options=[""] + phase_names,
                 layout=Layout(width="90px")
             )
             
