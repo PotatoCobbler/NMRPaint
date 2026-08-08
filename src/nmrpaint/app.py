@@ -469,22 +469,26 @@ def rebuild_global_delays():
     delay_file = DELAY_RESOURCE_ID
 
     def create_delay(start, duration):
-
+    
+        # Do not create delays shorter than 5
+        if duration < 5:
+            return
+    
         for old in old_delays:
-        
+    
             old_end = old.start + old.duration
             new_end = start + duration
-        
+    
             # If delay overlaps the new region, reuse it
             if not (new_end <= old.start or start >= old_end):
-        
+    
                 old.start = start
                 old.duration = duration
                 old.visual_width = duration * timeline_scale
-        
+    
                 sequence.add(old)
                 return
-
+    
         # Otherwise create a new automatic delay
         new_delay = SequenceElement(
             kind="delay",
@@ -494,7 +498,7 @@ def rebuild_global_delays():
             channel="f1",
             name=""
         )
-
+    
         new_delay.manual = False
         sequence.add(new_delay)
 
