@@ -877,7 +877,11 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     else:
     
-        last_el = sequence.elements[-1]
+        # Find the element furthest to the right on the canvas
+        last_el = max(
+            sequence.elements,
+            key=lambda el: el.start + el.duration
+        )
     
         kind = str(last_el.kind).strip().lower()
     
@@ -885,12 +889,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
             pulse = last_el.name
     
-            # If final pulse is p1 or p3
+            # Final pulse is p1 or p3
             if pulse in ("p1", "p3"):
     
-                f.write(
-                    f"acqt0=-{pulse}*2/PI\n\n"
-                )
+                f.write(f"acqt0=-{pulse}*2/PI\n\n")
     
             else:
     
@@ -902,8 +904,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                     basepulse = "p3"
     
                 else:
-                    # Unknown channel
-                    f.write("acqt0=0\n\n")
                     basepulse = None
     
                 if basepulse is not None:
@@ -911,6 +911,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                         f"acqt0=-tan(({pulse}/{basepulse})*(PI/4))*"
                         f"{basepulse}*2/PI\n\n"
                     )
+                else:
+                    f.write("acqt0=0\n\n")
     
         else:
     
