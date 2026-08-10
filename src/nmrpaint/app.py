@@ -1269,6 +1269,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
         if not els:
             continue
+            
         # -----------------------
         # single element
         # -----------------------   
@@ -1283,6 +1284,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                 f.write(writer(el) + "\n")
             else:
                 f.write(f"; unknown element type: {kind}\n")
+                
         # -----------------------
         # multiple elements
         # -----------------------        
@@ -1512,7 +1514,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     
     # Load definition dictionaries
-    power_defs = load_definitions("power_def.txt")
     pulse_defs = load_definitions("pulse_def.txt")
     delay_defs = load_definitions("delay_def.txt")
     shape_defs = load_definitions("shaped_def.txt")
@@ -1586,15 +1587,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                 el.shape.strip(),
                 description,
             )
-    
-        if el.power:
-            power = el.power.strip()
-            if re.match(r"^pl\d+$", power, re.IGNORECASE):
-                power_descriptions.setdefault(
-                    power,
-                    description,
-                )
-    
     
     # -----------------------
     # Power definitions
