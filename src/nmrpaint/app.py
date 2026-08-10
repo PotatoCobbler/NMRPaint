@@ -2914,7 +2914,7 @@ el_definition = Text(
     style=label_style
 )
 
-el_desciption = Text(
+el_description = Text(
     description="Description",
     layout=field_layout,
     style=label_style
@@ -2987,7 +2987,7 @@ def show_property_editor(el: SequenceElement):
     el_title.value = getattr(el, "title", "") or ""
     el_name.value = getattr(el, "name", "") or ""
     el_definition.value = getattr(el, "definition", "") or ""
-    el_desciption.value = getattr(el, "description", "") or ""
+    el_description.value = getattr(el, "description", "") or ""
     el_shape.value = getattr(el, "shape", "") or ""
 
     el_channel.value = getattr(el, "channel", "f1") or "f1"
