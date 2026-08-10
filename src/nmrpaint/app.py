@@ -97,6 +97,7 @@ class SequenceElement:
         self.title = title or ""
         self.name = name or ""
         self.definition = definition
+        self.description = ""                     
         self.power = power
         self.phase = phase
         self.shape = shape
@@ -1489,7 +1490,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
         f.write("ph31=0\n\n")
         f.write("\n")
-    
+        
     # -----------------------
     # Power / Pulse / Delay / Shape Definitions
     # -----------------------
@@ -1499,83 +1500,160 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             definition_text = read_resource_text("defs", filename)
         except FileNotFoundError:
             return {}
-
+    
         definitions: dict[str, str] = {}
         for line in definition_text.splitlines():
             line = line.strip()
             if ":" in line:
                 key, value = line.split(":", 1)
                 definitions[key.strip()] = value.strip()
-
+    
         return definitions
-
+    
+    
     # Load definition dictionaries
     power_defs = load_definitions("power_def.txt")
     pulse_defs = load_definitions("pulse_def.txt")
     delay_defs = load_definitions("delay_def.txt")
     shape_defs = load_definitions("shaped_def.txt")
     
+    
     # Collect unique identifiers from the sequence
     unique_power = sorted(
         {
             el.power.strip()
             for el in sequence.elements
-            if el.power and re.match(r"^pl\d+$", el.power.strip(), re.IGNORECASE)
-        } | {
-            p for p in cpd_powers if re.match(r"^pl\d+$", p, re.IGNORECASE)
+            if el.power
+            and re.match(r"^pl\d+$", el.power.strip(), re.IGNORECASE)
+        }
+        | {
+            p for p in cpd_powers
+            if re.match(r"^pl\d+$", p, re.IGNORECASE)
         }
     )
     
     unique_pulses = sorted({
         el.name.strip()
         for el in sequence.elements
-        if el.kind.lower() in ["pulse", "shaped", "block"] and el.name.strip()
+        if el.kind.lower() in ["pulse", "shaped", "block"]
+        and el.name.strip()
     } | {p for p in cpd_pulses if p})
     
     unique_delays = sorted(
         {el.name for el in sequence.elements if el.kind.lower() == "delay"}
         | cpd_delays
     )
-
+    
     unique_shapes = sorted({
         el.shape.strip()
         for el in sequence.elements
         if getattr(el, "shape", None)
     } | cpd_shapes)
     
+    
+    # ------------------------------------------------
+    # Custom descriptions supplied by sequence elements
+    # ------------------------------------------------
+    
+    power_descriptions = {}
+    pulse_descriptions = {}
+    delay_descriptions = {}
+    shape_descriptions = {}
+    
+    for el in sequence.elements:
+    
+        description = getattr(el, "description", "").strip()
+    
+        if not description:
+            continue
+    
+        kind = el.kind.lower()
+    
+        if kind in ["pulse", "shaped", "block"] and el.name.strip():
+            pulse_descriptions.setdefault(
+                el.name.strip(),
+                description,
+            )
+    
+        elif kind == "delay" and el.name.strip():
+            delay_descriptions.setdefault(
+                el.name.strip(),
+                description,
+            )
+    
+        elif getattr(el, "shape", None):
+            shape_descriptions.setdefault(
+                el.shape.strip(),
+                description,
+            )
+    
+        if el.power:
+            power = el.power.strip()
+            if re.match(r"^pl\d+$", power, re.IGNORECASE):
+                power_descriptions.setdefault(
+                    power,
+                    description,
+                )
+    
+    
+    # -----------------------
+    # Power definitions
+    # -----------------------
+    
     for pl in unique_power:
-        explanation = power_defs.get(pl, "undefined")
+        explanation = power_descriptions.get(
+            pl,
+            power_defs.get(pl, "undefined"),
+        )
         f.write(f";{pl}: {explanation}\n")
+    
     f.write("\n")
     
-    shape_definitions = {}
-
-    for el in sequence.elements:
-        if getattr(el, "shape", None):
-            s = el.shape.strip()
-            if s not in shape_definitions and el.definition.strip():
-                shape_definitions[s] = el.definition.strip()
-                
+    
+    # -----------------------
+    # Shape definitions
+    # -----------------------
+    
     for s in unique_shapes:
-        explanation = shape_defs.get(s, "undefined")
+        explanation = shape_descriptions.get(
+            s,
+            shape_defs.get(s, "undefined"),
+        )
+    
         f.write(f";{s}: {explanation}\n")
     
-        definition = shape_definitions.get(s, "")
-        if definition:
-            num = re.search(r"\d+", s)
-            if num:
-                f.write(f";spnam{num.group()}: {definition}\n")
+    f.write("\n")
+    
+    
+    # -----------------------
+    # Pulse definitions
+    # -----------------------
     
     for p in unique_pulses:
-        explanation = pulse_defs.get(p, "undefined")
+        explanation = pulse_descriptions.get(
+            p,
+            pulse_defs.get(p, "undefined"),
+        )
+    
         f.write(f";{p}: {explanation}\n")
+    
     f.write("\n")
     
+    
+    # -----------------------
+    # Delay definitions
+    # -----------------------
+    
     for d in unique_delays:
-        explanation = delay_defs.get(d, "undefined")
+        explanation = delay_descriptions.get(
+            d,
+            delay_defs.get(d, "undefined"),
+        )
+    
         f.write(f";{d}: {explanation}\n")
+    
     f.write("\n")
-
+    
     # -----------------------
     # User scan parameters
     # -----------------------
@@ -2836,6 +2914,12 @@ el_definition = Text(
     style=label_style
 )
 
+el_desciption = Text(
+    description="Description",
+    layout=field_layout,
+    style=label_style
+)
+
 el_shape = Text(
     description="Shape",
     layout=field_layout,
@@ -2880,6 +2964,7 @@ property_editor_content.children = (
     el_title,
     el_name,
     el_definition,
+    el_description,
     el_shape,
     el_channel,
     el_power,
@@ -2902,6 +2987,7 @@ def show_property_editor(el: SequenceElement):
     el_title.value = getattr(el, "title", "") or ""
     el_name.value = getattr(el, "name", "") or ""
     el_definition.value = getattr(el, "definition", "") or ""
+    el_desciption.value = getattr(el, "description", "") or ""
     el_shape.value = getattr(el, "shape", "") or ""
 
     el_channel.value = getattr(el, "channel", "f1") or "f1"
@@ -2936,6 +3022,7 @@ def show_property_editor(el: SequenceElement):
             el_title,
             el_name,
             el_definition,
+            el_description,
             el_channel,
             el_power,
             el_phase,
@@ -2949,6 +3036,7 @@ def show_property_editor(el: SequenceElement):
             el_title,
             el_name,
             el_definition,
+            el_description,
             el_shape,
             el_channel,
             el_power,
@@ -2964,6 +3052,7 @@ def show_property_editor(el: SequenceElement):
         visible_widgets = [
             el_title,
             el_name,
+            el_description,
             el_channel,
             el_power,
             el_duration,
@@ -3013,6 +3102,7 @@ def show_property_editor(el: SequenceElement):
             el_title,
             el_name,
             el_definition,
+            el_description,
             el_channel,
             el_duration
         ]
@@ -3030,6 +3120,7 @@ def show_property_editor(el: SequenceElement):
         el.title = el_title.value
         el.name = el_name.value
         el.definition = el_definition.value
+        el.description = el_description.value
     
         el.duration = el_duration.value
         el.visual_width = el.duration * timeline_scale
