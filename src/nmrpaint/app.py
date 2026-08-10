@@ -1551,12 +1551,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         if getattr(el, "shape", None)
     } | cpd_shapes)
     
+        # -----------------------
+    # Custom descriptions
+    # -----------------------
     
-    # ------------------------------------------------
-    # Custom descriptions supplied by sequence elements
-    # ------------------------------------------------
-    
-    power_descriptions = {}
     pulse_descriptions = {}
     delay_descriptions = {}
     shape_descriptions = {}
@@ -1587,7 +1585,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                 el.shape.strip(),
                 description,
             )
-    
+            
     # -----------------------
     # Power definitions
     # -----------------------
