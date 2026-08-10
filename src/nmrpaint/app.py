@@ -1514,6 +1514,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     
     
     # Load definition dictionaries
+    power_defs = load_definitions("power_def.txt")
     pulse_defs = load_definitions("pulse_def.txt")
     delay_defs = load_definitions("delay_def.txt")
     shape_defs = load_definitions("shaped_def.txt")
@@ -1551,10 +1552,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         if getattr(el, "shape", None)
     } | cpd_shapes)
     
-        # -----------------------
+    # -----------------------
     # Custom descriptions
     # -----------------------
-    
     pulse_descriptions = {}
     delay_descriptions = {}
     shape_descriptions = {}
@@ -1589,16 +1589,11 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # Power definitions
     # -----------------------
-    
     for pl in unique_power:
-        explanation = power_descriptions.get(
-            pl,
-            power_defs.get(pl, "undefined"),
-        )
+        explanation = power_defs.get(pl, "undefined")
         f.write(f";{pl}: {explanation}\n")
     
     f.write("\n")
-    
     
     # -----------------------
     # Shape definitions
