@@ -3078,6 +3078,7 @@ def show_property_editor(el: SequenceElement):
         visible_widgets = [
             el_name,
             el_definition,
+            el_description,
             el_duration
         ]
 
