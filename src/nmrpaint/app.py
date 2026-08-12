@@ -2850,7 +2850,7 @@ definitions_header = HTML("""
     font-weight:bold;
     padding-top:10px;
 ">
-    Definitions
+    Global definitions
 </div>
 """)
 
