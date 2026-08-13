@@ -2500,20 +2500,20 @@ exp_title = Text(
     style={'description_width': '40px'}
 )
 
-exp_class = Dropdown(
-    description="Class:",
-    options=["HighRes", "HighRes HWT", "HighRes Incl"],
-    value="HighRes",
-    layout=Layout(width="160px"),  # total width
-    style={'description_width': '40px'}  # label width
-)
-
 exp_dim = Dropdown(
     description="Dim:",
     options=["1D", "2D"],
     value="1D",
     layout=Layout(width="110px"),
     style={'description_width': '30px'}  # label width
+)
+
+exp_class = Dropdown(
+    description="Class:",
+    options=["HighRes", "HighRes HWT", "HighRes Incl"],
+    value="HighRes",
+    layout=Layout(width="160px"),  # total width
+    style={'description_width': '40px'}  # label width
 )
 
 exp_2d_option = Dropdown(
@@ -4232,8 +4232,11 @@ main_top_row.layout.flex_wrap = "nowrap"
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_dim],
-    layout=Layout(spacing="1px"),
-    padding='20px 20px' 
+    layout=Layout(
+        spacing="1px",
+        align_items="center"
+    ),
+    padding='20px 20px'
 )
 
 exp_prop_row_2 = HBox(
