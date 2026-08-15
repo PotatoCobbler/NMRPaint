@@ -1906,7 +1906,7 @@ def add_phase_row(el):
     phase = el.phase
 
     include = Checkbox(
-        value=True,
+        value=False,
         indent=False,
         layout=Layout(width="20px")
     )
