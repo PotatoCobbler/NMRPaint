@@ -4122,7 +4122,7 @@ buttons_row = HBox(
         undo_button,
         delete_button,
         toggle_delays_btn,
-        browser_download_link
+        browser_download_link,
         phase_cycle_checkbox
     ],
     layout=Layout(
