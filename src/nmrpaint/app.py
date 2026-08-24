@@ -3154,6 +3154,7 @@ def show_property_editor(el: SequenceElement):
     
     update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
+    update_button.on_click(generate_program)
     
 # -----------------------
 # Main canvas Setup
