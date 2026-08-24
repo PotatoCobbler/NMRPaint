@@ -654,7 +654,7 @@ delete_button = Button(
 
 phase_cycle_checkbox = Checkbox(
     value=False,
-    description="phase table",
+    description="Include phase table",
     indent=False,
     layout=Layout(
         width="auto",
@@ -4122,9 +4122,8 @@ buttons_row = HBox(
         undo_button,
         delete_button,
         toggle_delays_btn,
-        print_names_button,
-        phase_cycle_checkbox,
         browser_download_link
+        phase_cycle_checkbox
     ],
     layout=Layout(
         spacing='10px',
