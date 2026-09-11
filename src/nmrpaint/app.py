@@ -3283,15 +3283,16 @@ def show_property_editor(el: SequenceElement):
     # ---------------------------
     # Update callback
     # ---------------------------
+    def apply_element_update(el, save_history=True):
     
-    def update_el(b):
-        save_state()
+        if el is None:
+            return
     
-        # Keep track of whether anything affecting timing changed
-        old_duration = el.duration
+        if save_history:
+            save_state()
     
         # ---------------------------
-        # Update selected element only
+        # Update selected element
         # ---------------------------
         el.title = el_title.value
         el.name = el_name.value
@@ -3299,17 +3300,18 @@ def show_property_editor(el: SequenceElement):
         el.description = el_description.value
     
         el.duration = el_duration.value
+        el.visual_width = el.duration * timeline_scale
     
-        if kind != "flag":
+        if el.kind != "flag":
             el.channel = el_channel.value
     
-        if kind in ["pulse", "shaped", "grad", "cpd"]:
+        if el.kind in ["pulse", "shaped", "grad", "cpd"]:
             el.power = el_power.value
     
-        if kind in ["pulse", "shaped"]:
+        if el.kind in ["pulse", "shaped"]:
             el.phase = el_phase.value
     
-        if kind == "shaped":
+        if el.kind == "shaped":
             el.shape = el_shape.value
     
             el.wvm = el_wvm.value
@@ -3321,16 +3323,16 @@ def show_property_editor(el: SequenceElement):
             el.Q = el_Q.value
             el.sweepdirection = el_sweepdirection.value
     
-        if kind in ["pulse", "shaped", "block", "grad"]:
+        if el.kind in ["pulse", "shaped", "block", "grad"]:
             el.visual_height = el_height.value
     
-        if kind == "delay":
+        if el.kind == "delay":
             el.manual = True
     
         # ---------------------------
-        # Only rebuild timing if needed
+        # Rebuild delays
         # ---------------------------
-        if el.kind != "delay" and el.duration != old_duration:
+        if el.kind != "delay":
             rebuild_global_delays()
     
         renumber_delays()
@@ -3346,9 +3348,8 @@ def show_property_editor(el: SequenceElement):
         populate_phase_rows()
         generate_phase_cycle()
     
-        # Generate program once, after everything is updated
-        generate_program(None)
-    
+    def update_el(b):
+        apply_element_update(selected_el, save_history=True)
     
     update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
@@ -4133,8 +4134,10 @@ drag_temp_width = 0
 drag_temp_height = 0
 
 def on_canvas_mouse_down(x, y):
-    global dragging_el, drag_mode, drag_start_x, drag_start_y
+    global dragging_el, drag_mode
+    global drag_start_x, drag_start_y
     global drag_temp_start, drag_temp_width, drag_temp_height
+    global selected_el
 
     drag_start_y = y
 
@@ -4232,23 +4235,21 @@ def on_canvas_mouse_down(x, y):
     # 3. Create ONLY the new element
     # ============================================================
     save_state()
-
+    
     new_el = SequenceElement(
         kind,
         file_path,
         new_start,
         duration
     )
-
-    new_el.channel = channel
     
+    new_el.channel = channel
+    apply_placement_defaults(new_el)    
     sequence.add(new_el)
-    update_delays_for_element(new_el)
-    renumber_delays()
-    draw_element(canvas, new_el)
-    canvas.flush()
-    draw_ctp()
-    coherence_label.value = sequence.coherence_summary()
+    selected_el = new_el
+    show_property_editor(new_el)
+
+    apply_element_update(new_el, save_history=False)
 
 def on_canvas_mouse_move(x, y):
     global drag_temp_start, drag_temp_width, drag_temp_height, drag_start_x, drag_start_y
