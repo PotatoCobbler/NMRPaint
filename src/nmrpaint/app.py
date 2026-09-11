@@ -3938,15 +3938,14 @@ def draw_dragging_element():
 
 def draw_sequence():
     draw_static_background()
-    
     for el in sorted(sequence.elements, key=lambda e: e.start):
         draw_element(canvas, el)
         
     draw_dragging_element()
     canvas.flush()
     dynamic_canvas.flush()
-    draw_ctp()
 
+    draw_ctp()
 
 # -----------------------
 # Elements Panel
