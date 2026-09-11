@@ -3981,9 +3981,7 @@ def on_canvas_mouse_down(x, y):
             drag_temp_start = el.start
             drag_temp_width = el.visual_width
             drag_temp_height = el.visual_height
-    
-            draw_sequence()
-            draw_ctp()
+
             show_property_editor(el)
             return
                 
