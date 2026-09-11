@@ -3871,51 +3871,65 @@ def draw_element(c, el, _ignored=None):
     
 def draw_static_background():
     canvas.clear()
+
     canvas.fill_style = "white"
     canvas.fill_rect(0, 0, canvas.width, canvas.height)
+
     canvas.font = "16px Arial"
 
     # Vertical reference line
     canvas.stroke_style = "black"
     canvas.line_width = 1
-    canvas.set_line_dash([6,6])
+    canvas.set_line_dash([6, 6])
     canvas.stroke_line(40, 0, 40, canvas_height)
     canvas.set_line_dash([])
 
     # Solid timelines
     canvas.stroke_style = "black"
     canvas.line_width = 2
+
     for ch, y in timeline_positions.items():
         canvas.stroke_line(0, y, canvas.width, y)
         canvas.fill_text(ch.upper(), 10, y - 10)
 
-    # FID example
+    # FID
     start_x = canvas.width - 70
     end_x = canvas.width
     amplitude = 55
     decay_constant = 0.05
     frequency = 0.35
+
     canvas.begin_path()
+
     timeline_y = timeline_positions["f1"]
+
     for x in range(start_x, end_x):
         t = x - start_x
-        y = timeline_y - amplitude * math.exp(-decay_constant*t)*math.cos(frequency*t)
+        y = (
+            timeline_y
+            - amplitude
+            * math.exp(-decay_constant * t)
+            * math.cos(frequency * t)
+        )
+
         if x == start_x:
             canvas.move_to(x, y)
         else:
             canvas.line_to(x, y)
+
     canvas.line_width = 2
     canvas.stroke()
 
     # Assign flag numbers
-    flags = [el for el in sequence.elements if el.kind == "flag"]
-    flags.sort(key=lambda e: e.start)
-    for i, flag in enumerate(flags):
-        flag.flag_number = i + 3 if i +3 < 63 else None
+    flags = [
+        el for el in sequence.elements
+        if el.kind == "flag"
+    ]
 
-    # Draw all elements
-    for el in sorted(sequence.elements, key=lambda e: e.start):
-        draw_element(canvas, el)
+    flags.sort(key=lambda e: e.start)
+
+    for i, flag in enumerate(flags):
+        flag.flag_number = i + 3 if i + 3 < 63 else None
 
 def draw_dragging_element():
     dynamic_canvas.clear()
@@ -3924,6 +3938,10 @@ def draw_dragging_element():
 
 def draw_sequence():
     draw_static_background()
+    
+    for el in sorted(sequence.elements, key=lambda e: e.start):
+        draw_element(canvas, el)
+        
     draw_dragging_element()
     canvas.flush()
     dynamic_canvas.flush()
@@ -4224,30 +4242,15 @@ def on_canvas_mouse_down(x, y):
     )
 
     new_el.channel = channel
-
-    apply_placement_defaults(new_el)
-
-    sequence.add(new_el)
-
-    # ============================================================
-    # 4. Update only delays affected by the new element
-    # ============================================================
-    update_delays_for_element(new_el)
-
-    renumber_delays()
-
-    # ============================================================
-    # 5. Create the visual for ONLY the new element
-    # ============================================================
-    draw_element(new_el)
-
-    # ============================================================
-    # 6. CTP stays as-is
-    # ============================================================
-    draw_ctp()
-
-    coherence_label.value = sequence.coherence_summary()
     
+    sequence.add(new_el)
+    update_delays_for_element(new_el)
+    renumber_delays()
+    draw_element(canvas, new_el)
+    canvas.flush()
+    draw_ctp()
+    coherence_label.value = sequence.coherence_summary()
+
 def on_canvas_mouse_move(x, y):
     global drag_temp_start, drag_temp_width, drag_temp_height, drag_start_x, drag_start_y
 
