@@ -452,192 +452,6 @@ def remove_overlapping_delays():
         
         if not overlap:
             cleaned.append(d)
-def update_delays_for_element(new_el):
-    """
-    Incrementally update automatic delays after adding new_el.
-
-    Existing delays outside the affected timeline region are left
-    completely untouched.
-    """
-
-    # Elements that occupy global timeline space
-    pulses = sorted(
-        [
-            el for el in sequence.elements
-            if el.kind in ["pulse", "block", "grad", "shaped", "flag"]
-            and el is not new_el
-        ],
-        key=lambda e: e.start
-    )
-
-    new_start = new_el.start
-    new_end = new_el.start + new_el.duration
-
-    # ------------------------------------------------------------
-    # Find the connected occupied region containing new_el
-    # ------------------------------------------------------------
-    affected_start = new_start
-    affected_end = new_end
-
-    changed = True
-
-    while changed:
-        changed = False
-
-        for el in pulses:
-            el_start = el.start
-            el_end = el.start + el.duration
-
-            # Does this element overlap/touch the current region?
-            if not (
-                el_end < affected_start or
-                el_start > affected_end
-            ):
-                new_start_region = min(affected_start, el_start)
-                new_end_region = max(affected_end, el_end)
-
-                if (
-                    new_start_region != affected_start or
-                    new_end_region != affected_end
-                ):
-                    affected_start = new_start_region
-                    affected_end = new_end_region
-                    changed = True
-
-    # ------------------------------------------------------------
-    # Find automatic delays affected by this region
-    # ------------------------------------------------------------
-    affected_delays = [
-        el for el in sequence.elements
-        if (
-            el.kind == "delay"
-            and not getattr(el, "manual", False)
-            and not (
-                el.start + el.duration <= affected_start
-                or el.start >= affected_end
-            )
-        )
-    ]
-
-    # Remove only affected automatic delays
-    for delay in affected_delays:
-        sequence.elements.remove(delay)
-
-    # ------------------------------------------------------------
-    # Determine the occupied elements around the affected region
-    # ------------------------------------------------------------
-    affected_pulses = [
-        el for el in sequence.elements
-        if (
-            el.kind in ["pulse", "block", "grad", "shaped", "flag"]
-            and not (
-                el.start + el.duration <= affected_start
-                or el.start >= affected_end
-            )
-        )
-    ]
-
-    affected_pulses.append(new_el)
-
-    affected_pulses.sort(key=lambda e: e.start)
-
-    # ------------------------------------------------------------
-    # Determine the actual boundaries of the affected region
-    # ------------------------------------------------------------
-    region_start = min(
-        el.start for el in affected_pulses
-    )
-
-    region_end = max(
-        el.start + el.duration for el in affected_pulses
-    )
-
-    # ------------------------------------------------------------
-    # Find the pulse immediately before the affected region
-    # ------------------------------------------------------------
-    previous_pulses = [
-        el for el in pulses
-        if el.start + el.duration <= region_start
-    ]
-
-    if previous_pulses:
-        previous_end = max(
-            el.start + el.duration
-            for el in previous_pulses
-        )
-    else:
-        previous_end = 40 / timeline_scale
-
-    # ------------------------------------------------------------
-    # Find the pulse immediately after the affected region
-    # ------------------------------------------------------------
-    next_pulses = [
-        el for el in pulses
-        if el.start >= region_end
-    ]
-
-    if next_pulses:
-        next_start = min(
-            el.start for el in next_pulses
-        )
-    else:
-        next_start = (canvas.width - 83) / timeline_scale
-
-    # ------------------------------------------------------------
-    # Recalculate ONLY this small region
-    # ------------------------------------------------------------
-    occupied = sorted(
-        affected_pulses,
-        key=lambda e: e.start
-    )
-
-    current_time = previous_end
-
-    for pulse in occupied:
-
-        if pulse.start > current_time:
-            duration = pulse.start - current_time
-
-            if duration >= 5:
-                delay = SequenceElement(
-                    kind="delay",
-                    file_path=DELAY_RESOURCE_ID,
-                    start=current_time,
-                    duration=duration,
-                    channel="f1",
-                    name=""
-                )
-
-                delay.manual = False
-                delay.visual_width = duration * timeline_scale
-
-                sequence.add(delay)
-
-        current_time = max(
-            current_time,
-            pulse.start + pulse.duration
-        )
-
-    # Delay between affected region and next pulse
-    if next_start > current_time:
-        duration = next_start - current_time
-
-        if duration >= 5:
-            delay = SequenceElement(
-                kind="delay",
-                file_path=DELAY_RESOURCE_ID,
-                start=current_time,
-                duration=duration,
-                channel="f1",
-                name=""
-            )
-
-            delay.manual = False
-            delay.visual_width = duration * timeline_scale
-
-            sequence.add(delay)
-
-    renumber_delays()
             
 def rebuild_global_delays():
 
@@ -708,6 +522,7 @@ def rebuild_global_delays():
 
     remove_overlapping_delays()
     renumber_delays()    
+
 
 # -----------------------
 # Program state
@@ -839,7 +654,7 @@ delete_button = Button(
 
 phase_cycle_checkbox = Checkbox(
     value=False,
-    description="Include phase table",
+    description="phase table",
     indent=False,
     layout=Layout(
         width="auto",
@@ -2091,7 +1906,7 @@ def add_phase_row(el):
     phase = el.phase
 
     include = Checkbox(
-        value=False,
+        value=True,
         indent=False,
         layout=Layout(width="20px")
     )
@@ -2685,20 +2500,20 @@ exp_title = Text(
     style={'description_width': '40px'}
 )
 
-exp_dim = Dropdown(
-    description="Dim:",
-    options=["1D", "2D"],
-    value="1D",
-    layout=Layout(width="110px"),
-    style={'description_width': '30px'}  # label width
-)
-
 exp_class = Dropdown(
     description="Class:",
     options=["HighRes", "HighRes HWT", "HighRes Incl"],
     value="HighRes",
     layout=Layout(width="160px"),  # total width
     style={'description_width': '40px'}  # label width
+)
+
+exp_dim = Dropdown(
+    description="Dim:",
+    options=["1D", "2D"],
+    value="1D",
+    layout=Layout(width="110px"),
+    style={'description_width': '30px'}  # label width
 )
 
 exp_2d_option = Dropdown(
@@ -3035,7 +2850,7 @@ definitions_header = HTML("""
     font-weight:bold;
     padding-top:10px;
 ">
-    Global definitions
+    Definitions
 </div>
 """)
 
@@ -3263,7 +3078,6 @@ def show_property_editor(el: SequenceElement):
         visible_widgets = [
             el_name,
             el_definition,
-            el_description,
             el_duration
         ]
 
@@ -3283,17 +3097,11 @@ def show_property_editor(el: SequenceElement):
     # ---------------------------
     # Update callback
     # ---------------------------
-    def apply_element_update(el, save_history=True):
     
-        if el is None:
-            return
+    def update_el(b):
     
-        if save_history:
-            save_state()
+        save_state()
     
-        # ---------------------------
-        # Update selected element
-        # ---------------------------
         el.title = el_title.value
         el.name = el_name.value
         el.definition = el_definition.value
@@ -3302,18 +3110,21 @@ def show_property_editor(el: SequenceElement):
         el.duration = el_duration.value
         el.visual_width = el.duration * timeline_scale
     
-        if el.kind != "flag":
+        if kind != "flag":
             el.channel = el_channel.value
     
-        if el.kind in ["pulse", "shaped", "grad", "cpd"]:
+        if kind in ["pulse", "shaped", "grad", "cpd"]:
             el.power = el_power.value
     
-        if el.kind in ["pulse", "shaped"]:
+        if kind in ["pulse", "shaped"]:
             el.phase = el_phase.value
     
-        if el.kind == "shaped":
+        if kind == "shaped":
             el.shape = el_shape.value
     
+            # ---------------------------
+            # WVM properties
+            # ---------------------------
             el.wvm = el_wvm.value
             el.powerindex = el_powerindex.value
             el.subname = el_subname.value
@@ -3323,37 +3134,26 @@ def show_property_editor(el: SequenceElement):
             el.Q = el_Q.value
             el.sweepdirection = el_sweepdirection.value
     
-        if el.kind in ["pulse", "shaped", "block", "grad"]:
+        if kind in ["pulse", "shaped", "block", "grad"]:
             el.visual_height = el_height.value
     
-        if el.kind == "delay":
+        if kind == "delay":
             el.manual = True
     
-        # ---------------------------
-        # Rebuild delays
-        # ---------------------------
         if el.kind != "delay":
             rebuild_global_delays()
     
         renumber_delays()
-    
-        # ---------------------------
-        # Refresh UI
-        # ---------------------------
         draw_sequence()
         draw_ctp()
-    
         coherence_label.value = sequence.coherence_summary()
     
         populate_phase_rows()
         generate_phase_cycle()
     
-    def update_el(b):
-        apply_element_update(selected_el, save_history=True)
-    
     update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
-
+    
 # -----------------------
 # Main canvas Setup
 # -----------------------
@@ -3872,65 +3672,51 @@ def draw_element(c, el, _ignored=None):
     
 def draw_static_background():
     canvas.clear()
-
     canvas.fill_style = "white"
     canvas.fill_rect(0, 0, canvas.width, canvas.height)
-
     canvas.font = "16px Arial"
 
     # Vertical reference line
     canvas.stroke_style = "black"
     canvas.line_width = 1
-    canvas.set_line_dash([6, 6])
+    canvas.set_line_dash([6,6])
     canvas.stroke_line(40, 0, 40, canvas_height)
     canvas.set_line_dash([])
 
     # Solid timelines
     canvas.stroke_style = "black"
     canvas.line_width = 2
-
     for ch, y in timeline_positions.items():
         canvas.stroke_line(0, y, canvas.width, y)
         canvas.fill_text(ch.upper(), 10, y - 10)
 
-    # FID
+    # FID example
     start_x = canvas.width - 70
     end_x = canvas.width
     amplitude = 55
     decay_constant = 0.05
     frequency = 0.35
-
     canvas.begin_path()
-
     timeline_y = timeline_positions["f1"]
-
     for x in range(start_x, end_x):
         t = x - start_x
-        y = (
-            timeline_y
-            - amplitude
-            * math.exp(-decay_constant * t)
-            * math.cos(frequency * t)
-        )
-
+        y = timeline_y - amplitude * math.exp(-decay_constant*t)*math.cos(frequency*t)
         if x == start_x:
             canvas.move_to(x, y)
         else:
             canvas.line_to(x, y)
-
     canvas.line_width = 2
     canvas.stroke()
 
     # Assign flag numbers
-    flags = [
-        el for el in sequence.elements
-        if el.kind == "flag"
-    ]
-
+    flags = [el for el in sequence.elements if el.kind == "flag"]
     flags.sort(key=lambda e: e.start)
-
     for i, flag in enumerate(flags):
-        flag.flag_number = i + 3 if i + 3 < 63 else None
+        flag.flag_number = i + 3 if i +3 < 63 else None
+
+    # Draw all elements
+    for el in sorted(sequence.elements, key=lambda e: e.start):
+        draw_element(canvas, el)
 
 def draw_dragging_element():
     dynamic_canvas.clear()
@@ -3939,14 +3725,11 @@ def draw_dragging_element():
 
 def draw_sequence():
     draw_static_background()
-    for el in sorted(sequence.elements, key=lambda e: e.start):
-        draw_element(canvas, el)
-        
     draw_dragging_element()
     canvas.flush()
     dynamic_canvas.flush()
-
     draw_ctp()
+
 
 # -----------------------
 # Elements Panel
@@ -4134,68 +3917,63 @@ drag_temp_width = 0
 drag_temp_height = 0
 
 def on_canvas_mouse_down(x, y):
-    global dragging_el, drag_mode
-    global drag_start_x, drag_start_y
+    global dragging_el, drag_mode, drag_start_x, drag_start_y
     global drag_temp_start, drag_temp_width, drag_temp_height
-    global selected_el
 
     drag_start_y = y
 
-    # ============================================================
-    # 1. Check whether an existing element was clicked
-    # ============================================================
     for el in reversed(sequence.elements):
-
+    
         if el.kind == "delay" and not allow_delay_selection:
             continue
-
+    
         if el.kind == "flag":
+    
             timeline_y = timeline_positions.get(el.channel, 150)
-
+    
             rect_x = el.start * timeline_scale - 20
             rect_w = 40
-
+    
             rect_top = timeline_y - 140
             rect_h = 160
-
+    
         elif el.kind == "delay":
+    
             rect_x = el.start * timeline_scale
             rect_w = el.visual_width
-
+    
             timeline_y = timeline_positions["f1"] - 30
             rect_h = 60
             rect_top = timeline_y - rect_h / 2
-
+    
         else:
+    
             rect_x = el.start * timeline_scale
             rect_w = el.visual_width
-
+    
             timeline_y = timeline_positions.get(el.channel, 150)
             rect_h = el.visual_height
             rect_top = timeline_y - rect_h
-
+    
         if (rect_x <= x <= rect_x + rect_w and
                 rect_top <= y <= rect_top + rect_h):
-
+    
             dragging_el = el
             drag_start_x = x
             drag_start_y = y
-
+    
             drag_mode = "move"
-
+    
             drag_temp_start = el.start
             drag_temp_width = el.visual_width
             drag_temp_height = el.visual_height
-
-            # This only changes the property editor.
-            # DO NOT redraw the sequence here.
+    
+            draw_sequence()
+            draw_ctp()
             show_property_editor(el)
-
             return
-
-    # ============================================================
-    # 2. Otherwise, try to create a new element
-    # ============================================================
+                
+    # If creating a new element inside a delay
     kind = selected_element.get("kind")
     file_path = selected_element.get("file_path")
     dash_x = 80
@@ -4203,7 +3981,7 @@ def on_canvas_mouse_down(x, y):
     if allow_delay_selection:
         print("Delay selection ON: cannot place new elements inside delays.")
         return
-
+        
     if not kind or not file_path or x < dash_x:
         print("Cannot place element before the reference line.")
         return
@@ -4211,46 +3989,39 @@ def on_canvas_mouse_down(x, y):
     pulse_unit = 2
     start_time = x / timeline_scale
     new_start = round(start_time / pulse_unit) * pulse_unit
-
     duration = read_pulse_duration(file_path)
     channel = get_nearest_channel(y, kind)
-
+    
     fid_start_time = get_fid_start_time()
     end_time = new_start + duration
-
+    
+    # Only restriction: everything except blocks on f2
     if not (kind == "block" and channel == "f2"):
         if new_start >= fid_start_time:
             print("Cannot place elements during FID.")
             return
-
         if end_time > fid_start_time:
             print("Element would overlap with FID.")
             return
-
+    
     if has_channel_time_conflict(channel, new_start, duration):
         print("Conflict: element already exists at this time on this channel.")
         return
 
-    # ============================================================
-    # 3. Create ONLY the new element
-    # ============================================================
+    # Create new element
     save_state()
-    
-    new_el = SequenceElement(
-        kind,
-        file_path,
-        new_start,
-        duration
-    )
-    
+    new_el = SequenceElement(kind, file_path, new_start, duration)
     new_el.channel = channel
-    apply_placement_defaults(new_el)    
+    
+    # Apply unified defaults for any kind (pulse/shaped/grad/...)
+    apply_placement_defaults(new_el)
+    
     sequence.add(new_el)
-    selected_el = new_el
-    show_property_editor(new_el)
-
-    apply_element_update(new_el, save_history=False)
-
+    rebuild_global_delays()
+    renumber_delays()
+    draw_ctp()
+    coherence_label.value = sequence.coherence_summary()
+    
 def on_canvas_mouse_move(x, y):
     global drag_temp_start, drag_temp_width, drag_temp_height, drag_start_x, drag_start_y
 
@@ -4348,8 +4119,9 @@ buttons_row = HBox(
         undo_button,
         delete_button,
         toggle_delays_btn,
-        browser_download_link,
-        phase_cycle_checkbox
+        print_names_button,
+        phase_cycle_checkbox,
+        browser_download_link
     ],
     layout=Layout(
         spacing='10px',
@@ -4458,11 +4230,8 @@ main_top_row.layout.flex_wrap = "nowrap"
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_dim],
-    layout=Layout(
-        spacing="1px",
-        align_items="center"
-    ),
-    padding='20px 20px'
+    layout=Layout(spacing="1px"),
+    padding='20px 20px' 
 )
 
 exp_prop_row_2 = HBox(
