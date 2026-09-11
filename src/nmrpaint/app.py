@@ -3100,16 +3100,20 @@ def show_property_editor(el: SequenceElement):
     # ---------------------------
     
     def update_el(b):
-    
         save_state()
     
+        # Keep track of whether anything affecting timing changed
+        old_duration = el.duration
+    
+        # ---------------------------
+        # Update selected element only
+        # ---------------------------
         el.title = el_title.value
         el.name = el_name.value
         el.definition = el_definition.value
         el.description = el_description.value
     
         el.duration = el_duration.value
-        el.visual_width = el.duration * timeline_scale
     
         if kind != "flag":
             el.channel = el_channel.value
@@ -3123,9 +3127,6 @@ def show_property_editor(el: SequenceElement):
         if kind == "shaped":
             el.shape = el_shape.value
     
-            # ---------------------------
-            # WVM properties
-            # ---------------------------
             el.wvm = el_wvm.value
             el.powerindex = el_powerindex.value
             el.subname = el_subname.value
@@ -3141,21 +3142,32 @@ def show_property_editor(el: SequenceElement):
         if kind == "delay":
             el.manual = True
     
-        if el.kind != "delay":
+        # ---------------------------
+        # Only rebuild timing if needed
+        # ---------------------------
+        if el.kind != "delay" and el.duration != old_duration:
             rebuild_global_delays()
     
         renumber_delays()
+    
+        # ---------------------------
+        # Refresh UI
+        # ---------------------------
         draw_sequence()
         draw_ctp()
+    
         coherence_label.value = sequence.coherence_summary()
     
         populate_phase_rows()
         generate_phase_cycle()
     
+        # Generate program once, after everything is updated
+        generate_program(None)
+    
+    
     update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
-    update_button.on_click(generate_program)
-    
+
 # -----------------------
 # Main canvas Setup
 # -----------------------
