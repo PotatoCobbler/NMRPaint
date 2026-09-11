@@ -654,7 +654,7 @@ delete_button = Button(
 
 phase_cycle_checkbox = Checkbox(
     value=False,
-    description="phase table",
+    description="Include phase table",
     indent=False,
     layout=Layout(
         width="auto",
@@ -1906,7 +1906,7 @@ def add_phase_row(el):
     phase = el.phase
 
     include = Checkbox(
-        value=True,
+        value=False,
         indent=False,
         layout=Layout(width="20px")
     )
@@ -2500,20 +2500,20 @@ exp_title = Text(
     style={'description_width': '40px'}
 )
 
-exp_class = Dropdown(
-    description="Class:",
-    options=["HighRes", "HighRes HWT", "HighRes Incl"],
-    value="HighRes",
-    layout=Layout(width="160px"),  # total width
-    style={'description_width': '40px'}  # label width
-)
-
 exp_dim = Dropdown(
     description="Dim:",
     options=["1D", "2D"],
     value="1D",
     layout=Layout(width="110px"),
     style={'description_width': '30px'}  # label width
+)
+
+exp_class = Dropdown(
+    description="Class:",
+    options=["HighRes", "HighRes HWT", "HighRes Incl"],
+    value="HighRes",
+    layout=Layout(width="160px"),  # total width
+    style={'description_width': '40px'}  # label width
 )
 
 exp_2d_option = Dropdown(
@@ -2850,7 +2850,7 @@ definitions_header = HTML("""
     font-weight:bold;
     padding-top:10px;
 ">
-    Definitions
+    Global definitions
 </div>
 """)
 
@@ -3078,6 +3078,7 @@ def show_property_editor(el: SequenceElement):
         visible_widgets = [
             el_name,
             el_definition,
+            el_description,
             el_duration
         ]
 
@@ -3153,6 +3154,7 @@ def show_property_editor(el: SequenceElement):
     
     update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
+    update_button.on_click(generate_program)
     
 # -----------------------
 # Main canvas Setup
@@ -3967,8 +3969,7 @@ def on_canvas_mouse_down(x, y):
             drag_temp_start = el.start
             drag_temp_width = el.visual_width
             drag_temp_height = el.visual_height
-    
-            draw_sequence()
+
             draw_ctp()
             show_property_editor(el)
             return
@@ -4019,6 +4020,7 @@ def on_canvas_mouse_down(x, y):
     sequence.add(new_el)
     rebuild_global_delays()
     renumber_delays()
+    draw_sequence()
     draw_ctp()
     coherence_label.value = sequence.coherence_summary()
     
@@ -4119,9 +4121,8 @@ buttons_row = HBox(
         undo_button,
         delete_button,
         toggle_delays_btn,
-        print_names_button,
-        phase_cycle_checkbox,
-        browser_download_link
+        browser_download_link,
+        phase_cycle_checkbox
     ],
     layout=Layout(
         spacing='10px',
@@ -4230,8 +4231,11 @@ main_top_row.layout.flex_wrap = "nowrap"
 
 exp_prop_row_1 = HBox(
     [exp_title, exp_dim],
-    layout=Layout(spacing="1px"),
-    padding='20px 20px' 
+    layout=Layout(
+        spacing="1px",
+        align_items="center"
+    ),
+    padding='20px 20px'
 )
 
 exp_prop_row_2 = HBox(
