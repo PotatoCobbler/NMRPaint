@@ -461,7 +461,7 @@ def remove_overlapping_delays():
             cleaned.append(d)
             
 def rebuild_global_delays():
-
+    global sequence_dirty
     old_delays = sorted(
     [el for el in sequence.elements if el.kind == "delay"],
     key=lambda e: (not getattr(e, "manual", False), e.start)
@@ -582,11 +582,13 @@ def toggle_delay_selection(b):
 
 
 def undo_last(b):
+    global sequence_dirty
     global sequence
     if not history:
         return
 
     sequence = history.pop()
+    sequence_dirty = True
     refresh_ui()
 
 def clear_sequence(b):
@@ -614,6 +616,7 @@ def clear_sequence(b):
     refresh_ui()
 
 def delete_selected_element(b):
+    global sequence_dirty
     global current_element
     if current_element is None:
         print("No element selected.")
@@ -2318,7 +2321,7 @@ def get_ctp_events():
             "name": el.name,
             "channel": el.channel,
             "phase": el.phase,
-            "delta": phase_delta_map.get(id(el), 0),
+            "delta": get_phase_delta(el),
             "x0": el.start * timeline_scale,
             "x1": (el.start + el.duration) * timeline_scale,
             "width": el.visual_width,
@@ -3941,6 +3944,7 @@ drag_temp_width = 0
 drag_temp_height = 0
 
 def on_canvas_mouse_down(x, y):
+    global sequence_dirty
     global dragging_el, drag_mode, drag_start_x, drag_start_y
     global drag_temp_start, drag_temp_width, drag_temp_height
 
@@ -4089,6 +4093,7 @@ def on_canvas_mouse_move(x, y):
     drag_start_y = y
     
 def on_canvas_mouse_up(x, y):
+    global sequence_dirty
     global dragging_el, drag_mode, drag_temp_start, drag_temp_width, drag_temp_height
 
     if not dragging_el:
