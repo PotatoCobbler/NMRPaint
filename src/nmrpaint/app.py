@@ -627,7 +627,6 @@ def delete_selected_element(b):
         sequence.elements.remove(current_element)
         sequence_dirty = True
         rebuild_global_delays()
-        renumber_delays()
         refresh_ui()
         print(f"Deleted element: {current_element.name}")
 
@@ -3168,7 +3167,6 @@ def show_property_editor(el: SequenceElement):
         if el.kind != "delay":
             rebuild_global_delays()
     
-        renumber_delays()
         refresh_gui()
     
         populate_phase_rows()
@@ -4044,7 +4042,6 @@ def on_canvas_mouse_down(x, y):
     sequence.add(new_el)
     sequence_dirty = True
     rebuild_global_delays()
-    renumber_delays()
     refresh_ui()
     
 def on_canvas_mouse_move(x, y):
@@ -4122,7 +4119,6 @@ def on_canvas_mouse_up(x, y):
         dragging_el.start = dash_time
 
     rebuild_global_delays()
-    renumber_delays()
 
     dragging_el = None
     drag_mode = None
