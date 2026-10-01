@@ -1744,7 +1744,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
     # -----------------------
     # Footer
     # -----------------------
-    f.write(f";$Id: Generated using NMRpaint {VERSION}$\n")
+    f.write(f";$Id: Generated using NMRpaint v{VERSION}$\n")
 
     return f.getvalue()
     
