@@ -3123,7 +3123,6 @@ def show_property_editor(el: SequenceElement):
     # ---------------------------
     
     def update_el(b):
-        global dragging_el
         save_state()
     
         el.title = el_title.value
@@ -3167,8 +3166,7 @@ def show_property_editor(el: SequenceElement):
         if el.kind != "delay":
             rebuild_global_delays()
             
-        dragging_el = None
-        refresh_gui()
+        refresh_ui()
     
         populate_phase_rows()
         generate_phase_cycle()
@@ -3385,7 +3383,7 @@ def set_canvas_size(new_width: int, new_height: int = None):
 
     rebuild_global_delays()
     draw_ctp_background()
-    refresh_gui
+    refresh_ui
     
 def draw_preview(preview_canvas, kind, file_path):
 
