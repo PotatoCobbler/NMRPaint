@@ -3385,10 +3385,8 @@ def set_canvas_size(new_width: int, new_height: int = None):
     ctp_box.layout.min_width = f"{canvas_width}px"
 
     rebuild_global_delays()
-    draw_sequence()
     draw_ctp_background()
-    draw_ctp()
-    coherence_label.value = sequence.coherence_summary()
+    refresh_gui
     
 def draw_preview(preview_canvas, kind, file_path):
 
