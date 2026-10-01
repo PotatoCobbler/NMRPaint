@@ -3383,7 +3383,7 @@ def set_canvas_size(new_width: int, new_height: int = None):
 
     rebuild_global_delays()
     draw_ctp_background()
-    refresh_ui
+    refresh_ui()
     
 def draw_preview(preview_canvas, kind, file_path):
 
