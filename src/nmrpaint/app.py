@@ -3123,7 +3123,7 @@ def show_property_editor(el: SequenceElement):
     # ---------------------------
     
     def update_el(b):
-    
+        global dragging_el
         save_state()
     
         el.title = el_title.value
@@ -3166,7 +3166,8 @@ def show_property_editor(el: SequenceElement):
     
         if el.kind != "delay":
             rebuild_global_delays()
-    
+            
+        dragging_el = None
         refresh_gui()
     
         populate_phase_rows()
