@@ -12,7 +12,7 @@ from .resource_manager import (
     resource_exists,
 )
 
-import copy, re, tempfile, time
+import copy, re, tempfile, time, math
 from datetime import datetime
 from io import StringIO
 from pathlib import Path, PurePosixPath
