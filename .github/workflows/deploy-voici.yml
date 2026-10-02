@@ -94,7 +94,44 @@ jobs:
               encoding="utf-8",
           )
           PY
+          
+      - name: Add favicon
+        run: |
+          cp voici/favicon.png voici/_output/favicon.png
 
+          python - <<'PY'
+          from pathlib import Path
+
+          output = Path("voici/_output")
+
+          # Favicon for the NMRpaint Voilà/Voici page
+          page = output / "voici/render/NMRpaint.html"
+
+          text = page.read_text(encoding="utf-8")
+
+          favicon = '<link rel="icon" type="image/png" href="../../favicon.png">'
+
+          text = text.replace(
+              "</head>",
+              f"    {favicon}\n</head>",
+              1,
+          )
+
+          page.write_text(text, encoding="utf-8")
+
+          # Favicon for the redirect/root page as well
+          index = output / "index.html"
+          text = index.read_text(encoding="utf-8")
+
+          text = text.replace(
+              "</head>",
+              '    <link rel="icon" type="image/png" href="favicon.png">\n</head>',
+              1,
+          )
+
+          index.write_text(text, encoding="utf-8")
+          PY
+          
       - name: Verify Voici output
         run: |
           test -f voici/_output/index.html
