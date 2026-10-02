@@ -2503,6 +2503,7 @@ browser_download_button.on_click(generate_program)
 ns_text = IntText(
     description="ns:",
     value=1,
+    tooltip="",
     layout=Layout(width="100px"),
     style={'description_width': '30px'}
 )
@@ -2510,6 +2511,7 @@ ns_text = IntText(
 ds_text = IntText(
     description="ds:",
     value=0,
+    tooltip="",
     layout=Layout(width="100px"),
     style={'description_width': '30px'}
 )
