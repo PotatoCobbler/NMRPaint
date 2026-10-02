@@ -12,37 +12,17 @@ from .resource_manager import (
     resource_exists,
 )
 
-import copy
-import math
-import re
-import time
-import tempfile
-
+import copy, re, tempfile, time
 from datetime import datetime
 from io import StringIO
 from pathlib import Path, PurePosixPath
 
-from ipywidgets import (
-    FloatText,
-    IntText,
-    VBox,
-    HBox,
-    Box,
-    Layout,
-    Textarea,
-    Button,
-    Label,
-    Dropdown,
-    Text,
-    Checkbox,
-    HTML,
-    Tab,
-    Output,
-)
-
 from ipycanvas import Canvas
-from IPython.display import FileLink
-from IPython.display import display, HTML as DisplayHTML
+from ipywidgets import (
+    Box, Button, Checkbox, Dropdown, FloatText, HBox, HTML,
+    IntText, Label, Layout, Output, Tab, Text, Textarea, VBox,
+)
+from IPython.display import HTML as DisplayHTML, display
 
 VERSION = "0.1.0"
 
