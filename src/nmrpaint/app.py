@@ -635,6 +635,21 @@ def delete_selected_element(b):
 # -----------------------
 # Button Creation
 # -----------------------
+clear_button = Button(
+    button_style="danger",
+    description="Clear",
+    tooltip="Reset everything"
+)
+
+undo_button = Button(
+    description="Undo",
+    tooltip="Undo last action"
+)
+
+delete_button = Button(
+    description="Delete",
+    tooltip="Delete selected element"
+)
 
 toggle_delays_btn = Button(
     description="Delay Selection",
@@ -642,25 +657,6 @@ toggle_delays_btn = Button(
     tooltip="Click to allow selecting delay elements"
 )
 
-undo_button = Button(
-    description="Undo"
-)
-
-clear_button = Button(
-    button_style="danger",
-    description="Clear",
-    tooltip="Reset everything"
-)
-
-print_names_button = Button(
-    description="Generate",
-    button_style="primary"
-)
-
-delete_button = Button(
-    description="Delete",
-    tooltip="Delete selected element"
-)
 
 phase_cycle_checkbox = Checkbox(
     value=False,
@@ -669,6 +665,11 @@ phase_cycle_checkbox = Checkbox(
     layout=Layout(
         width="auto",
     ),
+)
+
+print_names_button = Button(
+    description="Generate",
+    button_style="primary"
 )
 
 export_btn = Button(
@@ -2957,12 +2958,14 @@ el_phase = Text(
 
 el_duration = FloatText(
     description="Duration",
+    tooltip="",
     layout=field_layout,
     style=label_style
 )
 
 el_height = IntText(
     description="Height",
+    tooltip="",
     layout=field_layout,
     style=label_style
 )
@@ -3856,6 +3859,7 @@ property_editor_box.layout.flex = "0 0 250px"
 canvas_width_input = IntText(
     description="Canvas width:",
     value=canvas_width,
+    tooltip="",
     layout=Layout(width="170px"),
     style={'description_width': '80px'}
 )
