@@ -2,7 +2,7 @@
 title=WALTZ16
 name=cpd2
 definition=waltz16
-duration=10
+duration=20
 channel=F2
 power=pl12
 phase=
