@@ -20,6 +20,7 @@ from pathlib import Path, PurePosixPath
 from ipycanvas import Canvas
 from ipywidgets import (
     Box, Button, Checkbox, Dropdown, FloatText, HBox, HTML,
+    ToggleButton,
     IntText, Label, Layout, Output, SelectMultiple, Tab, Text, Textarea, VBox,
 )
 from IPython.display import HTML as DisplayHTML, display
@@ -838,15 +839,66 @@ def canvas_to_text(b=None):
     try:
         populate_phase_rows()
         if phase_cycle_checkbox.value: generate_phase_cycle()
-        pulse_program_output.value=build_pulse_program_text(); update_excluded_line_options(); generation_output.layout.display="none"
+        pulse_program_output.value=build_pulse_program_text(include_nmrpaint_metadata=False); pulse_program_metadata_output.value=build_pulse_program_text(include_nmrpaint_metadata=True); update_excluded_line_options(); generation_output.layout.display="none"
     except Exception as exc:
         generation_output.layout.display="block"; generation_output.clear_output(wait=True)
         with generation_output: print(f"Canvas → Text failed: {type(exc).__name__}: {exc}")
 
+def _merge_visible_text_with_metadata(visible_text, metadata_text):
+    """Inject hidden NMRpaint metadata back into the visible pulse program.
+
+    The user-facing text remains clean. Metadata is matched to graphical
+    statements in their original order; if the visible text was edited,
+    unmatched statements simply fall back to normal Bruker parsing.
+    """
+    if not metadata_text.strip():
+        return visible_text
+
+    groups = []
+    pending = []
+    for raw in metadata_text.splitlines():
+        st = raw.strip()
+        if st.startswith(";@NMRPAINT "):
+            try:
+                pending.append(json.loads(st[len(";@NMRPAINT "):]))
+            except json.JSONDecodeError:
+                pending = []
+            continue
+        if pending:
+            groups.append((list(pending), max(int(d.get("body_lines", 1)) for d in pending)))
+            pending = []
+    if pending:
+        groups.append((list(pending), max(int(d.get("body_lines", 1)) for d in pending)))
+
+    if not groups:
+        return visible_text
+
+    out = []
+    group_index = 0
+    consume = 0
+    for raw in visible_text.splitlines():
+        if consume:
+            out.append(raw)
+            consume -= 1
+            continue
+
+        if _line_is_graphical(raw) and group_index < len(groups):
+            meta_group, body_lines = groups[group_index]
+            for d in meta_group:
+                out.append(";@NMRPAINT " + json.dumps(d, separators=(",", ":"), ensure_ascii=False))
+            out.append(raw)
+            consume = max(0, body_lines - 1)
+            group_index += 1
+        else:
+            out.append(raw)
+
+    return "\n".join(out)
+
+
 def text_to_canvas(b=None):
     global sequence,sequence_dirty,current_element
     try:
-        excluded={int(v.split(":",1)[0]) for v in excluded_lines_selector.value}; parsed=parse_pulse_program_text(pulse_program_output.value,excluded)
+        excluded={int(v.split(":",1)[0]) for v in excluded_lines_selector.value}; source_text=_merge_visible_text_with_metadata(pulse_program_output.value, pulse_program_metadata_output.value); parsed=parse_pulse_program_text(source_text,excluded)
         if not parsed.elements: raise ValueError("No graphical elements could be reconstructed from the text.")
         save_state(); sequence=parsed; sequence_dirty=True; current_element=None; rebuild_global_delays(); clear_phase_cycle_gui(); populate_phase_rows()
         if phase_cycle_checkbox.value: generate_phase_cycle()
@@ -866,7 +918,7 @@ cpd_phases = set()
 cpd_shapes = set()
 cpd_gradients = set()
 
-def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
+def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint_metadata: bool = False) -> str:
     """Build and return the Bruker pulse-program text."""
     # Clear previous
     cpd_pulses.clear()
@@ -1391,7 +1443,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         
             if writer:
                 rendered=writer(el)
-                f.write(_nmrpaint_element_metadata(el,len(rendered.splitlines()))+"\n")
+                if include_nmrpaint_metadata:
+                    f.write(_nmrpaint_element_metadata(el,len(rendered.splitlines()))+"\n")
                 f.write(rendered+"\n")
             else:
                 f.write(f"; unknown element type: {kind}\n")
@@ -1414,19 +1467,22 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
                         pending_center_metadata.append(e)
                 else:
                     if center_parts:
-                        for ce in pending_center_metadata:
-                            f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
+                        if include_nmrpaint_metadata:
+                            for ce in pending_center_metadata:
+                                f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
                         f.write(" (center " + " ".join(center_parts) + " )\n")
                         center_parts=[]
                         pending_center_metadata=[]
                     writer=ELEMENT_WRITERS.get(kind)
                     if writer:
                         rendered=writer(e)
-                        f.write(_nmrpaint_element_metadata(e, len(rendered.splitlines())) + "\n")
+                        if include_nmrpaint_metadata:
+                            f.write(_nmrpaint_element_metadata(e, len(rendered.splitlines())) + "\n")
                         f.write(rendered + "\n")
             if center_parts:
-                for ce in pending_center_metadata:
-                    f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
+                if include_nmrpaint_metadata:
+                    for ce in pending_center_metadata:
+                        f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
                 f.write(" (center " + " ".join(center_parts) + " )\n")
 
     # -----------------------
@@ -1966,6 +2022,31 @@ pulse_program_output = Textarea(
     )
 )
 
+pulse_program_metadata_output = Textarea(
+    value="",
+    description="",
+    layout=Layout(
+        width="400px",
+        height="410px",
+        display="none"
+    )
+)
+
+show_metadata_toggle = ToggleButton(
+    value=False,
+    description="Show NMRpaint metadata",
+    tooltip="Show the internal ;@NMRPAINT conversion data used for exact Canvas ↔ Text round-tripping.",
+    layout=Layout(width="400px", height="30px")
+)
+
+def _toggle_metadata(change):
+    showing = bool(change["new"])
+    pulse_program_output.layout.display = "none" if showing else "block"
+    pulse_program_metadata_output.layout.display = "block" if showing else "none"
+    show_metadata_toggle.description = "Hide NMRpaint metadata" if showing else "Show NMRpaint metadata"
+
+show_metadata_toggle.observe(_toggle_metadata, names="value")
+
 pulse_program_header = HTML("""
 <div style="
     text-align:center;
@@ -2388,6 +2469,8 @@ pulse_program_box = VBox(
     [
         pulse_program_header,
         pulse_program_output,
+        pulse_program_metadata_output,
+        show_metadata_toggle,
         excluded_lines_selector,
         phase_cycle_box
     ],
