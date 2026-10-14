@@ -1032,22 +1032,25 @@ def text_to_canvas(b=None):
         # Canvas may change element positions, durations, delay numbering,
         # or remove delays that fall inside the FID.  Leaving the previous
         # metadata untouched would make it describe the old canvas.
-        rebuild_global_delays()
+        #rebuild_global_delays()
         clear_phase_cycle_gui()
         populate_phase_rows()
+              
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
-
-        # Canonicalise the visible text as well as the hidden metadata from
-        # the newly reconstructed canvas.  This guarantees that the two
-        # representations remain one-to-one after every Text → Canvas
-        # operation, including cases where automatic delays were rebuilt.
-        pulse_program_output.value=build_pulse_program_text(include_nmrpaint_metadata=False)
-        pulse_program_metadata_output.value=build_pulse_program_text(include_nmrpaint_metadata=True)
-
+        
+        pulse_program_output.value = build_pulse_program_text(
+            include_nmrpaint_metadata=False
+        )
+        
+        pulse_program_metadata_output.value = build_pulse_program_text(
+            include_nmrpaint_metadata=True
+        )
+        
         refresh_ui()
         update_excluded_line_options()
         generation_output.layout.display="none"
+        
     except Exception as exc:
         generation_output.layout.display="block"; generation_output.clear_output(wait=True)
         with generation_output: print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
