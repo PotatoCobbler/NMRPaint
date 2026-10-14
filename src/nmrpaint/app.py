@@ -1066,6 +1066,17 @@ def text_to_canvas(b=None):
         with generation_output:
             print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
     draw_ctp()
+    
+# -----------------------
+# Main Pulse Program Generator
+# -----------------------
+
+cpd_pulses = set()
+cpd_delays = set()
+cpd_powers = set()
+cpd_phases = set()
+cpd_shapes = set()
+cpd_gradients = set()
 
 def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint_metadata: bool = False) -> str:
     """Build and return the Bruker pulse-program text."""
