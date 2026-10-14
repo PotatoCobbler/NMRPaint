@@ -36,6 +36,8 @@ MIN_WIDTH = 10
 MIN_HEIGHT = -40
 DEFAULT_HEIGHT = 60
 timeline_scale = 5
+REFERENCE_X = 40          # vertical reference line (px)
+PULSE_START_X = 60        # default start position for drawable RF/gradient elements (px)
 
 # Timeline positions
 timeline_positions = {"f1": 110, "f2": 210, "Gz": 310}
@@ -381,14 +383,16 @@ def renumber_delays():
         key=lambda e: e.start
     )
 
-    counter = 1
+    has_d1 = any(str(getattr(el, "name", "")).strip().lower() == "d1" for el in delays)
+    counter = 20
     for el in delays:
         if not el.name:   # only auto-name if empty
-            if counter == 1:
-                el.name = "d1"
-            else:
-                el.name = f"d{19 + counter - 1}"
-        counter += 1
+            # d1 is reserved for the existing/manual relaxation delay.
+            # Never manufacture another d1 during a rebuild.
+            while has_d1 and counter == 1:
+                counter += 1
+            el.name = f"d{counter}"
+            counter += 1
 
 def has_channel_time_conflict(channel, new_start, new_duration, ignore_el=None):
     new_end = new_start + new_duration
@@ -455,7 +459,7 @@ def rebuild_global_delays(preferred_delays=None):
         if el.kind != "delay" or getattr(el, "manual", False)
     ]
 
-    dash_x = 40 / timeline_scale
+    dash_x = REFERENCE_X / timeline_scale
     fid_start_time = (canvas.width - 83) / timeline_scale
     delay_file = DELAY_RESOURCE_ID
 
@@ -499,7 +503,7 @@ def rebuild_global_delays(preferred_delays=None):
         key=lambda e: e.start
     )
 
-    current_time = dash_x
+    current_time = PULSE_START_X / timeline_scale
 
     for pulse in pulses:
         if pulse.start > current_time:
@@ -592,7 +596,7 @@ def clear_sequence(b):
     sequence.elements.clear()
     clear_phase_cycle_gui()
     
-    dash_x = 40 / timeline_scale
+    dash_x = REFERENCE_X / timeline_scale
     fid_start_time = (canvas.width - 83) / timeline_scale
     delay_file = DELAY_RESOURCE_ID
 
@@ -870,10 +874,11 @@ def _fallback_element(kind,token,start,channel="f1",phase=None,shape=None):
     return el
 
 def parse_pulse_program_text(text,excluded_lines=()):
-    excluded=set(excluded_lines or ()); lines=text.splitlines(); seq=PulseSequence(); cursor=40/timeline_scale; pending=[]; skip=0
+    excluded=set(excluded_lines or ()); lines=text.splitlines(); seq=PulseSequence(); cursor=PULSE_START_X/timeline_scale; pending=[]; skip=0
+    seen_metadata = set()
     def add_meta(items):
         nonlocal cursor
-        seen = set()
+        seen = seen_metadata
         for d in items:
             key = (
                 d.get("kind"), d.get("file_path"),
@@ -976,13 +981,23 @@ def _merge_visible_text_with_metadata(visible_text, metadata_text):
 
     groups = []
     pending = []
+    seen_metadata = set()
     for raw in metadata_text.splitlines():
         st = raw.strip()
         if st.startswith(";@NMRPAINT "):
             try:
-                pending.append(json.loads(st[len(";@NMRPAINT "):]))
-            except json.JSONDecodeError:
-                pending = []
+                data = json.loads(st[len(";@NMRPAINT "):])
+                key = (
+                    data.get("kind"), data.get("file_path"),
+                    round(float(data.get("start", 0.0)), 9),
+                    round(float(data.get("duration", 0.0)), 9),
+                    data.get("channel"), data.get("name"),
+                )
+                if key not in seen_metadata:
+                    pending.append(data)
+                    seen_metadata.add(key)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                pass
             continue
         if pending:
             groups.append((list(pending), max(int(d.get("body_lines", 1)) for d in pending)))
@@ -1030,7 +1045,9 @@ def text_to_canvas(b=None):
         sequence = parsed
         sequence_dirty = True
         current_element = None
-        rebuild_global_delays()
+        # Text -> Canvas is an exact reconstruction operation. Do not rebuild
+        # automatic/global delays here; doing so can manufacture additional
+        # d1 elements and can alter/remove terminal elements.
         clear_phase_cycle_gui()
         populate_phase_rows()
         if phase_cycle_checkbox.value:
@@ -1049,17 +1066,6 @@ def text_to_canvas(b=None):
         with generation_output:
             print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
     draw_ctp()
-
-# -----------------------
-# Main Pulse Program Generator
-# -----------------------
-
-cpd_pulses = set()
-cpd_delays = set()
-cpd_powers = set()
-cpd_phases = set()
-cpd_shapes = set()
-cpd_gradients = set()
 
 def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint_metadata: bool = False) -> str:
     """Build and return the Bruker pulse-program text."""
@@ -4358,7 +4364,7 @@ def on_canvas_mouse_down(x, y):
     # If creating a new element inside a delay
     kind = selected_element.get("kind")
     file_path = selected_element.get("file_path")
-    dash_x = 80
+    dash_x = PULSE_START_X
 
     if allow_delay_selection:
         print("Delay selection ON: cannot place new elements inside delays.")
@@ -4412,7 +4418,7 @@ def on_canvas_mouse_move(x, y):
     delta_x = x - drag_start_x
     delta_y = drag_start_y - y
 
-    dash_x = 80
+    dash_x = PULSE_START_X
     dash_time = dash_x / timeline_scale
 
     drag_temp_start += delta_x / timeline_scale
@@ -4462,7 +4468,7 @@ def on_canvas_mouse_up(x, y):
     dragging_el.visual_height = drag_temp_height
     dragging_el.channel = get_nearest_channel(y, dragging_el.kind)
 
-    dash_x = 80
+    dash_x = PULSE_START_X
     dash_time = dash_x / timeline_scale
     
     fid_start_time = get_fid_start_time()
@@ -4745,7 +4751,7 @@ copyright_footer.layout = Layout(
 )
 
 #initial d1 arrow with update logic
-dash_x = 40
+dash_x = REFERENCE_X
 fid_start_time = (canvas.width - 83) / timeline_scale
 
 delay_file = DELAY_RESOURCE_ID
