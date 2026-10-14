@@ -12,7 +12,7 @@ from .resource_manager import (
     resource_exists,
 )
 
-import copy, re, tempfile, time, math
+import copy, re, tempfile, time, math, json
 from datetime import datetime
 from io import StringIO
 from pathlib import Path, PurePosixPath
@@ -20,7 +20,7 @@ from pathlib import Path, PurePosixPath
 from ipycanvas import Canvas
 from ipywidgets import (
     Box, Button, Checkbox, Dropdown, FloatText, HBox, HTML,
-    IntText, Label, Layout, Output, Tab, Text, Textarea, VBox,
+    IntText, Label, Layout, Output, SelectMultiple, Tab, Text, Textarea, VBox,
 )
 from IPython.display import HTML as DisplayHTML, display
 
@@ -440,12 +440,14 @@ def remove_overlapping_delays():
         if not overlap:
             cleaned.append(d)
             
-def rebuild_global_delays():
+def rebuild_global_delays(preferred_delays=None):
     global sequence_dirty
-    old_delays = sorted(
-    [el for el in sequence.elements if el.kind == "delay"],
-    key=lambda e: (not getattr(e, "manual", False), e.start)
-    )
+    preferred_delays = list(preferred_delays or [])
+    existing_delays = [el for el in sequence.elements if el.kind == "delay"]
+    old_delays = []
+    for el in preferred_delays + sorted(existing_delays, key=lambda e: (not getattr(e, "manual", False), e.start)):
+        if el not in old_delays:
+            old_delays.append(el)
     
     sequence.elements = [
         el for el in sequence.elements
@@ -596,22 +598,33 @@ def clear_sequence(b):
     refresh_ui()
 
 def delete_selected_element(b):
-    global sequence_dirty
-    global current_element
+    global sequence_dirty, current_element
     if current_element is None:
-        print("No element selected.")
-        return
+        print("No element selected."); return
+    if current_element not in sequence.elements:
+        current_element = None; return
+    if current_element.kind == "delay":
+        delay = current_element
+        name = str(getattr(delay, "name", "") or "").strip().lower()
+        if name == "d1":
+            print("d1 cannot be deleted."); current_element = None; return
+        delays = [e for e in sequence.elements if e.kind == "delay" and e is not delay]
+        tol = 1e-6
+        left = max((e for e in delays if abs(e.start + e.duration - delay.start) <= tol), key=lambda e:e.start, default=None)
+        right = min((e for e in delays if abs(e.start - delay.start - delay.duration) <= tol), key=lambda e:e.start, default=None)
+        if left is None and right is None:
+            print("This delay cannot be deleted: an existing delay must be immediately to its left or right."); current_element=None; return
+        save_state()
+        if left is not None:
+            left.duration += delay.duration; left.visual_width = left.duration * timeline_scale; survivor=left
+        else:
+            right.start = delay.start; right.duration += delay.duration; right.visual_width = right.duration * timeline_scale; survivor=right
+        sequence.elements.remove(delay); sequence_dirty=True
+        rebuild_global_delays(preferred_delays=[survivor]); refresh_ui()
+        print(f"Deleted delay: {delay.name}"); current_element=None; return
+    save_state(); sequence.elements.remove(current_element); sequence_dirty=True
+    rebuild_global_delays(); refresh_ui(); print(f"Deleted element: {current_element.name}"); current_element=None
 
-    if current_element in sequence.elements:
-        save_state()  # add to undo history
-        sequence.elements.remove(current_element)
-        sequence_dirty = True
-        rebuild_global_delays()
-        refresh_ui()
-        print(f"Deleted element: {current_element.name}")
-
-    current_element = None
-    
 # -----------------------
 # Button Creation
 # -----------------------
@@ -736,6 +749,111 @@ definitions_text = Textarea(
         height="245px"
     )
 )
+
+# -----------------------
+# Canvas <-> text conversion
+# -----------------------
+
+def _nmrpaint_element_metadata(el, body_lines=1):
+    data = {"kind":el.kind,"file_path":el.file_path,"start":float(el.start),"duration":float(el.duration),"channel":el.channel,"title":el.title,"name":el.name,"definition":el.definition,"power":el.power,"phase":el.phase,"shape":el.shape,"body_lines":int(body_lines),"manual":bool(getattr(el,"manual",False)),"wvm":bool(getattr(el,"wvm",False)),"powerindex":getattr(el,"powerindex",""),"subname":getattr(el,"subname",""),"length":getattr(el,"length",""),"stepsize":getattr(el,"stepsize",""),"bandwidth":getattr(el,"bandwidth",""),"Q":getattr(el,"Q",""),"sweepdirection":getattr(el,"sweepdirection","")}
+    return ";@NMRPAINT " + json.dumps(data,separators=(",",":"),ensure_ascii=False)
+
+def _nmrpaint_element_from_metadata(data):
+    el=SequenceElement(kind=data.get("kind","pulse"),file_path=data.get("file_path",""),start=float(data.get("start",0)),duration=float(data.get("duration",10)),channel=data.get("channel","f1"),title=data.get("title",""),name=data.get("name",""),definition=data.get("definition",""),power=data.get("power"),phase=data.get("phase"),shape=data.get("shape"))
+    el.manual=bool(data.get("manual",False)); el.wvm=bool(data.get("wvm",False))
+    for a in ("powerindex","subname","length","stepsize","bandwidth","Q","sweepdirection"): setattr(el,a,data.get(a,""))
+    if el.kind=="delay": el.visual_width=el.duration*timeline_scale
+    return el
+
+def _fallback_resource(kind, token):
+    token=(token or "").lower()
+    if kind=="shaped": return next((x for x in element_files.get("shaped",[]) if resource_filename(x).lower()=="sp1.txt"),"elements/shaped/sp1.txt")
+    if kind=="grad": return next(iter(element_files.get("grad",[])),"elements/grad/gp1.txt")
+    if kind=="pulse":
+        target={"p0":"p0.txt","p1":"p90.txt","p2":"p180.txt","p3":"p90.txt","p4":"p180.txt"}.get(token,"p90.txt")
+        return next((x for x in element_files.get("pulse",[]) if resource_filename(x).lower()==target),f"elements/pulse/{target}")
+    return DELAY_RESOURCE_ID
+
+def _fallback_element(kind,token,start,channel="f1",phase=None,shape=None):
+    fp=_fallback_resource(kind,token); el=SequenceElement(kind,fp,start,read_pulse_duration(fp),channel=channel,phase=phase,shape=shape); apply_placement_defaults(el)
+    if phase: el.phase=phase
+    if shape: el.shape=shape
+    if kind in ("pulse","shaped","grad"): el.name=token.split(":",1)[0]
+    return el
+
+def parse_pulse_program_text(text,excluded_lines=()):
+    excluded=set(excluded_lines or ()); lines=text.splitlines(); seq=PulseSequence(); cursor=40/timeline_scale; pending=[]; skip=0
+    def add_meta(items):
+        nonlocal cursor
+        for d in items:
+            e=_nmrpaint_element_from_metadata(d); seq.add(e); cursor=max(cursor,e.start+e.duration)
+    for no,raw in enumerate(lines,1):
+        if no in excluded: pending=[]; skip=0; continue
+        st=raw.strip()
+        if st.startswith(";@NMRPAINT "):
+            try: pending.append(json.loads(st[len(";@NMRPAINT "):]))
+            except json.JSONDecodeError: pass
+            continue
+        if pending:
+            add_meta(pending); body=max(int(d.get("body_lines",1)) for d in pending); pending=[]; skip=max(0,body-1); continue
+        if skip: skip-=1; continue
+        if not st or st.startswith((";","#",'"')) or st.startswith("define "): continue
+        if re.match(r"^(?:go|mc|exit)\b",st,re.I) or re.match(r"^(?:1|2)\s+ze\b",st,re.I): continue
+        m=re.search(r"\(center\s+(.+?)\s*\)$",st,re.I)
+        if m:
+            for name,shape,phase,ch in re.findall(r"\((p\d+)(?::([A-Za-z0-9_]+))?\s+(ph\d+)\):([A-Za-z0-9]+)",m.group(1)):
+                seq.add(_fallback_element("shaped" if shape else "pulse",f"{name}:{shape}" if shape else name,cursor,ch,phase,shape))
+            continue
+        m=re.search(r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)",st)
+        if m:
+            n,sh,ph,ch=m.groups(); e=_fallback_element("shaped",f"{n}:{sh}",cursor,ch,ph,sh); seq.add(e); cursor+=e.duration; continue
+        m=re.search(r"\((p\d+)\s+(ph\d+)\):([A-Za-z0-9]+)",st)
+        if m:
+            n,ph,ch=m.groups(); e=_fallback_element("pulse",n,cursor,ch,ph); seq.add(e); cursor+=e.duration; continue
+        m=re.search(r"\b(p\d+):(gp\d+(?:\*[^\s]+)?)\b",st,re.I)
+        if m:
+            n,sh=m.groups(); e=_fallback_element("grad",n+":"+sh.split("*")[0],cursor,"Gz",shape=sh.split("*")[0]); seq.add(e); cursor+=e.duration; continue
+        m=re.fullmatch(r"d([A-Za-z0-9_]+)",st,re.I)
+        if m:
+            e=SequenceElement("delay",DELAY_RESOURCE_ID,cursor,read_pulse_duration(DELAY_RESOURCE_ID),"f1",name="d"+m.group(1)); e.manual=True; seq.add(e); cursor+=e.duration
+    if pending: add_meta(pending)
+    return seq
+
+def _line_is_graphical(line):
+    st=line.strip()
+    if not st or st.startswith((";","#",'"')) or st.startswith("define "): return False
+    if re.match(r"^(?:go|mc|exit)\b",st,re.I) or re.match(r"^(?:1|2)\s+ze\b",st,re.I): return False
+    return bool(re.search(r"\(p\d+(?::[A-Za-z0-9_]+)?\s+ph\d+\):",st) or re.search(r"\(center\b",st,re.I) or re.search(r"\bp\d+:gp\d+",st,re.I) or re.fullmatch(r"d[A-Za-z0-9_]+",st) or re.match(r"^\d+(?:\s|$)",st))
+
+def update_excluded_line_options(change=None):
+    if "pulse_program_output" not in globals() or "excluded_lines_selector" not in globals(): return
+    old=set(excluded_lines_selector.value); opts=[]
+    for i,line in enumerate(pulse_program_output.value.splitlines(),1):
+        sn=line.strip(); sn=sn if len(sn)<=58 else sn[:55]+"..."; v=f"{i}:{sn}"
+        if not _line_is_graphical(line) and not line.strip().startswith(";@NMRPAINT "): old.add(v)
+        opts.append((v,v))
+    excluded_lines_selector.options=opts; excluded_lines_selector.value=tuple(v for v,_ in opts if v in old)
+
+def canvas_to_text(b=None):
+    try:
+        populate_phase_rows()
+        if phase_cycle_checkbox.value: generate_phase_cycle()
+        pulse_program_output.value=build_pulse_program_text(); update_excluded_line_options(); generation_output.layout.display="none"
+    except Exception as exc:
+        generation_output.layout.display="block"; generation_output.clear_output(wait=True)
+        with generation_output: print(f"Canvas → Text failed: {type(exc).__name__}: {exc}")
+
+def text_to_canvas(b=None):
+    global sequence,sequence_dirty,current_element
+    try:
+        excluded={int(v.split(":",1)[0]) for v in excluded_lines_selector.value}; parsed=parse_pulse_program_text(pulse_program_output.value,excluded)
+        if not parsed.elements: raise ValueError("No graphical elements could be reconstructed from the text.")
+        save_state(); sequence=parsed; sequence_dirty=True; current_element=None; rebuild_global_delays(); clear_phase_cycle_gui(); populate_phase_rows()
+        if phase_cycle_checkbox.value: generate_phase_cycle()
+        refresh_ui(); update_excluded_line_options(); generation_output.layout.display="none"
+    except Exception as exc:
+        generation_output.layout.display="block"; generation_output.clear_output(wait=True)
+        with generation_output: print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
 
 # -----------------------
 # Main Pulse Program Generator
@@ -1272,7 +1390,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
             writer = ELEMENT_WRITERS.get(kind)
         
             if writer:
-                f.write(writer(el) + "\n")
+                rendered=writer(el)
+                f.write(_nmrpaint_element_metadata(el,len(rendered.splitlines()))+"\n")
+                f.write(rendered+"\n")
             else:
                 f.write(f"; unknown element type: {kind}\n")
                 
@@ -1284,26 +1404,30 @@ def build_pulse_program_text(include_phase_cycle: bool = False) -> str:
         
             center_parts = []
         
+            pending_center_metadata=[]
             for e in els:
-                kind = e.kind.lower()
-        
+                kind=e.kind.lower()
                 if kind in centerable:
-                    text = write_center_element(e)
+                    text=write_center_element(e)
                     if text:
                         center_parts.append(text)
+                        pending_center_metadata.append(e)
                 else:
-                    # write any pending centered elements first
                     if center_parts:
+                        for ce in pending_center_metadata:
+                            f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
                         f.write(" (center " + " ".join(center_parts) + " )\n")
-                        center_parts = []
-        
-                    writer = ELEMENT_WRITERS.get(kind)
+                        center_parts=[]
+                        pending_center_metadata=[]
+                    writer=ELEMENT_WRITERS.get(kind)
                     if writer:
-                        f.write(writer(e) + "\n")
-        
+                        rendered=writer(e)
+                        f.write(_nmrpaint_element_metadata(e, len(rendered.splitlines())) + "\n")
+                        f.write(rendered + "\n")
             if center_parts:
+                for ce in pending_center_metadata:
+                    f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
                 f.write(" (center " + " ".join(center_parts) + " )\n")
-
 
     # -----------------------
     # Acquisition logic
@@ -1852,6 +1976,8 @@ pulse_program_header = HTML("""
 </div>
 """)
 
+excluded_lines_selector=SelectMultiple(options=[],value=(),description="Exclude:",rows=5,layout=Layout(width="400px",height="115px"),style={"description_width":"55px"})
+
 # -----------------------
 # Phase Cycle GUI
 # -----------------------
@@ -2262,6 +2388,7 @@ pulse_program_box = VBox(
     [
         pulse_program_header,
         pulse_program_output,
+        excluded_lines_selector,
         phase_cycle_box
     ],
     layout=Layout(padding='0px 20px')
@@ -4193,6 +4320,14 @@ defs_section = VBox([
 ])
 
 # -----------------------
+# Canvas <-> text conversion controls
+# -----------------------
+canvas_to_text_button=Button(description="↑",tooltip="Convert canvas to pulse-program text",layout=Layout(width="34px",height="34px",padding="0px"))
+text_to_canvas_button=Button(description="↓",tooltip="Convert pulse-program text to canvas",layout=Layout(width="34px",height="34px",padding="0px"))
+conversion_buttons=VBox([canvas_to_text_button,text_to_canvas_button],layout=Layout(width="40px",align_items="center",justify_content="center",gap="6px",padding="0px"))
+canvas_to_text_button.on_click(canvas_to_text); text_to_canvas_button.on_click(text_to_canvas); pulse_program_output.observe(update_excluded_line_options,names="value")
+
+# -----------------------
 # Layout
 # -----------------------
 
@@ -4222,7 +4357,8 @@ main_top_row = HBox(
     [
         elements_section,
         canvas_scroll_box,
-        pulse_program_box,  
+        conversion_buttons,
+        pulse_program_box,
         property_editor_box
     ],
     layout=Layout(
