@@ -1012,7 +1012,19 @@ def text_to_canvas(b=None):
         if not parsed.elements: raise ValueError("No graphical elements could be reconstructed from the text.")
         save_state(); sequence=parsed; sequence_dirty=True; current_element=None; rebuild_global_delays(); clear_phase_cycle_gui(); populate_phase_rows()
         if phase_cycle_checkbox.value: generate_phase_cycle()
-        refresh_ui(); update_excluded_line_options(); generation_output.layout.display="none"
+        refresh_ui()
+
+        # The canvas is now the authoritative representation of the sequence.
+        # Rebuild the hidden NMRpaint metadata from the reconstructed canvas
+        # rather than retaining metadata from the pre-conversion text. This
+        # keeps the hidden metadata synchronized after every Text -> Canvas
+        # operation, including edits to positions, durations, names, gradients
+        # and embedded definition delays.
+        pulse_program_metadata_output.value = build_pulse_program_text(
+            include_nmrpaint_metadata=True
+        )
+        update_excluded_line_options()
+        generation_output.layout.display="none"
     except Exception as exc:
         generation_output.layout.display="block"; generation_output.clear_output(wait=True)
         with generation_output: print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
