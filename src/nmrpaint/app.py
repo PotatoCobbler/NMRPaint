@@ -804,6 +804,12 @@ def _delay_duration_from_definition(name, default=10.0):
 
 def _internal_delay_metadata(el, rendered, fid_start):
     """Create metadata for explicit dXX statements embedded in an element definition."""
+    
+    # A delay element already represents its own dXX statement.
+    # Do not interpret its rendered name as an embedded/internal delay.
+    if el.kind.lower() == "delay":
+        return []
+
     out = []
     cursor = float(el.start) + float(el.duration)
     for raw in str(rendered).splitlines():
@@ -4543,8 +4549,8 @@ defs_section = VBox([
 # -----------------------
 # Canvas <-> text conversion controls
 # -----------------------
-canvas_to_text_button=Button(description="↑",tooltip="Convert canvas to pulse-program text",layout=Layout(width="34px",height="34px",padding="0px"))
-text_to_canvas_button=Button(description="↓",tooltip="Convert pulse-program text to canvas",layout=Layout(width="34px",height="34px",padding="0px"))
+canvas_to_text_button=Button(description="→",tooltip="Convert canvas to pulse-program text",layout=Layout(width="34px",height="34px",padding="0px"))
+text_to_canvas_button=Button(description="←",tooltip="Convert pulse-program text to canvas",layout=Layout(width="34px",height="34px",padding="0px"))
 conversion_buttons=VBox([canvas_to_text_button,text_to_canvas_button],layout=Layout(width="40px",align_items="center",justify_content="center",gap="6px",padding="0px"))
 canvas_to_text_button.on_click(canvas_to_text); text_to_canvas_button.on_click(text_to_canvas); pulse_program_output.observe(update_excluded_line_options,names="value")
 
