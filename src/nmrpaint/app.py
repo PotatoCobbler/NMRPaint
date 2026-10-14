@@ -873,17 +873,7 @@ def parse_pulse_program_text(text,excluded_lines=()):
     excluded=set(excluded_lines or ()); lines=text.splitlines(); seq=PulseSequence(); cursor=40/timeline_scale; pending=[]; skip=0
     def add_meta(items):
         nonlocal cursor
-        seen = set()
         for d in items:
-            key = (
-                d.get("kind"), d.get("file_path"),
-                round(float(d.get("start", 0.0)), 9),
-                round(float(d.get("duration", 0.0)), 9),
-                d.get("channel"), d.get("name"),
-            )
-            if key in seen:
-                continue
-            seen.add(key)
             e=_nmrpaint_element_from_metadata(d)
             # Embedded definition delays are sequential by construction.  If a
             # following explicit element was recorded at the pre-definition
@@ -1016,39 +1006,40 @@ def _merge_visible_text_with_metadata(visible_text, metadata_text):
 
 
 def text_to_canvas(b=None):
-    global sequence, sequence_dirty, current_element
+    global sequence,sequence_dirty,current_element
     try:
-        excluded = {int(v.split(":", 1)[0]) for v in excluded_lines_selector.value}
-        source_text = _merge_visible_text_with_metadata(
-            pulse_program_output.value,
-            pulse_program_metadata_output.value,
-        )
-        parsed = parse_pulse_program_text(source_text, excluded)
-        if not parsed.elements:
-            raise ValueError("No graphical elements could be reconstructed from the text.")
+        excluded={int(v.split(":",1)[0]) for v in excluded_lines_selector.value}; source_text=_merge_visible_text_with_metadata(pulse_program_output.value, pulse_program_metadata_output.value); parsed=parse_pulse_program_text(source_text,excluded)
+        if not parsed.elements: raise ValueError("No graphical elements could be reconstructed from the text.")
         save_state()
-        sequence = parsed
-        sequence_dirty = True
-        current_element = None
+        sequence=parsed
+        sequence_dirty=True
+        current_element=None
+
+        # Rebuild the automatic/global delays from the reconstructed canvas.
+        # The sequence is now the source of truth, so regenerate BOTH text
+        # representations afterwards.  This is important because Text →
+        # Canvas may change element positions, durations, delay numbering,
+        # or remove delays that fall inside the FID.  Leaving the previous
+        # metadata untouched would make it describe the old canvas.
         rebuild_global_delays()
         clear_phase_cycle_gui()
         populate_phase_rows()
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
-        # Canvas is authoritative after Text -> Canvas. Regenerate only the
-        # hidden metadata so it describes the new canvas exactly. Preserve the
-        # user's editable text and exclusion selections.
-        pulse_program_metadata_output.value = build_pulse_program_text(
-            include_nmrpaint_metadata=True
-        )
+
+        # Canonicalise the visible text as well as the hidden metadata from
+        # the newly reconstructed canvas.  This guarantees that the two
+        # representations remain one-to-one after every Text → Canvas
+        # operation, including cases where automatic delays were rebuilt.
+        pulse_program_output.value=build_pulse_program_text(include_nmrpaint_metadata=False)
+        pulse_program_metadata_output.value=build_pulse_program_text(include_nmrpaint_metadata=True)
+
         refresh_ui()
-        generation_output.layout.display = "none"
+        update_excluded_line_options()
+        generation_output.layout.display="none"
     except Exception as exc:
-        generation_output.clear_output(wait=True)
-        generation_output.layout.display = "block"
-        with generation_output:
-            print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
-    draw_ctp()
+        generation_output.layout.display="block"; generation_output.clear_output(wait=True)
+        with generation_output: print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
 
 # -----------------------
 # Main Pulse Program Generator
@@ -1072,23 +1063,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     cpd_gradients.clear()
     
     f = StringIO()
-    emitted_nmrpaint_metadata = set()
-
-    def write_nmrpaint_metadata(data):
-        if not include_nmrpaint_metadata:
-            return
-        key = (
-            data.get("kind"), data.get("file_path"),
-            round(float(data.get("start", 0.0)), 9),
-            round(float(data.get("duration", 0.0)), 9),
-            data.get("channel"), data.get("name"),
-        )
-        if key in emitted_nmrpaint_metadata:
-            return
-        emitted_nmrpaint_metadata.add(key)
-        f.write(";@NMRPAINT " + json.dumps(data, separators=(",", ":"), ensure_ascii=False) + "\n")
-
-
 
     # -----------------------
     # Header section
@@ -1604,9 +1578,9 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
             if writer:
                 rendered=writer(el)
                 if include_nmrpaint_metadata:
-                    write_nmrpaint_metadata(json.loads(_nmrpaint_element_metadata(el, len(rendered.splitlines()))[len(";@NMRPAINT "):]))
+                    f.write(_nmrpaint_element_metadata(el,len(rendered.splitlines()))+"\n")
                     for _d in _internal_delay_metadata(el, rendered, fid_start):
-                        write_nmrpaint_metadata(_d)
+                        f.write(";@NMRPAINT " + json.dumps(_d, separators=(",", ":"), ensure_ascii=False) + "\n")
                 f.write(rendered+"\n")
             else:
                 f.write(f"; unknown element type: {kind}\n")
@@ -1631,7 +1605,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
                     if center_parts:
                         if include_nmrpaint_metadata:
                             for ce in pending_center_metadata:
-                                write_nmrpaint_metadata(json.loads(_nmrpaint_element_metadata(ce, 1)[len(";@NMRPAINT "):]))
+                                f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
                         f.write(" (center " + " ".join(center_parts) + " )\n")
                         center_parts=[]
                         pending_center_metadata=[]
@@ -1639,14 +1613,14 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
                     if writer:
                         rendered=writer(e)
                         if include_nmrpaint_metadata:
-                            write_nmrpaint_metadata(json.loads(_nmrpaint_element_metadata(e, len(rendered.splitlines()))[len(";@NMRPAINT "):]))
+                            f.write(_nmrpaint_element_metadata(e, len(rendered.splitlines())) + "\n")
                             for _d in _internal_delay_metadata(e, rendered, fid_start):
-                                write_nmrpaint_metadata(_d)
+                                f.write(";@NMRPAINT " + json.dumps(_d, separators=(",", ":"), ensure_ascii=False) + "\n")
                         f.write(rendered + "\n")
             if center_parts:
                 if include_nmrpaint_metadata:
                     for ce in pending_center_metadata:
-                        write_nmrpaint_metadata(json.loads(_nmrpaint_element_metadata(ce, 1)[len(";@NMRPAINT "):]))
+                        f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
                 f.write(" (center " + " ".join(center_parts) + " )\n")
 
     # -----------------------
@@ -4569,8 +4543,8 @@ defs_section = VBox([
 # -----------------------
 # Canvas <-> text conversion controls
 # -----------------------
-canvas_to_text_button=Button(description="→",tooltip="Convert canvas to pulse-program text",layout=Layout(width="34px",height="34px",padding="0px"))
-text_to_canvas_button=Button(description="←",tooltip="Convert pulse-program text to canvas",layout=Layout(width="34px",height="34px",padding="0px"))
+canvas_to_text_button=Button(description="↑",tooltip="Convert canvas to pulse-program text",layout=Layout(width="34px",height="34px",padding="0px"))
+text_to_canvas_button=Button(description="↓",tooltip="Convert pulse-program text to canvas",layout=Layout(width="34px",height="34px",padding="0px"))
 conversion_buttons=VBox([canvas_to_text_button,text_to_canvas_button],layout=Layout(width="40px",align_items="center",justify_content="center",gap="6px",padding="0px"))
 canvas_to_text_button.on_click(canvas_to_text); text_to_canvas_button.on_click(text_to_canvas); pulse_program_output.observe(update_excluded_line_options,names="value")
 
