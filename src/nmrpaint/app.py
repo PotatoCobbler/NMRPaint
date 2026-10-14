@@ -12,7 +12,7 @@ from .resource_manager import (
     resource_exists,
 )
 
-import copy, re, tempfile, time, math, json
+import copy, re, tempfile, time, math, json, uuid
 from datetime import datetime
 from io import StringIO
 from pathlib import Path, PurePosixPath
@@ -70,6 +70,7 @@ class SequenceElement:
     def __init__(self, kind, file_path, start, duration, channel="f1",
                  title=None, name=None, definition="", power=None, phase=None, shape=None):
         
+        self.element_id = uuid.uuid4().hex
         self.kind = kind
         self.file_path = file_path
         self.start = start
@@ -531,6 +532,7 @@ def rebuild_global_delays(preferred_delays=None):
 
 sequence = PulseSequence()
 selected_element = {"kind": None, "file_path": None}
+current_element = None
 history = []
 
 dragging_el = None
@@ -583,6 +585,7 @@ def undo_last(b):
 
     sequence = history.pop()
     sequence_dirty = True
+    sync_all_from_sequence()
     refresh_ui()
 
 def clear_sequence(b):
@@ -605,37 +608,78 @@ def clear_sequence(b):
         name="d1"
     )
 
+    delay.manual = True
     sequence.add(delay)
     sequence_dirty = True
+    sync_all_from_sequence()
     refresh_ui()
 
 def delete_selected_element(b):
     global sequence_dirty, current_element
     if current_element is None:
-        print("No element selected."); return
+        print("No element selected.")
+        return
     if current_element not in sequence.elements:
-        current_element = None; return
+        current_element = None
+        return
+
     if current_element.kind == "delay":
         delay = current_element
         name = str(getattr(delay, "name", "") or "").strip().lower()
         if name == "d1":
-            print("d1 cannot be deleted."); current_element = None; return
-        delays = [e for e in sequence.elements if e.kind == "delay" and e is not delay]
+            print("d1 cannot be deleted.")
+            current_element = None
+            return
+
+        delays = [
+            e for e in sequence.elements
+            if e.kind == "delay" and e is not delay
+        ]
         tol = 1e-6
-        left = max((e for e in delays if abs(e.start + e.duration - delay.start) <= tol), key=lambda e:e.start, default=None)
-        right = min((e for e in delays if abs(e.start - delay.start - delay.duration) <= tol), key=lambda e:e.start, default=None)
+        left = max(
+            (e for e in delays if abs(e.start + e.duration - delay.start) <= tol),
+            key=lambda e: e.start,
+            default=None,
+        )
+        right = min(
+            (e for e in delays if abs(e.start - delay.start - delay.duration) <= tol),
+            key=lambda e: e.start,
+            default=None,
+        )
         if left is None and right is None:
-            print("This delay cannot be deleted: an existing delay must be immediately to its left or right."); current_element=None; return
+            print("This delay cannot be deleted: an existing delay must be immediately to its left or right.")
+            current_element = None
+            return
+
         save_state()
         if left is not None:
-            left.duration += delay.duration; left.visual_width = left.duration * timeline_scale; survivor=left
+            left.duration += delay.duration
+            left.visual_width = left.duration * timeline_scale
+            survivor = left
         else:
-            right.start = delay.start; right.duration += delay.duration; right.visual_width = right.duration * timeline_scale; survivor=right
-        sequence.elements.remove(delay); sequence_dirty=True
-        rebuild_global_delays(preferred_delays=[survivor]); refresh_ui()
-        print(f"Deleted delay: {delay.name}"); current_element=None; return
-    save_state(); sequence.elements.remove(current_element); sequence_dirty=True
-    rebuild_global_delays(); refresh_ui(); print(f"Deleted element: {current_element.name}"); current_element=None
+            right.start = delay.start
+            right.duration += delay.duration
+            right.visual_width = right.duration * timeline_scale
+            survivor = right
+
+        sequence.elements.remove(delay)
+        sequence_dirty = True
+        rebuild_global_delays(preferred_delays=[survivor])
+        sync_all_from_sequence()
+        refresh_ui()
+        print(f"Deleted delay: {delay.name}")
+        current_element = None
+        return
+
+    name = current_element.name
+    save_state()
+    sequence.elements.remove(current_element)
+    sequence_dirty = True
+    rebuild_global_delays()
+    sync_all_from_sequence()
+    refresh_ui()
+    print(f"Deleted element: {name}")
+    current_element = None
 
 # -----------------------
 # Button Creation
@@ -767,16 +811,39 @@ definitions_text = Textarea(
 # -----------------------
 
 def _nmrpaint_element_metadata(el, body_lines=1):
-    data = {"kind":el.kind,"file_path":el.file_path,"start":float(el.start),"duration":float(el.duration),"channel":el.channel,"title":el.title,"name":el.name,"definition":el.definition,"power":el.power,"phase":el.phase,"shape":el.shape,"body_lines":int(body_lines),"manual":bool(getattr(el,"manual",False)),"wvm":bool(getattr(el,"wvm",False)),"powerindex":getattr(el,"powerindex",""),"subname":getattr(el,"subname",""),"length":getattr(el,"length",""),"stepsize":getattr(el,"stepsize",""),"bandwidth":getattr(el,"bandwidth",""),"Q":getattr(el,"Q",""),"sweepdirection":getattr(el,"sweepdirection","")}
-    return ";@NMRPAINT " + json.dumps(data,separators=(",",":"),ensure_ascii=False)
+    """Serialize one live SequenceElement into canonical NMRpaint metadata."""
+    data = {
+        "id": getattr(el, "element_id", None) or uuid.uuid4().hex,
+        "kind": el.kind,
+        "file_path": el.file_path,
+        "start": float(el.start),
+        "duration": float(el.duration),
+        "channel": el.channel,
+        "title": el.title,
+        "name": el.name,
+        "definition": el.definition,
+        "description": getattr(el, "description", ""),
+        "power": el.power,
+        "phase": el.phase,
+        "shape": el.shape,
+        "body_lines": int(body_lines),
+        "manual": bool(getattr(el, "manual", False)),
+        "wvm": bool(getattr(el, "wvm", False)),
+        "powerindex": getattr(el, "powerindex", ""),
+        "subname": getattr(el, "subname", ""),
+        "length": getattr(el, "length", ""),
+        "stepsize": getattr(el, "stepsize", ""),
+        "bandwidth": getattr(el, "bandwidth", ""),
+        "Q": getattr(el, "Q", ""),
+        "sweepdirection": getattr(el, "sweepdirection", ""),
+    }
+    return ";@NMRPAINT " + json.dumps(
+        data, separators=(",", ":"), ensure_ascii=False
+    )
 
 
 def _delay_duration_from_definition(name, default=10.0):
-    """Return a graphical duration for a Bruker delay definition.
-
-    Definitions are normally stored in defs/delay_def.txt.  Values such as
-    4u, 2.5m, or 1s are converted to the canvas time unit (microseconds).
-    """
+    """Return a graphical duration for a Bruker delay definition."""
     key = str(name or "").strip().lower()
     try:
         text = read_resource_text("defs", "delay_def.txt")
@@ -803,11 +870,12 @@ def _delay_duration_from_definition(name, default=10.0):
 
 
 def _internal_delay_metadata(el, rendered, fid_start):
-    """Create metadata for explicit dXX statements embedded in an element definition."""
-    
-    # A delay element already represents its own dXX statement.
-    # Do not interpret its rendered name as an embedded/internal delay.
-    if el.kind.lower() == "delay":
+    """Create metadata for explicit dXX statements embedded in an element definition.
+
+    A delay element is already represented by its own metadata record, so its
+    rendered ``dXX`` statement must never be emitted a second time here.
+    """
+    if str(getattr(el, "kind", "")).lower() == "delay":
         return []
 
     out = []
@@ -824,7 +892,23 @@ def _internal_delay_metadata(el, rendered, fid_start):
         duration = min(duration, max(0.0, fid_start - cursor))
         if duration <= 0:
             continue
+
+        # Once an embedded delay has been materialized as a real sequence
+        # element, that element owns the metadata. Do not emit a second
+        # synthetic record for the same delay on the next synchronization.
+        duplicate = any(
+            getattr(existing, "kind", "").lower() == "delay"
+            and str(getattr(existing, "name", "")).strip().lower() == name.lower()
+            and abs(float(getattr(existing, "start", 0.0)) - cursor) < 1e-6
+            and abs(float(getattr(existing, "duration", 0.0)) - duration) < 1e-6
+            for existing in sequence.elements
+        )
+        if duplicate:
+            cursor += duration
+            continue
+
         d = {
+            "id": uuid.uuid4().hex,
             "kind": "delay",
             "file_path": DELAY_RESOURCE_ID,
             "start": cursor,
@@ -833,6 +917,7 @@ def _internal_delay_metadata(el, rendered, fid_start):
             "title": "",
             "name": name,
             "definition": "",
+            "description": "",
             "power": None,
             "phase": None,
             "shape": None,
@@ -852,88 +937,174 @@ def _internal_delay_metadata(el, rendered, fid_start):
         cursor += duration
     return out
 
+
 def _nmrpaint_element_from_metadata(data):
-    el=SequenceElement(kind=data.get("kind","pulse"),file_path=data.get("file_path",""),start=float(data.get("start",0)),duration=float(data.get("duration",10)),channel=data.get("channel","f1"),title=data.get("title",""),name=data.get("name",""),definition=data.get("definition",""),power=data.get("power"),phase=data.get("phase"),shape=data.get("shape"))
-    el.manual=bool(data.get("manual",False)); el.wvm=bool(data.get("wvm",False))
-    for a in ("powerindex","subname","length","stepsize","bandwidth","Q","sweepdirection"): setattr(el,a,data.get(a,""))
-    if el.kind=="delay": el.visual_width=el.duration*timeline_scale
+    el = SequenceElement(
+        kind=data.get("kind", "pulse"),
+        file_path=data.get("file_path", ""),
+        start=float(data.get("start", 0)),
+        duration=float(data.get("duration", 10)),
+        channel=data.get("channel", "f1"),
+        title=data.get("title", ""),
+        name=data.get("name", ""),
+        definition=data.get("definition", ""),
+        power=data.get("power"),
+        phase=data.get("phase"),
+        shape=data.get("shape"),
+    )
+    el.element_id = data.get("id") or uuid.uuid4().hex
+    el.description = data.get("description", "") or ""
+    el.manual = bool(data.get("manual", False))
+    el.wvm = bool(data.get("wvm", False))
+    for a in (
+        "powerindex", "subname", "length", "stepsize",
+        "bandwidth", "Q", "sweepdirection"
+    ):
+        setattr(el, a, data.get(a, ""))
+    if el.kind == "delay":
+        el.visual_width = el.duration * timeline_scale
     return el
 
-def _fallback_resource(kind, token):
-    token=(token or "").lower()
-    if kind=="shaped": return next((x for x in element_files.get("shaped",[]) if resource_filename(x).lower()=="sp1.txt"),"elements/shaped/sp1.txt")
-    if kind=="grad": return next(iter(element_files.get("grad",[])),"elements/grad/gp1.txt")
-    if kind=="pulse":
-        target={"p0":"p0.txt","p1":"p90.txt","p2":"p180.txt","p3":"p90.txt","p4":"p180.txt"}.get(token,"p90.txt")
-        return next((x for x in element_files.get("pulse",[]) if resource_filename(x).lower()==target),f"elements/pulse/{target}")
-    return DELAY_RESOURCE_ID
 
-def _fallback_element(kind,token,start,channel="f1",phase=None,shape=None):
-    fp=_fallback_resource(kind,token); el=SequenceElement(kind,fp,start,read_pulse_duration(fp),channel=channel,phase=phase,shape=shape); apply_placement_defaults(el)
-    if phase: el.phase=phase
-    if shape: el.shape=shape
-    if kind in ("pulse","shaped","grad"): el.name=token.split(":",1)[0]
-    return el
+def _extract_nmrpaint_metadata(metadata_text):
+    """Return canonical metadata records in their stored order."""
+    records = []
+    for raw in str(metadata_text or "").splitlines():
+        st = raw.strip()
+        if not st.startswith(";@NMRPAINT "):
+            continue
+        try:
+            data = json.loads(st[len(";@NMRPAINT "):])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict) and data.get("kind"):
+            records.append(data)
+    return records
 
-def parse_pulse_program_text(text,excluded_lines=()):
-    excluded=set(excluded_lines or ()); lines=text.splitlines(); seq=PulseSequence(); cursor=40/timeline_scale; pending=[]; skip=0
-    def add_meta(items):
-        nonlocal cursor
-        for d in items:
-            e=_nmrpaint_element_from_metadata(d)
-            # Embedded definition delays are sequential by construction.  If a
-            # following explicit element was recorded at the pre-definition
-            # start, move it past the embedded delay instead of duplicating the
-            # same delay region during rebuild_global_delays().
-            if d.get("internal") or (e.kind == "delay" and e.start < cursor):
-                e.start = cursor
+
+def sequence_from_metadata(metadata_text=None):
+    """Materialize the live sequence exclusively from canonical metadata."""
+    global sequence
+    text = pulse_program_metadata_output.value if metadata_text is None else metadata_text
+    records = _extract_nmrpaint_metadata(text)
+    if not records:
+        raise ValueError("No NMRpaint metadata records were found.")
+
+    seq = PulseSequence()
+    for data in records:
+        el = _nmrpaint_element_from_metadata(data)
+        seq.add(el)
+
+    # Metadata is already canonical. Do not regenerate delays here.
+    sequence = seq
+    return sequence
+
+
+def sync_metadata_from_sequence():
+    """Persist the complete live sequence as canonical hidden metadata."""
+    pulse_program_metadata_output.value = build_pulse_program_text(
+        include_nmrpaint_metadata=True
+    )
+
+
+def sync_text_from_sequence():
+    """Generate the user-facing pulse program from the live sequence."""
+    pulse_program_output.value = build_pulse_program_text(
+        include_nmrpaint_metadata=False
+    )
+
+
+def sync_selector_from_text():
+    """Regenerate the selector as a projection of the current pulse text."""
+    update_excluded_line_options()
+
+
+def sync_all_from_sequence():
+    """Synchronize every projection after a sequence mutation."""
+    sync_metadata_from_sequence()
+    sync_text_from_sequence()
+    sync_selector_from_text()
+
+
+def parse_pulse_program_text(text, excluded_lines=()):
+    """Parse text only as a fallback for programs without NMRpaint metadata.
+
+    If canonical NMRpaint metadata is present, it is the authoritative graphical
+    representation and is materialized directly. This prevents delay rebuilding
+    and positional text parsing from deleting or moving existing elements.
+    """
+    metadata = _extract_nmrpaint_metadata(text)
+    if metadata:
+        seq = PulseSequence()
+        for data in metadata:
+            seq.add(_nmrpaint_element_from_metadata(data))
+        return seq
+
+    excluded = set(excluded_lines or ())
+    lines = text.splitlines()
+    seq = PulseSequence()
+    cursor = 40 / timeline_scale
+
+    for no, raw in enumerate(lines, 1):
+        if no in excluded:
+            continue
+        st = raw.strip()
+        if not st or st.startswith((";", "#", '"')) or st.startswith("define "):
+            continue
+        if re.match(r"^(?:go|mc|exit)\b", st, re.I) or re.match(r"^(?:1|2)\s+ze\b", st, re.I):
+            continue
+
+        m = re.search(r"\(center\s+(.+?)\s*\)$", st, re.I)
+        if m:
+            for name, shape, phase, ch in re.findall(
+                r"\((p\d+)(?::([A-Za-z0-9_]+))?\s+(ph\d+)\):([A-Za-z0-9]+)",
+                m.group(1),
+            ):
+                seq.add(_fallback_element(
+                    "shaped" if shape else "pulse",
+                    f"{name}:{shape}" if shape else name,
+                    cursor, ch, phase, shape
+                ))
+            continue
+
+        m = re.search(r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)", st)
+        if m:
+            n, sh, ph, ch = m.groups()
+            e = _fallback_element("shaped", f"{n}:{sh}", cursor, ch, ph, sh)
             seq.add(e)
-            cursor=max(cursor,e.start+e.duration)
-    for no,raw in enumerate(lines,1):
-        if no in excluded: pending=[]; skip=0; continue
-        st=raw.strip()
-        if st.startswith(";@NMRPAINT "):
-            try: pending.append(json.loads(st[len(";@NMRPAINT "):]))
-            except json.JSONDecodeError: pass
+            cursor += e.duration
             continue
-        if pending:
-            add_meta(pending); body=max(int(d.get("body_lines",1)) for d in pending); pending=[]; skip=max(0,body-1); continue
-        if skip: skip-=1; continue
-        if not st or st.startswith((";","#",'"')) or st.startswith("define "): continue
-        if re.match(r"^(?:go|mc|exit)\b",st,re.I) or re.match(r"^(?:1|2)\s+ze\b",st,re.I): continue
-        m=re.search(r"\(center\s+(.+?)\s*\)$",st,re.I)
-        if m:
-            for name,shape,phase,ch in re.findall(r"\((p\d+)(?::([A-Za-z0-9_]+))?\s+(ph\d+)\):([A-Za-z0-9]+)",m.group(1)):
-                seq.add(_fallback_element("shaped" if shape else "pulse",f"{name}:{shape}" if shape else name,cursor,ch,phase,shape))
-            continue
-        m=re.search(r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)",st)
-        if m:
-            n,sh,ph,ch=m.groups(); e=_fallback_element("shaped",f"{n}:{sh}",cursor,ch,ph,sh); seq.add(e); cursor+=e.duration; continue
-        m=re.search(r"\((p\d+)\s+(ph\d+)\):([A-Za-z0-9]+)",st)
-        if m:
-            n,ph,ch=m.groups(); e=_fallback_element("pulse",n,cursor,ch,ph); seq.add(e); cursor+=e.duration; continue
-        m=re.search(r"\b(p\d+):(gp\d+(?:\*[^\s]+)?)\b",st,re.I)
-        if m:
-            n,sh=m.groups(); e=_fallback_element("grad",n+":"+sh.split("*")[0],cursor,"Gz",shape=sh.split("*")[0]); seq.add(e); cursor+=e.duration; continue
-        m=re.fullmatch(r"d([A-Za-z0-9_]+)",st,re.I)
-        if m:
-            e=SequenceElement("delay",DELAY_RESOURCE_ID,cursor,read_pulse_duration(DELAY_RESOURCE_ID),"f1",name="d"+m.group(1)); e.manual=True; seq.add(e); cursor+=e.duration
-    if pending: add_meta(pending)
 
-    # Acquisition/FID is not part of the drawable pulse-program timeline.
-    # Remove delays that start in the FID and clamp any delay that crosses into it.
-    fid_limit = get_fid_start_time()
-    cleaned = []
-    for e in seq.elements:
-        if e.kind == "delay":
-            if e.start >= fid_limit:
-                continue
-            e.duration = min(e.duration, max(0.0, fid_limit - e.start))
-            if e.duration <= 0:
-                continue
-            e.visual_width = e.duration * timeline_scale
-        cleaned.append(e)
-    seq.elements = cleaned
+        m = re.search(r"\((p\d+)\s+(ph\d+)\):([A-Za-z0-9]+)", st)
+        if m:
+            n, ph, ch = m.groups()
+            e = _fallback_element("pulse", n, cursor, ch, ph)
+            seq.add(e)
+            cursor += e.duration
+            continue
+
+        m = re.search(r"\b(p\d+):(gp\d+(?:\*[^\s]+)?)\b", st, re.I)
+        if m:
+            n, sh = m.groups()
+            e = _fallback_element(
+                "grad", n + ":" + sh.split("*")[0], cursor,
+                "Gz", shape=sh.split("*")[0]
+            )
+            seq.add(e)
+            cursor += e.duration
+            continue
+
+        m = re.fullmatch(r"d([A-Za-z0-9_]+)", st, re.I)
+        if m:
+            e = SequenceElement(
+                "delay", DELAY_RESOURCE_ID, cursor,
+                read_pulse_duration(DELAY_RESOURCE_ID), "f1",
+                name="d" + m.group(1)
+            )
+            e.manual = True
+            seq.add(e)
+            cursor += e.duration
+
     return seq
 
 def _line_is_graphical(line):
@@ -954,106 +1125,66 @@ def update_excluded_line_options(change=None):
 def canvas_to_text(b=None):
     try:
         populate_phase_rows()
-        if phase_cycle_checkbox.value: generate_phase_cycle()
-        pulse_program_output.value=build_pulse_program_text(include_nmrpaint_metadata=False); pulse_program_metadata_output.value=build_pulse_program_text(include_nmrpaint_metadata=True); update_excluded_line_options(); generation_output.layout.display="none"
-    except Exception as exc:
-        generation_output.layout.display="block"; generation_output.clear_output(wait=True)
-        with generation_output: print(f"Canvas → Text failed: {type(exc).__name__}: {exc}")
-
-def _merge_visible_text_with_metadata(visible_text, metadata_text):
-    """Inject hidden NMRpaint metadata back into the visible pulse program.
-
-    The user-facing text remains clean. Metadata is matched to graphical
-    statements in their original order; if the visible text was edited,
-    unmatched statements simply fall back to normal Bruker parsing.
-    """
-    if not metadata_text.strip():
-        return visible_text
-
-    groups = []
-    pending = []
-    for raw in metadata_text.splitlines():
-        st = raw.strip()
-        if st.startswith(";@NMRPAINT "):
-            try:
-                pending.append(json.loads(st[len(";@NMRPAINT "):]))
-            except json.JSONDecodeError:
-                pending = []
-            continue
-        if pending:
-            groups.append((list(pending), max(int(d.get("body_lines", 1)) for d in pending)))
-            pending = []
-    if pending:
-        groups.append((list(pending), max(int(d.get("body_lines", 1)) for d in pending)))
-
-    if not groups:
-        return visible_text
-
-    out = []
-    group_index = 0
-    
-    for raw in visible_text.splitlines():
-    
-        if _line_is_graphical(raw) and group_index < len(groups):
-    
-            meta_group, _body_lines = groups[group_index]
-    
-            for d in meta_group:
-                out.append(
-                    ";@NMRPAINT "
-                    + json.dumps(
-                        d,
-                        separators=(",", ":"),
-                        ensure_ascii=False
-                    )
-                )
-    
-            out.append(raw)
-            group_index += 1
-    
-        else:
-            out.append(raw)
-    
-    return "\n".join(out)
-
-def text_to_canvas(b=None):
-    global sequence,sequence_dirty,current_element
-    try:
-        excluded={int(v.split(":",1)[0]) for v in excluded_lines_selector.value}; source_text=_merge_visible_text_with_metadata(pulse_program_output.value, pulse_program_metadata_output.value); parsed=parse_pulse_program_text(source_text,excluded)
-        if not parsed.elements: raise ValueError("No graphical elements could be reconstructed from the text.")
-        save_state()
-        sequence=parsed
-        sequence_dirty=True
-        current_element=None
-
-        # Rebuild the automatic/global delays from the reconstructed canvas.
-        # The sequence is now the source of truth, so regenerate BOTH text
-        # representations afterwards.  This is important because Text →
-        # Canvas may change element positions, durations, delay numbering,
-        # or remove delays that fall inside the FID.  Leaving the previous
-        # metadata untouched would make it describe the old canvas.
-        rebuild_global_delays()
-        clear_phase_cycle_gui()
-        populate_phase_rows()
-              
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
-        
-        pulse_program_output.value = build_pulse_program_text(
-            include_nmrpaint_metadata=False
-        )
-        
-        pulse_program_metadata_output.value = build_pulse_program_text(
-            include_nmrpaint_metadata=True
-        )
-        
-        refresh_ui()
-        update_excluded_line_options()
-        generation_output.layout.display="none"
-        
+
+        # Canvas/sequence is authoritative in this direction.
+        sync_all_from_sequence()
+        generation_output.layout.display = "none"
     except Exception as exc:
-        generation_output.layout.display="block"; generation_output.clear_output(wait=True)
-        with generation_output: print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
+        generation_output.layout.display = "block"
+        generation_output.clear_output(wait=True)
+        with generation_output:
+            print(f"Canvas → Text failed: {type(exc).__name__}: {exc}")
+
+def _merge_visible_text_with_metadata(visible_text, metadata_text):
+    """Compatibility helper: prepend canonical metadata records to text.
+
+    Metadata is canonical and therefore does not depend on line-position
+    matching. The visible text is retained verbatim after the metadata block.
+    This helper is primarily useful for legacy/fallback parsing.
+    """
+    records = _extract_nmrpaint_metadata(metadata_text)
+    if not records:
+        return visible_text
+
+    meta_lines = [
+        ";@NMRPAINT " + json.dumps(r, separators=(",", ":"), ensure_ascii=False)
+        for r in records
+    ]
+    return "\n".join(meta_lines + [str(visible_text or "")])
+
+
+def text_to_canvas(b=None):
+    """Rebuild the canvas from canonical NMRpaint metadata.
+
+    No delay regeneration occurs here. Delays stored in metadata are real
+    sequence elements and must survive a round trip unchanged.
+    """
+    global sequence, sequence_dirty, current_element
+    try:
+        save_state()
+
+        # Metadata is the source of truth for graphical state.
+        sequence_from_metadata()
+        sequence_dirty = True
+        current_element = None
+
+        clear_phase_cycle_gui()
+        populate_phase_rows()
+        if phase_cycle_checkbox.value:
+            generate_phase_cycle()
+
+        # Canonicalize all projections from the materialized sequence.
+        sync_all_from_sequence()
+        refresh_ui()
+
+        generation_output.layout.display = "none"
+    except Exception as exc:
+        generation_output.layout.display = "block"
+        generation_output.clear_output(wait=True)
+        with generation_output:
+            print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
 
 # -----------------------
 # Main Pulse Program Generator
@@ -2100,6 +2231,7 @@ def generate_program(b):
     browser_download_link.value = ""
     
     try:
+        sync_all_from_sequence()
         content, filename = generate_current_pulse_program()
         
         pulse_program_output.value = content
@@ -3470,31 +3602,29 @@ def show_property_editor(el: SequenceElement):
     # ---------------------------
     
     def update_el(b):
+        global sequence_dirty
+
         save_state()
-    
+
+        # GUI -> live sequence element
         el.title = el_title.value
         el.name = el_name.value
         el.definition = el_definition.value
         el.description = el_description.value
-    
-        el.duration = el_duration.value
+        el.duration = float(el_duration.value)
         el.visual_width = el.duration * timeline_scale
-    
+
         if kind != "flag":
             el.channel = el_channel.value
-    
+
         if kind in ["pulse", "shaped", "grad", "cpd"]:
             el.power = el_power.value
-    
+
         if kind in ["pulse", "shaped"]:
             el.phase = el_phase.value
-    
+
         if kind == "shaped":
             el.shape = el_shape.value
-    
-            # ---------------------------
-            # WVM properties
-            # ---------------------------
             el.wvm = el_wvm.value
             el.powerindex = el_powerindex.value
             el.subname = el_subname.value
@@ -3503,25 +3633,30 @@ def show_property_editor(el: SequenceElement):
             el.bandwidth = el_bandwidth.value
             el.Q = el_Q.value
             el.sweepdirection = el_sweepdirection.value
-    
+
         if kind in ["pulse", "shaped", "block", "grad"]:
             el.visual_height = el_height.value
-    
+
         if kind == "delay":
             el.manual = True
-    
-        if el.kind != "delay":
+        else:
+            # Recalculate only the derived automatic delays. The resulting
+            # delay objects are then immediately persisted to metadata.
             rebuild_global_delays()
-            
+
+        sequence_dirty = True
+        sync_all_from_sequence()
         refresh_ui()
-    
+
         populate_phase_rows()
-        generate_phase_cycle()
-    
+        if phase_cycle_checkbox.value:
+            generate_phase_cycle()
+
+    # This button has exactly one state-mutating callback. Program generation
+    # is performed separately and never competes with the editor update.
     update_button._click_handlers.callbacks.clear()
     update_button.on_click(update_el)
-    update_button.on_click(generate_program)
-    
+
 # -----------------------
 # Main canvas Setup
 # -----------------------
@@ -3729,6 +3864,7 @@ def set_canvas_size(new_width: int, new_height: int = None):
     ctp_box.layout.min_width = f"{canvas_width}px"
 
     rebuild_global_delays()
+    sync_all_from_sequence()
     draw_ctp_background()
     refresh_ui()
     
@@ -4389,6 +4525,7 @@ def on_canvas_mouse_down(x, y):
     sequence.add(new_el)
     sequence_dirty = True
     rebuild_global_delays()
+    sync_all_from_sequence()
     refresh_ui()
     
 def on_canvas_mouse_move(x, y):
@@ -4466,6 +4603,7 @@ def on_canvas_mouse_up(x, y):
         dragging_el.start = dash_time
 
     rebuild_global_delays()
+    sync_all_from_sequence()
 
     dragging_el = None
     drag_mode = None
