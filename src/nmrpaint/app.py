@@ -991,25 +991,30 @@ def _merge_visible_text_with_metadata(visible_text, metadata_text):
 
     out = []
     group_index = 0
-    consume = 0
+    
     for raw in visible_text.splitlines():
-        if consume:
-            out.append(raw)
-            consume -= 1
-            continue
-
+    
         if _line_is_graphical(raw) and group_index < len(groups):
-            meta_group, body_lines = groups[group_index]
+    
+            meta_group, _body_lines = groups[group_index]
+    
             for d in meta_group:
-                out.append(";@NMRPAINT " + json.dumps(d, separators=(",", ":"), ensure_ascii=False))
+                out.append(
+                    ";@NMRPAINT "
+                    + json.dumps(
+                        d,
+                        separators=(",", ":"),
+                        ensure_ascii=False
+                    )
+                )
+    
             out.append(raw)
-            consume = max(0, body_lines - 1)
             group_index += 1
+    
         else:
             out.append(raw)
-
+    
     return "\n".join(out)
-
 
 def text_to_canvas(b=None):
     global sequence,sequence_dirty,current_element
