@@ -510,6 +510,17 @@ def rebuild_global_delays(preferred_delays=None):
     if current_time < fid_start_time:
         create_delay(current_time, fid_start_time - current_time)
     
+    # Delays during acquisition/FID are not drawable sequence elements.
+    fid_limit = fid_start_time
+    for _el in list(sequence.elements):
+        if _el.kind != "delay":
+            continue
+        if _el.start >= fid_limit:
+            sequence.elements.remove(_el)
+            continue
+        _el.duration = min(_el.duration, max(0.0, fid_limit - _el.start))
+        _el.visual_width = _el.duration * timeline_scale
+
     sequence_dirty = True
     remove_overlapping_delays()
     renumber_delays()    
@@ -759,6 +770,82 @@ def _nmrpaint_element_metadata(el, body_lines=1):
     data = {"kind":el.kind,"file_path":el.file_path,"start":float(el.start),"duration":float(el.duration),"channel":el.channel,"title":el.title,"name":el.name,"definition":el.definition,"power":el.power,"phase":el.phase,"shape":el.shape,"body_lines":int(body_lines),"manual":bool(getattr(el,"manual",False)),"wvm":bool(getattr(el,"wvm",False)),"powerindex":getattr(el,"powerindex",""),"subname":getattr(el,"subname",""),"length":getattr(el,"length",""),"stepsize":getattr(el,"stepsize",""),"bandwidth":getattr(el,"bandwidth",""),"Q":getattr(el,"Q",""),"sweepdirection":getattr(el,"sweepdirection","")}
     return ";@NMRPAINT " + json.dumps(data,separators=(",",":"),ensure_ascii=False)
 
+
+def _delay_duration_from_definition(name, default=10.0):
+    """Return a graphical duration for a Bruker delay definition.
+
+    Definitions are normally stored in defs/delay_def.txt.  Values such as
+    4u, 2.5m, or 1s are converted to the canvas time unit (microseconds).
+    """
+    key = str(name or "").strip().lower()
+    try:
+        text = read_resource_text("defs", "delay_def.txt")
+    except Exception:
+        return float(default)
+
+    for raw in text.splitlines():
+        if ":" not in raw:
+            continue
+        lhs, rhs = raw.split(":", 1)
+        if lhs.strip().lower() != key:
+            continue
+        m = re.search(r"([-+]?\d+(?:\.\d+)?)\s*(u|us|m|ms|s)?", rhs.strip(), re.I)
+        if not m:
+            return float(default)
+        value = float(m.group(1))
+        unit = (m.group(2) or "u").lower()
+        if unit in ("m", "ms"):
+            value *= 1000.0
+        elif unit == "s":
+            value *= 1_000_000.0
+        return value
+    return float(default)
+
+
+def _internal_delay_metadata(el, rendered, fid_start):
+    """Create metadata for explicit dXX statements embedded in an element definition."""
+    out = []
+    cursor = float(el.start) + float(el.duration)
+    for raw in str(rendered).splitlines():
+        st = raw.strip()
+        m = re.fullmatch(r"d(\d+)", st, re.I)
+        if not m:
+            continue
+        name = "d" + m.group(1)
+        duration = _delay_duration_from_definition(name)
+        if cursor >= fid_start:
+            continue
+        duration = min(duration, max(0.0, fid_start - cursor))
+        if duration <= 0:
+            continue
+        d = {
+            "kind": "delay",
+            "file_path": DELAY_RESOURCE_ID,
+            "start": cursor,
+            "duration": duration,
+            "channel": "f1",
+            "title": "",
+            "name": name,
+            "definition": "",
+            "power": None,
+            "phase": None,
+            "shape": None,
+            "body_lines": 1,
+            "manual": True,
+            "wvm": False,
+            "powerindex": "",
+            "subname": "",
+            "length": "",
+            "stepsize": "",
+            "bandwidth": "",
+            "Q": "",
+            "sweepdirection": "",
+            "internal": True,
+        }
+        out.append(d)
+        cursor += duration
+    return out
+
 def _nmrpaint_element_from_metadata(data):
     el=SequenceElement(kind=data.get("kind","pulse"),file_path=data.get("file_path",""),start=float(data.get("start",0)),duration=float(data.get("duration",10)),channel=data.get("channel","f1"),title=data.get("title",""),name=data.get("name",""),definition=data.get("definition",""),power=data.get("power"),phase=data.get("phase"),shape=data.get("shape"))
     el.manual=bool(data.get("manual",False)); el.wvm=bool(data.get("wvm",False))
@@ -787,7 +874,15 @@ def parse_pulse_program_text(text,excluded_lines=()):
     def add_meta(items):
         nonlocal cursor
         for d in items:
-            e=_nmrpaint_element_from_metadata(d); seq.add(e); cursor=max(cursor,e.start+e.duration)
+            e=_nmrpaint_element_from_metadata(d)
+            # Embedded definition delays are sequential by construction.  If a
+            # following explicit element was recorded at the pre-definition
+            # start, move it past the embedded delay instead of duplicating the
+            # same delay region during rebuild_global_delays().
+            if d.get("internal") or (e.kind == "delay" and e.start < cursor):
+                e.start = cursor
+            seq.add(e)
+            cursor=max(cursor,e.start+e.duration)
     for no,raw in enumerate(lines,1):
         if no in excluded: pending=[]; skip=0; continue
         st=raw.strip()
@@ -818,6 +913,21 @@ def parse_pulse_program_text(text,excluded_lines=()):
         if m:
             e=SequenceElement("delay",DELAY_RESOURCE_ID,cursor,read_pulse_duration(DELAY_RESOURCE_ID),"f1",name="d"+m.group(1)); e.manual=True; seq.add(e); cursor+=e.duration
     if pending: add_meta(pending)
+
+    # Acquisition/FID is not part of the drawable pulse-program timeline.
+    # Remove delays that start in the FID and clamp any delay that crosses into it.
+    fid_limit = get_fid_start_time()
+    cleaned = []
+    for e in seq.elements:
+        if e.kind == "delay":
+            if e.start >= fid_limit:
+                continue
+            e.duration = min(e.duration, max(0.0, fid_limit - e.start))
+            if e.duration <= 0:
+                continue
+            e.visual_width = e.duration * timeline_scale
+        cleaned.append(e)
+    seq.elements = cleaned
     return seq
 
 def _line_is_graphical(line):
@@ -1445,6 +1555,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
                 rendered=writer(el)
                 if include_nmrpaint_metadata:
                     f.write(_nmrpaint_element_metadata(el,len(rendered.splitlines()))+"\n")
+                    for _d in _internal_delay_metadata(el, rendered, fid_start):
+                        f.write(";@NMRPAINT " + json.dumps(_d, separators=(",", ":"), ensure_ascii=False) + "\n")
                 f.write(rendered+"\n")
             else:
                 f.write(f"; unknown element type: {kind}\n")
@@ -1478,6 +1590,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
                         rendered=writer(e)
                         if include_nmrpaint_metadata:
                             f.write(_nmrpaint_element_metadata(e, len(rendered.splitlines())) + "\n")
+                            for _d in _internal_delay_metadata(e, rendered, fid_start):
+                                f.write(";@NMRPAINT " + json.dumps(_d, separators=(",", ":"), ensure_ascii=False) + "\n")
                         f.write(rendered + "\n")
             if center_parts:
                 if include_nmrpaint_metadata:
