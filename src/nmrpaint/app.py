@@ -1010,19 +1010,31 @@ def text_to_canvas(b=None):
     try:
         excluded={int(v.split(":",1)[0]) for v in excluded_lines_selector.value}; source_text=_merge_visible_text_with_metadata(pulse_program_output.value, pulse_program_metadata_output.value); parsed=parse_pulse_program_text(source_text,excluded)
         if not parsed.elements: raise ValueError("No graphical elements could be reconstructed from the text.")
-        save_state(); sequence=parsed; sequence_dirty=True; current_element=None; rebuild_global_delays(); clear_phase_cycle_gui(); populate_phase_rows()
-        if phase_cycle_checkbox.value: generate_phase_cycle()
-        refresh_ui()
+        save_state()
+        sequence=parsed
+        sequence_dirty=True
+        current_element=None
 
-        # The canvas is now the authoritative representation of the sequence.
-        # Rebuild the hidden NMRpaint metadata from the reconstructed canvas
-        # rather than retaining metadata from the pre-conversion text. This
-        # keeps the hidden metadata synchronized after every Text -> Canvas
-        # operation, including edits to positions, durations, names, gradients
-        # and embedded definition delays.
-        pulse_program_metadata_output.value = build_pulse_program_text(
-            include_nmrpaint_metadata=True
-        )
+        # Rebuild the automatic/global delays from the reconstructed canvas.
+        # The sequence is now the source of truth, so regenerate BOTH text
+        # representations afterwards.  This is important because Text →
+        # Canvas may change element positions, durations, delay numbering,
+        # or remove delays that fall inside the FID.  Leaving the previous
+        # metadata untouched would make it describe the old canvas.
+        rebuild_global_delays()
+        clear_phase_cycle_gui()
+        populate_phase_rows()
+        if phase_cycle_checkbox.value:
+            generate_phase_cycle()
+
+        # Canonicalise the visible text as well as the hidden metadata from
+        # the newly reconstructed canvas.  This guarantees that the two
+        # representations remain one-to-one after every Text → Canvas
+        # operation, including cases where automatic delays were rebuilt.
+        pulse_program_output.value=build_pulse_program_text(include_nmrpaint_metadata=False)
+        pulse_program_metadata_output.value=build_pulse_program_text(include_nmrpaint_metadata=True)
+
+        refresh_ui()
         update_excluded_line_options()
         generation_output.layout.display="none"
     except Exception as exc:
