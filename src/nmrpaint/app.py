@@ -1032,7 +1032,7 @@ def text_to_canvas(b=None):
         # Canvas may change element positions, durations, delay numbering,
         # or remove delays that fall inside the FID.  Leaving the previous
         # metadata untouched would make it describe the old canvas.
-        #rebuild_global_delays()
+        rebuild_global_delays()
         clear_phase_cycle_gui()
         populate_phase_rows()
               
