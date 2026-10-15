@@ -1026,6 +1026,43 @@ def sync_all_from_sequence():
     sync_selector_from_text()
 
 
+def _fallback_element(kind, name, start, channel="f1", phase="", shape=None):
+    """Construct a usable canvas element from editable Bruker text."""
+    kind = str(kind or "pulse").lower()
+    channel = channel or "f1"
+    shape = shape or ""
+
+    if kind == "grad":
+        file_path = shape or "gp1"
+    elif kind == "shaped":
+        file_path = shape or name
+    else:
+        file_path = name
+
+    duration = read_pulse_duration(file_path)
+    el = SequenceElement(
+        kind=kind,
+        file_path=file_path,
+        start=float(start),
+        duration=float(duration),
+        channel=channel,
+        name=name,
+        phase=phase or "",
+        shape=shape or "",
+    )
+
+    # Apply the same defaults used for normal canvas placement, then restore
+    # the values explicitly represented in the editable pulse-program text.
+    apply_placement_defaults(el)
+    el.name = name
+    el.channel = channel
+    el.phase = phase or getattr(el, "phase", "") or ""
+    if shape:
+        el.shape = shape
+
+    return el
+
+
 def parse_pulse_program_text(text, excluded_lines=()):
     """Parse text only as a fallback for programs without NMRpaint metadata.
 
