@@ -208,10 +208,11 @@ def apply_placement_defaults(el: 'SequenceElement'):
             
 def pulse_fill_color(el):
     name = resource_filename(el.file_path).lower()
-    if "p90" in name:
-        return "white"
-    elif "p180" in name:
+    element_name = str(getattr(el, "name", "")).strip().lower()
+    if element_name in {"p2", "p4"} or "p180" in name:
         return "black"
+    elif "p90" in name:
+        return "white"
     elif "p0" in name:
         return "lightgrey"
     else:
@@ -1026,20 +1027,43 @@ def sync_all_from_sequence():
     sync_selector_from_text()
 
 
-def _fallback_element(kind, name, start, channel="f1", phase="", shape=None):
-    """Construct a usable canvas element from editable Bruker text."""
+def _fallback_element(
+    kind,
+    name,
+    start,
+    channel="f1",
+    phase="",
+    shape=None,
+    power="",
+    duration=None,
+):
+    """Construct a canvas element from editable Bruker text.
+
+    This fallback only populates the model. Graphical appearance is handled by
+    ``draw_element()``.
+    """
     kind = str(kind or "pulse").lower()
     channel = channel or "f1"
-    shape = shape or ""
+    name = str(name or "")
+    shape = str(shape or "")
 
     if kind == "grad":
         file_path = shape or "gp1"
     elif kind == "shaped":
         file_path = shape or name
+    elif kind == "block":
+        file_path = "cpd.txt"
     else:
         file_path = name
 
-    duration = read_pulse_duration(file_path)
+    if duration is None:
+        if kind == "pulse":
+            duration = 4.0 if name.lower() in {"p2", "p4"} else 2.0
+        elif kind == "block":
+            duration = 4.0
+        else:
+            duration = read_pulse_duration(file_path)
+
     el = SequenceElement(
         kind=kind,
         file_path=file_path,
@@ -1047,18 +1071,29 @@ def _fallback_element(kind, name, start, channel="f1", phase="", shape=None):
         duration=float(duration),
         channel=channel,
         name=name,
+        power=power or "",
         phase=phase or "",
         shape=shape or "",
     )
 
-    # Apply the same defaults used for normal canvas placement, then restore
-    # the values explicitly represented in the editable pulse-program text.
     apply_placement_defaults(el)
     el.name = name
     el.channel = channel
-    el.phase = phase or getattr(el, "phase", "") or ""
-    if shape:
-        el.shape = shape
+    if kind in ("pulse", "shaped") and not power:
+        el.power = {"f1": "pl1", "f2": "pl2"}.get(channel.lower(), "")
+    else:
+        el.power = power or ""
+    el.phase = phase or ""
+    el.shape = shape or ""
+    el.duration = float(duration)
+    el.visual_width = el.duration * timeline_scale
+
+    if kind == "block":
+        el.title = name
+        el.visual_height = DEFAULT_HEIGHT / 2
+    elif kind in ("pulse", "shaped"):
+        el.title = name
+        el.visual_height = DEFAULT_HEIGHT
 
     return el
 
@@ -1099,15 +1134,24 @@ def parse_pulse_program_text(text, excluded_lines=()):
             ):
                 seq.add(_fallback_element(
                     "shaped" if shape else "pulse",
-                    f"{name}:{shape}" if shape else name,
+                    name,
                     cursor, ch, phase, shape
                 ))
+            continue
+
+        # CPD statements are represented graphically as block elements.
+        m = re.search(r"\b(cpd\d+):(f\d+)\b", st, re.I)
+        if m:
+            cpd_name, ch = m.groups()
+            e = _fallback_element("block", cpd_name, cursor, ch, duration=4.0)
+            seq.add(e)
+            cursor += e.duration
             continue
 
         m = re.search(r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)", st)
         if m:
             n, sh, ph, ch = m.groups()
-            e = _fallback_element("shaped", f"{n}:{sh}", cursor, ch, ph, sh)
+            e = _fallback_element("shaped", n, cursor, ch, ph, sh)
             seq.add(e)
             cursor += e.duration
             continue
@@ -1142,13 +1186,22 @@ def parse_pulse_program_text(text, excluded_lines=()):
             seq.add(e)
             cursor += e.duration
 
+    # If the final user-written element is not a delay, align its right edge
+    # exactly with the FID marker. No synthetic delay is created after it.
+    if seq.elements and seq.elements[-1].kind != "delay":
+        final_el = seq.elements[-1]
+        fid_start_time = get_fid_start_time()
+        final_el.start = max(40 / timeline_scale, fid_start_time - final_el.duration)
+        final_el.visual_width = final_el.duration * timeline_scale
+
+
     return seq
 
 def _line_is_graphical(line):
     st=line.strip()
     if not st or st.startswith((";","#",'"')) or st.startswith("define "): return False
     if re.match(r"^(?:go|mc|exit)\b",st,re.I) or re.match(r"^(?:1|2)\s+ze\b",st,re.I): return False
-    return bool(re.search(r"\(p\d+(?::[A-Za-z0-9_]+)?\s+ph\d+\):",st) or re.search(r"\(center\b",st,re.I) or re.search(r"\bp\d+:gp\d+",st,re.I) or re.fullmatch(r"d[A-Za-z0-9_]+",st) or re.match(r"^\d+(?:\s|$)",st))
+    return bool(re.search(r"\(p\d+(?::[A-Za-z0-9_]+)?\s+ph\d+\):",st) or re.search(r"\(center\b",st,re.I) or re.search(r"\bp\d+:gp\d+",st,re.I) or re.search(r"\bcpd\d+:f\d+\b",st,re.I) or re.fullmatch(r"d[A-Za-z0-9_]+",st) or re.match(r"^\d+(?:\s|$)",st))
 
 def update_excluded_line_options(change=None):
     if "pulse_program_output" not in globals() or "excluded_lines_selector" not in globals(): return
@@ -4220,20 +4273,23 @@ def draw_element(c, el, _ignored=None):
         if not hasattr(el, 'visual_height'):
             el.visual_height = DEFAULT_HEIGHT
             top_y = timeline_y - el.visual_height
-        c.fill_style = pulse_fill_color(el)
+
         c.stroke_style = "black"
         c.line_width = 2
-        c.fill_rect(x, top_y, width, el.visual_height)
+
+        # Fallback pulse drawing: p2/p4 are filled; every other p# is open.
+        if str(getattr(el, "name", "")).strip().lower() in {"p2", "p4"}:
+            c.fill_style = pulse_fill_color(el)
+            c.fill_rect(x, top_y, width, el.visual_height)
+
         c.stroke_rect(x, top_y, width, el.visual_height)
-        
-        # Title
+
         c.fill_style = "black"
         c.font = "16px Arial"
         c.text_align = "center"
         c.text_baseline = "middle"
         c.fill_text(el.title, x + width/2, top_y - 10)
-        
-    
+
 def draw_static_background():
     canvas.clear()
     canvas.fill_style = "white"
