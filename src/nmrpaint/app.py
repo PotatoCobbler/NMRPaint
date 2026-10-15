@@ -1132,6 +1132,22 @@ def parse_pulse_program_text(text, excluded_lines=()):
         if re.match(r"^(?:go|mc|exit)\b", st, re.I) or re.match(r"^(?:1|2)\s+ze\b", st, re.I):
             continue
 
+        # Numeric pulse-program lines are Bruker loop/flow flags.
+        # Example: ``3 loop to 2`` -> flag 3 with definition ``loop to 2``.
+        m = re.fullmatch(r"(\d+)(?:\s+(.*))?", st)
+        if m:
+            number = int(m.group(1))
+            definition = (m.group(2) or "").strip()
+            flag = SequenceElement(
+                "flag", "flag.txt", cursor, 0.0, "f1",
+                name="", definition=definition
+            )
+            flag.flag_number = number
+            flag.visual_width = 30
+            flag.visual_height = 120
+            seq.add(flag)
+            continue
+
         m = re.search(r"\(center\s+(.+?)\s*\)$", st, re.I)
         if m:
             for name, shape, phase, ch in re.findall(
@@ -1192,23 +1208,34 @@ def parse_pulse_program_text(text, excluded_lines=()):
             seq.add(e)
             cursor += e.duration
 
-    # If the final user-written element is not a delay, align its right edge
-    # exactly with the FID marker. If the immediately preceding element is a
-    # delay, extend that delay so that it ends exactly where the final element
-    # begins. No synthetic delay is created after the final element.
-    if seq.elements and seq.elements[-1].kind != "delay":
-        final_el = seq.elements[-1]
+    # Align the final text-derived element with the FID.
+    #
+    # - Final non-delay: its right edge must coincide with the FID. If the
+    #   preceding element is a delay, extend that delay to the pulse.
+    # - Final delay: it itself must extend all the way to the FID.
+    #
+    # No synthetic delay is created after the final element.
+    if seq.elements:
         fid_start_time = get_fid_start_time()
-        final_el.start = max(40 / timeline_scale, fid_start_time - final_el.duration)
-        final_el.visual_width = final_el.duration * timeline_scale
+        final_el = seq.elements[-1]
 
-        if len(seq.elements) >= 2:
-            preceding = seq.elements[-2]
-            if preceding.kind == "delay":
-                new_duration = final_el.start - preceding.start
-                if new_duration >= 0:
-                    preceding.duration = new_duration
-                    preceding.visual_width = new_duration * timeline_scale
+        if final_el.kind == "delay":
+            final_el.duration = max(0.0, fid_start_time - final_el.start)
+            final_el.visual_width = final_el.duration * timeline_scale
+        else:
+            final_el.start = max(
+                40 / timeline_scale,
+                fid_start_time - final_el.duration,
+            )
+            final_el.visual_width = final_el.duration * timeline_scale
+
+            if len(seq.elements) >= 2:
+                preceding = seq.elements[-2]
+                if preceding.kind == "delay":
+                    new_duration = final_el.start - preceding.start
+                    if new_duration >= 0:
+                        preceding.duration = new_duration
+                        preceding.visual_width = new_duration * timeline_scale
 
     return seq
 
@@ -4362,11 +4389,25 @@ def draw_static_background():
     canvas.line_width = 2
     canvas.stroke()
 
-    # Assign flag numbers
+    # Assign numbers only to newly placed flags that do not already have one.
+    # Explicit numbers parsed from pulse-program text are preserved.
     flags = [el for el in sequence.elements if el.kind == "flag"]
     flags.sort(key=lambda e: e.start)
-    for i, flag in enumerate(flags):
-        flag.flag_number = i + 3 if i +3 < 63 else None
+    used_numbers = {
+        int(flag.flag_number)
+        for flag in flags
+        if getattr(flag, "flag_number", None) is not None
+    }
+    next_number = 3
+    for flag in flags:
+        if getattr(flag, "flag_number", None) is not None:
+            continue
+        while next_number in used_numbers and next_number < 63:
+            next_number += 1
+        flag.flag_number = next_number if next_number < 63 else None
+        if flag.flag_number is not None:
+            used_numbers.add(flag.flag_number)
+            next_number += 1
 
     # Draw all elements
     for el in get_sorted_elements():
@@ -4673,7 +4714,23 @@ def on_canvas_mouse_down(x, y):
     
     # Apply unified defaults for any kind (pulse/shaped/grad/...)
     apply_placement_defaults(new_el)
-    
+
+    # Give newly placed flags their Bruker number immediately, rather than
+    # waiting for the next redraw/synchronization cycle.
+    if kind == "flag":
+        used_numbers = {
+            int(el.flag_number)
+            for el in sequence.elements
+            if el.kind == "flag"
+            and getattr(el, "flag_number", None) is not None
+        }
+        number = 3
+        while number in used_numbers and number < 63:
+            number += 1
+        new_el.flag_number = number if number < 63 else None
+        new_el.definition = getattr(new_el, "definition", "") or ""
+        new_el.title = ""
+
     sequence.add(new_el)
     sequence_dirty = True
     rebuild_global_delays()
