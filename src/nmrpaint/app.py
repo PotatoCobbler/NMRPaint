@@ -1027,67 +1027,41 @@ def sync_all_from_sequence():
 
 
 def _fallback_element(kind, name, start, channel="f1", phase="", shape=None):
-    """Construct a graphical element from editable Bruker pulse-program text."""
+    """Construct a usable canvas element from editable Bruker text."""
     kind = str(kind or "pulse").lower()
-    channel = str(channel or "f1")
-    shape = str(shape or "")
-    name = str(name or "")
-
-    if kind == "pulse":
-        duration = 4.0 if name.lower() in {"p2", "p4"} else 2.0
-        file_path = _fallback_resource("pulse", name)
-        el = SequenceElement(
-            kind="pulse", file_path=file_path, start=float(start),
-            duration=duration, channel=channel, name=name,
-            phase=str(phase or "")
-        )
-        apply_placement_defaults(el)
-        el.name = name
-        el.channel = channel
-        el.phase = str(phase or "")
-        return el
-
-    if kind == "shaped":
-        duration = 2.0
-        file_path = _fallback_resource("shaped", shape or name)
-        el = SequenceElement(
-            kind="shaped", file_path=file_path, start=float(start),
-            duration=duration, channel=channel, name=name.split(":", 1)[0],
-            phase=str(phase or ""), shape=shape
-        )
-        apply_placement_defaults(el)
-        el.name = name.split(":", 1)[0]
-        el.shape = shape
-        el.channel = channel
-        el.phase = str(phase or "")
-        return el
-
-    if kind == "block":
-        duration = 12.0
-        el = SequenceElement(
-            kind="block", file_path="elements/block/cpd.txt",
-            start=float(start), duration=duration, channel=channel,
-            name=name
-        )
-        el.visual_height = DEFAULT_HEIGHT / 2
-        return el
+    channel = channel or "f1"
+    shape = shape or ""
 
     if kind == "grad":
-        file_path = _fallback_resource("grad", name)
-        el = SequenceElement(
-            kind="grad", file_path=file_path, start=float(start),
-            duration=2.0, channel="Gz", name=name.split(":", 1)[0],
-            shape=shape
-        )
-        apply_placement_defaults(el)
-        el.name = name.split(":", 1)[0]
-        el.shape = shape
-        return el
+        file_path = shape or "gp1"
+    elif kind == "shaped":
+        file_path = shape or name
+    else:
+        file_path = name
 
-    return SequenceElement(
-        kind=kind, file_path=name, start=float(start), duration=2.0,
-        channel=channel, name=name, phase=str(phase or ""), shape=shape
+    duration = read_pulse_duration(file_path)
+    el = SequenceElement(
+        kind=kind,
+        file_path=file_path,
+        start=float(start),
+        duration=float(duration),
+        channel=channel,
+        name=name,
+        phase=phase or "",
+        shape=shape or "",
     )
+
+    # Apply the same defaults used for normal canvas placement, then restore
+    # the values explicitly represented in the editable pulse-program text.
+    apply_placement_defaults(el)
+    el.name = name
+    el.channel = channel
+    el.phase = phase or getattr(el, "phase", "") or ""
+    if shape:
+        el.shape = shape
+
+    return el
+
 
 def parse_pulse_program_text(text, excluded_lines=()):
     """Parse text only as a fallback for programs without NMRpaint metadata.
@@ -1123,13 +1097,11 @@ def parse_pulse_program_text(text, excluded_lines=()):
                 r"\((p\d+)(?::([A-Za-z0-9_]+))?\s+(ph\d+)\):([A-Za-z0-9]+)",
                 m.group(1),
             ):
-                e = _fallback_element(
+                seq.add(_fallback_element(
                     "shaped" if shape else "pulse",
                     f"{name}:{shape}" if shape else name,
                     cursor, ch, phase, shape
-                )
-                seq.add(e)
-                cursor += e.duration
+                ))
             continue
 
         m = re.search(r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)", st)
@@ -1144,14 +1116,6 @@ def parse_pulse_program_text(text, excluded_lines=()):
         if m:
             n, ph, ch = m.groups()
             e = _fallback_element("pulse", n, cursor, ch, ph)
-            seq.add(e)
-            cursor += e.duration
-            continue
-
-        m = re.search(r"\bcpd\d+:(f[12])\b", st, re.I)
-        if m:
-            ch = m.group(1)
-            e = _fallback_element("block", "cpd", cursor, ch)
             seq.add(e)
             cursor += e.duration
             continue
@@ -1184,7 +1148,7 @@ def _line_is_graphical(line):
     st=line.strip()
     if not st or st.startswith((";","#",'"')) or st.startswith("define "): return False
     if re.match(r"^(?:go|mc|exit)\b",st,re.I) or re.match(r"^(?:1|2)\s+ze\b",st,re.I): return False
-    return bool(re.search(r"\(p\d+(?::[A-Za-z0-9_]+)?\s+ph\d+\):",st) or re.search(r"\(center\b",st,re.I) or re.search(r"\bp\d+:gp\d+",st,re.I) or re.search(r"\bcpd\d+:f[12]\b",st,re.I) or re.fullmatch(r"d[A-Za-z0-9_]+",st) or re.match(r"^\d+(?:\s|$)",st))
+    return bool(re.search(r"\(p\d+(?::[A-Za-z0-9_]+)?\s+ph\d+\):",st) or re.search(r"\(center\b",st,re.I) or re.search(r"\bp\d+:gp\d+",st,re.I) or re.fullmatch(r"d[A-Za-z0-9_]+",st) or re.match(r"^\d+(?:\s|$)",st))
 
 def update_excluded_line_options(change=None):
     if "pulse_program_output" not in globals() or "excluded_lines_selector" not in globals(): return
@@ -1261,17 +1225,6 @@ def text_to_canvas(b=None):
         # Text -> Canvas is an exact reconstruction operation.  Do not call
         # rebuild_global_delays(): the delays explicitly represented in the
         # text must not be replaced by newly generated delays.
-        #
-        # If the final element before acquisition is not a delay, place its
-        # right edge directly at the FID boundary.  There is intentionally no
-        # delay element in this case.
-        non_delays = [e for e in sequence.elements if e.kind != "delay"]
-        if non_delays:
-            last = max(non_delays, key=lambda e: e.start)
-            fid_start = get_fid_start_time()
-            last.start = max(40 / timeline_scale, fid_start - last.duration)
-            last.visual_width = last.duration * timeline_scale
-
         clear_phase_cycle_gui()
         populate_phase_rows()
         if phase_cycle_checkbox.value:
@@ -4266,16 +4219,11 @@ def draw_element(c, el, _ignored=None):
     else:  # pulses
         if not hasattr(el, 'visual_height'):
             el.visual_height = DEFAULT_HEIGHT
-        top_y = timeline_y - el.visual_height
+            top_y = timeline_y - el.visual_height
+        c.fill_style = pulse_fill_color(el)
         c.stroke_style = "black"
         c.line_width = 2
-
-        # 180-degree pulses are filled and 4 units wide; all other p#
-        # pulses are open rectangles and 2 units wide when reconstructed
-        # from editable pulse-program text.
-        if str(getattr(el, "name", "")).lower() in {"p2", "p4"}:
-            c.fill_style = pulse_fill_color(el)
-            c.fill_rect(x, top_y, width, el.visual_height)
+        c.fill_rect(x, top_y, width, el.visual_height)
         c.stroke_rect(x, top_y, width, el.visual_height)
         
         # Title
