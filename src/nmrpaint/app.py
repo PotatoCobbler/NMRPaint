@@ -1060,6 +1060,8 @@ def _fallback_element(
         if kind == "pulse":
             duration = 4.0 if name.lower() in {"p2", "p4"} else 2.0
         elif kind == "block":
+            duration = 20.0
+        elif kind in ("shaped", "grad"):
             duration = 4.0
         else:
             duration = read_pulse_duration(file_path)
@@ -1089,9 +1091,13 @@ def _fallback_element(
     el.visual_width = el.duration * timeline_scale
 
     if kind == "block":
-        el.title = name
+        el.title = ""
         el.visual_height = DEFAULT_HEIGHT / 2
-    elif kind in ("pulse", "shaped"):
+    elif kind == "pulse":
+        # Text-derived pulses have no default graphical title.
+        el.title = ""
+        el.visual_height = DEFAULT_HEIGHT
+    elif kind == "shaped":
         el.title = name
         el.visual_height = DEFAULT_HEIGHT
 
@@ -1143,7 +1149,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
         m = re.search(r"\b(cpd\d+):(f\d+)\b", st, re.I)
         if m:
             cpd_name, ch = m.groups()
-            e = _fallback_element("block", cpd_name, cursor, ch, duration=4.0)
+            e = _fallback_element("block", cpd_name, cursor, ch, duration=20.0)
             seq.add(e)
             cursor += e.duration
             continue
@@ -1187,13 +1193,22 @@ def parse_pulse_program_text(text, excluded_lines=()):
             cursor += e.duration
 
     # If the final user-written element is not a delay, align its right edge
-    # exactly with the FID marker. No synthetic delay is created after it.
+    # exactly with the FID marker. If the immediately preceding element is a
+    # delay, extend that delay so that it ends exactly where the final element
+    # begins. No synthetic delay is created after the final element.
     if seq.elements and seq.elements[-1].kind != "delay":
         final_el = seq.elements[-1]
         fid_start_time = get_fid_start_time()
         final_el.start = max(40 / timeline_scale, fid_start_time - final_el.duration)
         final_el.visual_width = final_el.duration * timeline_scale
 
+        if len(seq.elements) >= 2:
+            preceding = seq.elements[-2]
+            if preceding.kind == "delay":
+                new_duration = final_el.start - preceding.start
+                if new_duration >= 0:
+                    preceding.duration = new_duration
+                    preceding.visual_width = new_duration * timeline_scale
 
     return seq
 
@@ -3990,6 +4005,14 @@ def draw_preview(preview_canvas, kind, file_path):
     # Create temporary element
     temp_el = SequenceElement(kind, file_path, start=0, duration=4)
     temp_el.channel = "f1"
+    temp_el._preview = True
+    if kind == "pulse":
+        base = resource_filename(file_path).lower()
+        temp_el.name = {
+            "p0.txt": "p0",
+            "p90.txt": "p1",
+            "p180.txt": "p2",
+        }.get(base, "")
 
     # Preview size tuning
     temp_el.visual_width = 15
@@ -4020,6 +4043,10 @@ def create_element_button(kind, file_path):
 
     base = resource_filename(file_path).lower()
 
+    # Mark previews explicitly so draw_element() can preserve the historical
+    # palette for the element selector without changing text-derived pulses.
+    # The actual sequence elements remain governed by their normal rendering.
+    #
     # --- Display names ---
     display_names = {
         "p0.txt": "var",
@@ -4277,8 +4304,15 @@ def draw_element(c, el, _ignored=None):
         c.stroke_style = "black"
         c.line_width = 2
 
-        # Fallback pulse drawing: p2/p4 are filled; every other p# is open.
-        if str(getattr(el, "name", "")).strip().lower() in {"p2", "p4"}:
+        # Text-derived fallback pulses: p2/p4 are filled; every other p# is
+        # open. Selector previews retain the historical var/90/180 fills.
+        element_name = str(getattr(el, "name", "")).strip().lower()
+        if getattr(el, "_preview", False):
+            base = resource_filename(el.file_path).lower()
+            if base in {"p0.txt", "p90.txt", "p180.txt"}:
+                c.fill_style = pulse_fill_color(el)
+                c.fill_rect(x, top_y, width, el.visual_height)
+        elif element_name in {"p2", "p4"}:
             c.fill_style = pulse_fill_color(el)
             c.fill_rect(x, top_y, width, el.visual_height)
 
