@@ -1156,26 +1156,46 @@ def _merge_visible_text_with_metadata(visible_text, metadata_text):
 
 
 def text_to_canvas(b=None):
-    """Rebuild the canvas from canonical NMRpaint metadata.
+    """Rebuild the canvas from the editable pulse-program text.
 
-    No delay regeneration occurs here. Delays stored in metadata are real
-    sequence elements and must survive a round trip unchanged.
+    The editable text is the source of truth for this direction.  Hidden
+    NMRpaint metadata remains the canonical representation *after* the text
+    has been materialized, but it must not override edits made by the user in
+    the visible text box.
     """
     global sequence, sequence_dirty, current_element
     try:
-        save_state()
+        # Preserve the previous canvas state for Undo, then parse exactly what
+        # the user currently sees in the editable text box.  In particular, do
+        # not prepend the old metadata here: doing so makes parse_pulse_program_text()
+        # return the old graphical state and silently discards text edits.
+        excluded = {
+            int(v.split(":", 1)[0])
+            for v in excluded_lines_selector.value
+        }
+        parsed = parse_pulse_program_text(
+            pulse_program_output.value,
+            excluded_lines=excluded,
+        )
+        if not parsed.elements:
+            raise ValueError("No graphical elements could be reconstructed from the editable pulse-program text.")
 
-        # Metadata is the source of truth for graphical state.
-        sequence_from_metadata()
+        save_state()
+        sequence = parsed
         sequence_dirty = True
         current_element = None
 
+        # Text -> Canvas is an exact reconstruction operation.  Do not call
+        # rebuild_global_delays(): the delays explicitly represented in the
+        # text must not be replaced by newly generated delays.
         clear_phase_cycle_gui()
         populate_phase_rows()
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
 
-        # Canonicalize all projections from the materialized sequence.
+        # Now that the canvas has been reconstructed from the edited text,
+        # persist that new graphical state as metadata and refresh all other
+        # projections from it.
         sync_all_from_sequence()
         refresh_ui()
 
@@ -3651,6 +3671,11 @@ def show_property_editor(el: SequenceElement):
         populate_phase_rows()
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
+
+        # Updating an element also prepares the browser download link.  This
+        # keeps the Update button useful as a complete commit operation without
+        # adding a second state-mutating callback to the button.
+        generate_program(None)
 
     # This button has exactly one state-mutating callback. Program generation
     # is performed separately and never competes with the editor update.
