@@ -2683,7 +2683,6 @@ pulse_program_view_selector = ToggleButtons(
         width="400px",
         min_width="400px",
         max_width="400px",
-        flex="0 0 400px",
         height="32px",
     ),
     style={"button_width": "128px"},
