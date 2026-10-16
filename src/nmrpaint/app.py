@@ -837,6 +837,9 @@ def _nmrpaint_element_metadata(el, body_lines=1):
         "bandwidth": getattr(el, "bandwidth", ""),
         "Q": getattr(el, "Q", ""),
         "sweepdirection": getattr(el, "sweepdirection", ""),
+        # Graphical/editor-only state is not represented by Bruker text.
+        "visual_height": float(getattr(el, "visual_height", DEFAULT_HEIGHT)),
+        "flag_number": getattr(el, "flag_number", None),
     }
     return ";@NMRPAINT " + json.dumps(
         data, separators=(",", ":"), ensure_ascii=False
@@ -962,6 +965,23 @@ def _nmrpaint_element_from_metadata(data):
         "bandwidth", "Q", "sweepdirection"
     ):
         setattr(el, a, data.get(a, ""))
+
+    # Restore graphical/editor-only state that has no representation in the
+    # visible Bruker pulse-program text.  The SequenceElement constructor
+    # provides the correct defaults when older metadata lacks these fields.
+    try:
+        el.visual_height = float(
+            data.get("visual_height", getattr(el, "visual_height", DEFAULT_HEIGHT))
+        )
+    except (TypeError, ValueError):
+        pass
+
+    if data.get("flag_number") is not None:
+        try:
+            el.flag_number = int(data["flag_number"])
+        except (TypeError, ValueError):
+            el.flag_number = data["flag_number"]
+
     if el.kind == "delay":
         el.visual_width = el.duration * timeline_scale
     return el
@@ -981,6 +1001,142 @@ def _extract_nmrpaint_metadata(metadata_text):
         if isinstance(data, dict) and data.get("kind"):
             records.append(data)
     return records
+
+
+def _metadata_element_matches(el, data):
+    """Return whether a metadata record is a plausible match for *el*.
+
+    The visible pulse-program text does not contain NMRpaint element IDs, so
+    Text -> Canvas needs a structural match.  We deliberately compare only
+    fields represented by the visible text and avoid using graphical/editor
+    attributes such as title or visual_height.
+    """
+    if str(getattr(el, "kind", "")).lower() != str(data.get("kind", "")).lower():
+        return False
+
+    kind = str(getattr(el, "kind", "")).lower()
+
+    if kind != "flag" and str(getattr(el, "channel", "")).lower() != str(data.get("channel", "")).lower():
+        return False
+
+    # Name is the strongest identifier for normal Bruker elements.  For
+    # elements whose visible text does not carry a meaningful name, fall back
+    # to shape/phase/start.
+    el_name = str(getattr(el, "name", "") or "").strip().lower()
+    md_name = str(data.get("name", "") or "").strip().lower()
+    if el_name and md_name and el_name != md_name:
+        return False
+
+    el_shape = str(getattr(el, "shape", "") or "").strip().lower()
+    md_shape = str(data.get("shape", "") or "").strip().lower()
+    if el_shape and md_shape and el_shape != md_shape:
+        return False
+
+    el_phase = str(getattr(el, "phase", "") or "").strip().lower()
+    md_phase = str(data.get("phase", "") or "").strip().lower()
+    if el_phase and md_phase and el_phase != md_phase:
+        return False
+
+    return True
+
+
+def _merge_metadata_attributes(sequence_from_text, metadata_text):
+    """Restore NMRpaint-only state after parsing editable visible text.
+
+    Visible Bruker text remains authoritative for pulse-program semantics:
+    kind, name, definition, phase, channel, shape, duration, ordering, etc.
+    Hidden NMRpaint metadata is authoritative only for state that the visible
+    text cannot represent, such as element identity, title, description,
+    visual height and Wavemaker editor fields.
+
+    Matching is first attempted structurally and then by same-kind occurrence.
+    This makes ordinary text edits survive while preserving editor formatting.
+    """
+    records = _extract_nmrpaint_metadata(metadata_text)
+    if not records:
+        return sequence_from_text
+
+    elements = list(sequence_from_text.elements)
+    used = set()
+
+    def apply_record(el, data):
+        el.element_id = data.get("id") or getattr(el, "element_id", None) or uuid.uuid4().hex
+
+        # These fields are graphical/editor-only and are intentionally restored
+        # from metadata rather than from visible Bruker text.
+        el.title = data.get("title", getattr(el, "title", "")) or ""
+        el.description = data.get("description", getattr(el, "description", "")) or ""
+        el.wvm = bool(data.get("wvm", getattr(el, "wvm", False)))
+
+        for attr in (
+            "powerindex", "subname", "length", "stepsize",
+            "bandwidth", "Q", "sweepdirection"
+        ):
+            setattr(el, attr, data.get(attr, getattr(el, attr, "")))
+
+        if "visual_height" in data:
+            try:
+                el.visual_height = float(data["visual_height"])
+            except (TypeError, ValueError):
+                pass
+
+        if data.get("flag_number") is not None:
+            try:
+                el.flag_number = int(data["flag_number"])
+            except (TypeError, ValueError):
+                el.flag_number = data["flag_number"]
+
+    # Pass 1: structural matching.
+    for data in records:
+        candidates = [
+            (i, el) for i, el in enumerate(elements)
+            if i not in used and _metadata_element_matches(el, data)
+        ]
+        if not candidates:
+            continue
+
+        # Prefer the candidate whose start time is closest to the stored
+        # position.  This handles repeated pulses/delays with the same name.
+        md_start = float(data.get("start", 0.0))
+        i, el = min(
+            candidates,
+            key=lambda pair: abs(float(getattr(pair[1], "start", 0.0)) - md_start)
+        )
+        apply_record(el, data)
+        used.add(i)
+
+    # Pass 2: same-kind occurrence fallback.  This covers cases where the user
+    # deliberately changed a visible name/phase/channel in the text, while
+    # still allowing the graphical state to survive.
+    remaining_records = [data for data in records if not any(
+        i in used and
+        str(elements[i].kind).lower() == str(data.get("kind", "")).lower()
+        and str(getattr(elements[i], "element_id", "")) == str(data.get("id", ""))
+        for i in range(len(elements))
+    )]
+
+    # The identity test above is intentionally conservative; use record order
+    # within each kind for records not matched in pass 1.
+    unmatched_by_kind = {}
+    for data in records:
+        kind = str(data.get("kind", "")).lower()
+        if not any(
+            i in used and
+            str(getattr(elements[i], "element_id", "")) == str(data.get("id", ""))
+            for i in range(len(elements))
+        ):
+            unmatched_by_kind.setdefault(kind, []).append(data)
+
+    for kind, data_list in unmatched_by_kind.items():
+        candidates = [
+            (i, el) for i, el in enumerate(elements)
+            if i not in used and str(getattr(el, "kind", "")).lower() == kind
+        ]
+        for (i, el), data in zip(candidates, data_list):
+            apply_record(el, data)
+            used.add(i)
+
+    return sequence_from_text
 
 
 def sequence_from_metadata(metadata_text=None):
@@ -1331,6 +1487,17 @@ def text_to_canvas(b=None):
             pulse_program_output.value,
             excluded_lines=excluded,
         )
+
+        # The visible pulse-program text does not encode NMRpaint graphical
+        # editor attributes such as custom height/title/description.  Restore
+        # those attributes from the metadata snapshot that existed before the
+        # Text -> Canvas conversion, while keeping all visible-text edits
+        # authoritative for the actual pulse-program semantics.
+        parsed = _merge_metadata_attributes(
+            parsed,
+            pulse_program_metadata_output.value,
+        )
+
         if not parsed.elements:
             raise ValueError("No graphical elements could be reconstructed from the editable pulse-program text.")
 
@@ -2478,6 +2645,7 @@ pulse_program_output = Textarea(
         width="400px",
         min_width="400px",
         max_width="400px",
+        flex="0 0 400px",
         height="410px",
     )
 )
@@ -2489,6 +2657,7 @@ pulse_program_metadata_output = Textarea(
         width="400px",
         min_width="400px",
         max_width="400px",
+        flex="0 0 400px",
         height="410px",
         display="none",
     )
@@ -2501,8 +2670,8 @@ pulse_program_metadata_output = Textarea(
 pulse_program_view_selector = ToggleButtons(
     options=[
         ("main", "main"),
-        ("metadata", "metadata"),
         ("select", "select"),
+        ("metadata", "metadata"),
     ],
     value="main",
     tooltips=[
@@ -2514,6 +2683,7 @@ pulse_program_view_selector = ToggleButtons(
         width="400px",
         min_width="400px",
         max_width="400px",
+        flex="0 0 400px",
         height="32px",
     ),
     style={"button_width": "128px"},
@@ -2530,8 +2700,8 @@ def _switch_pulse_program_view(change=None):
     )
 
     pulse_program_output.layout.display = "block" if view == "main" else "none"
-    pulse_program_metadata_output.layout.display = "block" if view == "metadata" else "none"
     excluded_lines_selector.layout.display = "block" if view == "select" else "none"
+    pulse_program_metadata_output.layout.display = "block" if view == "metadata" else "none"
 
 pulse_program_view_selector.observe(_switch_pulse_program_view, names="value")
 
@@ -2974,8 +3144,8 @@ pulse_program_box = VBox(
     [
         pulse_program_header,
         pulse_program_output,
-        pulse_program_metadata_output,
         excluded_lines_selector,
+        pulse_program_metadata_output,
         pulse_program_view_selector,
         phase_cycle_box
     ],
@@ -2989,7 +3159,7 @@ pulse_program_box = VBox(
     )
 )
 
-pulse_program_box.layout.flex = "0 0 auto"
+pulse_program_box.layout.flex = "0 0 440px"
 
 # -----------------------
 # CTP logic
@@ -4989,6 +5159,9 @@ conversion_buttons = VBox(
     [canvas_to_text_button, text_to_canvas_button],
     layout=Layout(
         width="40px",
+        min_width="40px",
+        max_width="40px",
+        flex="0 0 40px",
         align_items="center",
         justify_content="flex-start",
         gap="6px",
@@ -5024,6 +5197,7 @@ canvas_scroll_box = Box(
 )
 
 canvas_scroll_box.layout.min_width = "0px"
+canvas_scroll_box.layout.flex = "0 0 auto"
 
 main_top_row = HBox(
     [
@@ -5161,9 +5335,12 @@ main_vbox.layout.overflow = "hidden"
 main_top_row.layout = Layout(
     width="100%",
     flex="1 1 auto",
+    flex_flow="row nowrap",
+    align_items="flex-start",
+    overflow_x="auto",
+    overflow_y="hidden",
 )
 main_top_row.layout.width = "100%"
-main_top_row.layout.overflow = "hidden"
 
 copyright_footer.layout = Layout(
     flex="0 0 auto",
