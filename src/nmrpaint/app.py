@@ -1271,7 +1271,7 @@ def update_excluded_line_options(change=None):
     if "pulse_program_output" not in globals() or "excluded_lines_selector" not in globals(): return
     old=set(excluded_lines_selector.value); opts=[]
     for i,line in enumerate(pulse_program_output.value.splitlines(),1):
-        sn=line.strip(); sn=sn if len(sn)<=58 else sn[:55]+"..."; v=f"{i}:{sn}"
+        sn=line.strip(); sn=sn if len(sn)<=58 else sn[:55]+"..."; v=f"{i} {sn}"
         if not _line_is_graphical(line) and not line.strip().startswith(";@NMRPAINT "): old.add(v)
         opts.append((v,v))
     excluded_lines_selector.options=opts; excluded_lines_selector.value=tuple(v for v,_ in opts if v in old)
