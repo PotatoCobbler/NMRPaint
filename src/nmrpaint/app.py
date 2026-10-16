@@ -5011,7 +5011,7 @@ canvas_scroll_box = Box(
         width="900px",
         overflow_x="auto",
         overflow_y="hidden",
-        padding="0px 0px 0px 20px"
+        padding="0px 20px 0px 0px"
     )
 )
 
