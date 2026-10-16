@@ -5010,9 +5010,9 @@ canvas_scroll_box = Box(
     layout=Layout(
         width="900px",
         overflow_x="auto",
-        overflow_y="hidden"
-    ),
-    layout=Layout(padding="0px 0px 0px 20px")
+        overflow_y="hidden",
+        padding="0px 0px 0px 20px"
+    )
 )
 
 canvas_scroll_box.layout.min_width = "0px"
