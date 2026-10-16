@@ -1132,6 +1132,13 @@ def parse_pulse_program_text(text, excluded_lines=()):
         if re.match(r"^(?:go|mc|exit)\b", st, re.I) or re.match(r"^(?:1|2)\s+ze\b", st, re.I):
             continue
 
+        # ``2 30m pl1:f1`` is the standard Bruker acquisition/power setup
+        # line written by NMRpaint, not a loop/flow flag.  It starts with a
+        # number, so it must be excluded before the generic numeric-flag
+        # parser below.
+        if re.match(r"^\d+\s+30m\s+pl\d+:f\d+\s*$", st, re.I):
+            continue
+
         # Numeric pulse-program lines are Bruker loop/flow flags.
         # Example: ``3 loop to 2`` -> flag 3 with definition ``loop to 2``.
         m = re.fullmatch(r"(\d+)(?:\s+(.*))?", st)
