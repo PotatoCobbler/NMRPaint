@@ -1463,7 +1463,6 @@ def _merge_visible_text_with_metadata(visible_text, metadata_text):
         for r in records
     ]
     return "\n".join(meta_lines + [str(visible_text or "")])
-
 def text_to_canvas(b=None):
     global sequence, sequence_dirty, current_element
     try:
@@ -1482,7 +1481,12 @@ def text_to_canvas(b=None):
         )
 
         if not parsed.elements:
-            raise ValueError("No graphical elements could be reconstructed from the editable pulse-program text.")
+            if PULSE_PROGRAM_WELCOME_MARKER in pulse_program_output.value:
+                return
+            raise ValueError(
+                "No graphical elements could be reconstructed "
+                "from the editable pulse-program text."
+            )
 
         save_state()
         sequence = parsed
@@ -1498,13 +1502,15 @@ def text_to_canvas(b=None):
         refresh_ui()
 
         generation_output.layout.display = "none"
-        
+
     except Exception as exc:
         generation_output.layout.display = "block"
         generation_output.clear_output(wait=True)
         with generation_output:
-            print(f"Text → Canvas failed: {type(exc).__name__}: {exc}")
-
+            print(
+                f"Text → Canvas failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
 # -----------------------
 # Main Pulse Program Generator
 # -----------------------
@@ -2616,23 +2622,26 @@ def prepare_browser_download(b):
 # ----------------------------------
 # Print pulse program next to canvas
 # ----------------------------------
+PULSE_PROGRAM_WELCOME_MARKER = ";@NMRPAINT_WELCOME"
+
 PULSE_PROGRAM_WELCOME = """\
+;@NMRPAINT_WELCOME
 ; Welcome to NMRpaint
 ;
 ; Build your pulse program by dragging elements from the palette
 ; onto the canvas, or edit the pulse program directly here.
 ;
 ; Basic workflow:
-;  1. Place pulse, shaped-pulse, gradient, delay, and other elements on the canvas.
+;  1. Place elements on the canvas.
 ;  2. Edit element properties using the Element Editor.
-;  3. Use Canvas → Text to update this pulse program.
+;  3. Use Canvas → Text to update the pulse program.
 ;  4. Edit the pulse program here if needed.
 ;  5. Use Text → Canvas to apply text edits back to the canvas.
 ;
 ; The tabs above provide:
 ;  Main     — edit the pulse program
 ;  Select   — choose lines excluded from Text → Canvas
-;  Metadata — view NMRpaint's internal element metadata
+;  Metadata — view NMRpaint's internal metadata
 ;
 ; Your pulse program will appear here once you start building the sequence.
 """
