@@ -1463,6 +1463,7 @@ def _merge_visible_text_with_metadata(visible_text, metadata_text):
         for r in records
     ]
     return "\n".join(meta_lines + [str(visible_text or "")])
+    
 def text_to_canvas(b=None):
     global sequence, sequence_dirty, current_element
     try:
@@ -2648,18 +2649,6 @@ PULSE_PROGRAM_WELCOME = """\
 
 pulse_program_output = Textarea(
     value=PULSE_PROGRAM_WELCOME,
-    description="",
-    layout=Layout(
-        width="400px",
-        min_width="400px",
-        max_width="400px",
-        flex="0 0 400px",
-        height="410px",
-    )
-)
-
-pulse_program_output = Textarea(
-    value="",
     description="",
     layout=Layout(
         width="400px",
