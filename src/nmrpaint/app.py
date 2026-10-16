@@ -4659,7 +4659,7 @@ canvas_section = VBox([
     canvas_box,
     canvas_row,
     ctp_section
-])
+]), padding='0 20px 0 0')
 
 canvas_section.layout.width = f"{canvas_width}px"
 canvas_section.layout.flex = "0 0 auto"
