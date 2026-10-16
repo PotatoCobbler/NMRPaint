@@ -2670,8 +2670,8 @@ pulse_program_metadata_output = Textarea(
 pulse_program_view_selector = ToggleButtons(
     options=[
         ("main", "main"),
-        ("metadata", "metadata"),
         ("select", "select"),
+        ("metadata", "metadata"),
     ],
     value="main",
     tooltips=[
@@ -2700,8 +2700,8 @@ def _switch_pulse_program_view(change=None):
     )
 
     pulse_program_output.layout.display = "block" if view == "main" else "none"
-    pulse_program_metadata_output.layout.display = "block" if view == "metadata" else "none"
     excluded_lines_selector.layout.display = "block" if view == "select" else "none"
+    pulse_program_metadata_output.layout.display = "block" if view == "metadata" else "none"
 
 pulse_program_view_selector.observe(_switch_pulse_program_view, names="value")
 
@@ -3860,15 +3860,22 @@ property_editor_content.children = (
 )
 
 def show_property_editor(el: SequenceElement):
+    """Display the properties of the currently selected live element.
+
+    The editor intentionally does not install a callback here.  Installing a
+    closure over ``el`` is unsafe because some operations (most importantly
+    Text -> Canvas) can reconstruct the SequenceElement objects.  The single
+    permanent Update callback below resolves the currently selected element by
+    its persistent ``element_id`` each time it is clicked.
+    """
     global current_element
     current_element = el
-    kind = el.kind.lower()
-    kind = el.kind.lower()
+
+    kind = str(getattr(el, "kind", "")).lower()
 
     # ---------------------------
     # Populate widget values
     # ---------------------------
-
     el_title.value = getattr(el, "title", "") or ""
     el_name.value = getattr(el, "name", "") or ""
     el_definition.value = getattr(el, "definition", "") or ""
@@ -3876,17 +3883,14 @@ def show_property_editor(el: SequenceElement):
     el_shape.value = getattr(el, "shape", "") or ""
 
     el_channel.value = getattr(el, "channel", "f1") or "f1"
-
     el_power.value = getattr(el, "power", "") or ""
     el_phase.value = getattr(el, "phase", "") or ""
-
     el_duration.value = getattr(el, "duration", 0)
 
     if hasattr(el, "visual_height"):
-        el_height.value = el.visual_height
-    
+        el_height.value = int(round(float(el.visual_height)))
+
     el_wvm.value = getattr(el, "wvm", False)
-    
     el_powerindex.value = getattr(el, "powerindex", "")
     el_subname.value = getattr(el, "subname", "")
     el_length.value = getattr(el, "length", "")
@@ -3894,15 +3898,13 @@ def show_property_editor(el: SequenceElement):
     el_bandwidth.value = getattr(el, "bandwidth", "")
     el_Q.value = getattr(el, "Q", "")
     el_sweepdirection.value = getattr(el, "sweepdirection", "")
-    
+
     update_wvm_visibility(None)
-   
+
     # ---------------------------
     # Build editor layout
     # ---------------------------
-
     if kind == "pulse":
-
         visible_widgets = [
             el_title,
             el_name,
@@ -3912,11 +3914,10 @@ def show_property_editor(el: SequenceElement):
             el_power,
             el_phase,
             el_duration,
-            el_height
+            el_height,
         ]
 
     elif kind == "shaped":
-
         visible_widgets = [
             el_title,
             el_name,
@@ -3929,11 +3930,10 @@ def show_property_editor(el: SequenceElement):
             el_duration,
             el_height,
             el_wvm,
-            wvm_box
+            wvm_box,
         ]
 
     elif kind == "grad":
-
         visible_widgets = [
             el_title,
             el_name,
@@ -3941,11 +3941,10 @@ def show_property_editor(el: SequenceElement):
             el_channel,
             el_power,
             el_duration,
-            el_height
+            el_height,
         ]
 
     elif kind == "cpd":
-
         visible_widgets = [
             el_title,
             el_name,
@@ -3953,112 +3952,145 @@ def show_property_editor(el: SequenceElement):
             el_channel,
             el_power,
             el_duration,
-            el_height
+            el_height,
         ]
 
     elif kind == "flag":
-
-        visible_widgets = [
-            el_definition
-        ]
+        visible_widgets = [el_definition]
 
     elif kind == "block":
-
         visible_widgets = [
             el_title,
             el_name,
             el_definition,
             el_channel,
             el_duration,
-            el_height
+            el_height,
         ]
 
     elif kind == "delay":
-
         visible_widgets = [
             el_name,
             el_definition,
             el_description,
-            el_duration
+            el_duration,
         ]
 
     else:
-
         visible_widgets = [
             el_title,
             el_name,
             el_definition,
             el_description,
             el_channel,
-            el_duration
+            el_duration,
         ]
 
     property_editor_content.children = tuple(visible_widgets)
 
-    # ---------------------------
-    # Update callback
-    # ---------------------------
-    
-    def update_el(b):
-        global sequence_dirty
 
-        save_state()
+def _get_current_editor_element():
+    """Return the live sequence element represented by the editor selection.
 
-        # GUI -> live sequence element
-        el.title = el_title.value
-        el.name = el_name.value
-        el.definition = el_definition.value
-        el.description = el_description.value
-        el.duration = float(el_duration.value)
-        el.visual_width = el.duration * timeline_scale
+    ``current_element`` may be an object from an earlier version of the
+    sequence if the sequence was reconstructed.  Therefore the persistent
+    element ID is used whenever possible instead of relying on object identity.
+    """
+    global current_element
 
-        if kind != "flag":
-            el.channel = el_channel.value
+    if current_element is None:
+        return None
 
-        if kind in ["pulse", "shaped", "grad", "cpd"]:
-            el.power = el_power.value
+    if current_element in sequence.elements:
+        return current_element
 
-        if kind in ["pulse", "shaped"]:
-            el.phase = el_phase.value
+    element_id = getattr(current_element, "element_id", None)
+    if element_id:
+        for candidate in sequence.elements:
+            if getattr(candidate, "element_id", None) == element_id:
+                current_element = candidate
+                return candidate
 
-        if kind == "shaped":
-            el.shape = el_shape.value
-            el.wvm = el_wvm.value
-            el.powerindex = el_powerindex.value
-            el.subname = el_subname.value
-            el.length = el_length.value
-            el.stepsize = el_stepsize.value
-            el.bandwidth = el_bandwidth.value
-            el.Q = el_Q.value
-            el.sweepdirection = el_sweepdirection.value
+    return None
 
-        if kind in ["pulse", "shaped", "block", "grad"]:
-            el.visual_height = el_height.value
 
-        if kind == "delay":
-            el.manual = True
-        else:
-            # Recalculate only the derived automatic delays. The resulting
-            # delay objects are then immediately persisted to metadata.
-            rebuild_global_delays()
+def update_selected_element(b):
+    """Commit the current element-editor values to the live sequence.
 
-        sequence_dirty = True
-        sync_all_from_sequence()
-        refresh_ui()
+    This is a single permanent callback.  It deliberately resolves the live
+    element at click time, preventing the editor from retaining a stale
+    SequenceElement after synchronization or reconstruction.
+    """
+    global sequence_dirty, current_element
 
-        populate_phase_rows()
-        if phase_cycle_checkbox.value:
-            generate_phase_cycle()
+    el = _get_current_editor_element()
+    if el is None:
+        print("No element selected.")
+        return
 
-        # Updating an element also prepares the browser download link.  This
-        # keeps the Update button useful as a complete commit operation without
-        # adding a second state-mutating callback to the button.
-        generate_program(None)
+    kind = str(getattr(el, "kind", "")).lower()
 
-    # This button has exactly one state-mutating callback. Program generation
-    # is performed separately and never competes with the editor update.
-    update_button._click_handlers.callbacks.clear()
-    update_button.on_click(update_el)
+    save_state()
+
+    # GUI -> live sequence element
+    el.title = el_title.value
+    el.name = el_name.value
+    el.definition = el_definition.value
+    el.description = el_description.value
+    el.duration = float(el_duration.value)
+    el.visual_width = el.duration * timeline_scale
+
+    if kind != "flag":
+        el.channel = el_channel.value
+
+    if kind in ["pulse", "shaped", "grad", "cpd"]:
+        el.power = el_power.value
+
+    if kind in ["pulse", "shaped"]:
+        el.phase = el_phase.value
+
+    if kind == "shaped":
+        el.shape = el_shape.value
+        el.wvm = el_wvm.value
+        el.powerindex = el_powerindex.value
+        el.subname = el_subname.value
+        el.length = el_length.value
+        el.stepsize = el_stepsize.value
+        el.bandwidth = el_bandwidth.value
+        el.Q = el_Q.value
+        el.sweepdirection = el_sweepdirection.value
+
+    if kind in ["pulse", "shaped", "block", "grad"]:
+        el.visual_height = int(el_height.value)
+
+    if kind == "delay":
+        el.manual = True
+    else:
+        # Recalculate only derived automatic delays.  The edited element
+        # itself is not reconstructed, so its object identity and element_id
+        # remain valid.
+        rebuild_global_delays()
+
+    sequence_dirty = True
+
+    # Persist the modified live object first.  This is important because the
+    # metadata is what later Text -> Canvas conversions use to restore the
+    # editor-only properties.
+    sync_all_from_sequence()
+    refresh_ui()
+
+    populate_phase_rows()
+    if phase_cycle_checkbox.value:
+        generate_phase_cycle()
+
+    generate_program(None)
+
+
+# Install exactly one Update callback.  Do not clear/re-register it from
+# show_property_editor(); doing so can leave the button bound to an obsolete
+# SequenceElement object after the sequence has been reconstructed.
+update_button._click_handlers.callbacks.clear()
+update_button.on_click(update_selected_element)
 
 # -----------------------
 # Main canvas Setup
