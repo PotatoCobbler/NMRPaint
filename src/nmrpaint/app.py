@@ -2973,9 +2973,9 @@ pulse_program_box = VBox(
     [
         pulse_program_header,
         pulse_program_output,
-        pulse_program_view_selector,
         excluded_lines_selector,
         pulse_program_metadata_output,
+        pulse_program_view_selector,
         phase_cycle_box
     ],
     layout=Layout(padding='0px 20px')
