@@ -2501,7 +2501,7 @@ pulse_program_view_selector = ToggleButtons(
     options=[
         ("main", "main"),
         ("select", "select"),
-        ("meta", "meta"),
+        ("metadata", "metadata"),
     ],
     value="main",
     tooltips=[
@@ -2515,11 +2515,19 @@ pulse_program_view_selector = ToggleButtons(
         max_width="400px",
         height="32px",
     ),
-    style={"button_width": "100px"},
+    style={"button_width": "125px"},
 )
 
-def _switch_pulse_program_view(change):
-    view = change["new"]
+def _switch_pulse_program_view(change=None):
+    # Explicitly control visibility of all three widgets.  In particular,
+    # do not rely on the metadata Textarea's initial ``display=none`` state
+    # being reset by ToggleButtons/CSS.
+    view = (
+        pulse_program_view_selector.value
+        if change is None
+        else change.get("new", pulse_program_view_selector.value)
+    )
+
     pulse_program_output.layout.display = "block" if view == "main" else "none"
     excluded_lines_selector.layout.display = "block" if view == "select" else "none"
     pulse_program_metadata_output.layout.display = "block" if view == "metadata" else "none"
@@ -2550,6 +2558,9 @@ excluded_lines_selector = SelectMultiple(
     ),
     style={"description_width": "0px"},
 )
+
+# Apply the initial view after all three widgets exist.
+_switch_pulse_program_view()
 
 # -----------------------
 # Phase Cycle GUI
