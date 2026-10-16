@@ -2476,7 +2476,9 @@ pulse_program_output = Textarea(
     description="",
     layout=Layout(
         width="400px",
-        height="410px"
+        min_width="400px",
+        max_width="400px",
+        height="410px",
     )
 )
 
@@ -2485,8 +2487,10 @@ pulse_program_metadata_output = Textarea(
     description="",
     layout=Layout(
         width="400px",
+        min_width="400px",
+        max_width="400px",
         height="410px",
-        display="none"
+        display="none",
     )
 )
 
@@ -2505,8 +2509,13 @@ pulse_program_view_selector = ToggleButtons(
         "Select lines to exclude from Text → Canvas parsing",
         "View the internal NMRpaint metadata",
     ],
-    layout=Layout(width="400px", height="32px"),
-    button_style="",
+    layout=Layout(
+        width="400px",
+        min_width="400px",
+        max_width="400px",
+        height="32px",
+    ),
+    style={"button_width": "133px"},
 )
 
 def _switch_pulse_program_view(change):
@@ -2532,7 +2541,14 @@ excluded_lines_selector = SelectMultiple(
     value=(),
     rows=18,
     description="",
-    layout=Layout(width="400px", height="410px", display="none"),
+    layout=Layout(
+        width="400px",
+        min_width="400px",
+        max_width="400px",
+        height="410px",
+        display="none",
+    ),
+    style={"description_width": "0px"},
 )
 
 # -----------------------
