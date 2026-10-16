@@ -20,7 +20,7 @@ from pathlib import Path, PurePosixPath
 from ipycanvas import Canvas
 from ipywidgets import (
     Box, Button, Checkbox, Dropdown, FloatText, HBox, HTML,
-    ToggleButton,
+    ToggleButton, ToggleButtons,
     IntText, Label, Layout, Output, SelectMultiple, Tab, Text, Textarea, VBox,
 )
 from IPython.display import HTML as DisplayHTML, display
@@ -2490,20 +2490,32 @@ pulse_program_metadata_output = Textarea(
     )
 )
 
-show_metadata_toggle = ToggleButton(
-    value=False,
-    description="Show NMRpaint metadata",
-    tooltip="Show the internal ;@NMRPAINT conversion data used for exact Canvas ↔ Text round-tripping.",
-    layout=Layout(width="400px", height="30px")
+# The pulse-program text, exclusion selector, and canonical NMRpaint metadata
+# occupy exactly the same panel.  The user switches between them with the
+# three tabs below.
+pulse_program_view_selector = ToggleButtons(
+    options=[
+        ("main", "main"),
+        ("select", "select"),
+        ("metadata", "metadata"),
+    ],
+    value="main",
+    tooltips=[
+        "Edit the main pulse program",
+        "Select lines to exclude from Text → Canvas parsing",
+        "View the internal NMRpaint metadata",
+    ],
+    layout=Layout(width="400px", height="32px"),
+    button_style="",
 )
 
-def _toggle_metadata(change):
-    showing = bool(change["new"])
-    pulse_program_output.layout.display = "none" if showing else "block"
-    pulse_program_metadata_output.layout.display = "block" if showing else "none"
-    show_metadata_toggle.description = "Hide NMRpaint metadata" if showing else "Show NMRpaint metadata"
+def _switch_pulse_program_view(change):
+    view = change["new"]
+    pulse_program_output.layout.display = "block" if view == "main" else "none"
+    excluded_lines_selector.layout.display = "block" if view == "select" else "none"
+    pulse_program_metadata_output.layout.display = "block" if view == "metadata" else "none"
 
-show_metadata_toggle.observe(_toggle_metadata, names="value")
+pulse_program_view_selector.observe(_switch_pulse_program_view, names="value")
 
 pulse_program_header = HTML("""
 <div style="
@@ -2515,7 +2527,13 @@ pulse_program_header = HTML("""
 </div>
 """)
 
-excluded_lines_selector=SelectMultiple(options=[],value=(),description="Exclude:",rows=5,layout=Layout(width="400px",height="115px"),style={"description_width":"55px"})
+excluded_lines_selector = SelectMultiple(
+    options=[],
+    value=(),
+    rows=18,
+    description="",
+    layout=Layout(width="400px", height="410px", display="none"),
+)
 
 # -----------------------
 # Phase Cycle GUI
@@ -2926,10 +2944,10 @@ def generate_phase_cycle():
 pulse_program_box = VBox(
     [
         pulse_program_header,
+        pulse_program_view_selector,
         pulse_program_output,
-        pulse_program_metadata_output,
-        show_metadata_toggle,
         excluded_lines_selector,
+        pulse_program_metadata_output,
         phase_cycle_box
     ],
     layout=Layout(padding='0px 20px')
