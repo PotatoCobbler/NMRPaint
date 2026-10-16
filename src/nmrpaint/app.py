@@ -2497,7 +2497,8 @@ pulse_program_metadata_output = Textarea(
 # The pulse-program text, exclusion selector, and canonical NMRpaint metadata
 # occupy exactly the same panel.  The user switches between them with the
 # three tabs below.
-pulse_program_view_selector = ToggleButtons(
+
+pulse_program_view_selector_uncentered = ToggleButtons(
     options=[
         ("main", "main"),
         ("select", "select"),
@@ -2516,6 +2517,14 @@ pulse_program_view_selector = ToggleButtons(
         height="32px",
     ),
     style={"button_width": "128px"},
+)
+
+pulse_program_view_selector = HBox(
+    [pulse_program_view_selector_uncentered],
+    layout=Layout(
+        width="100%",
+        justify_content="center",
+    ),
 )
 
 def _switch_pulse_program_view(change=None):
@@ -4981,7 +4990,7 @@ conversion_buttons = VBox(
         align_items="center",
         justify_content="flex-start",
         gap="6px",
-        padding="205px 0px 0px 20px"
+        padding="205px 0px 0px 0px"
     )
 )
 
