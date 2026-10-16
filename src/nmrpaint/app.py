@@ -1464,21 +1464,9 @@ def _merge_visible_text_with_metadata(visible_text, metadata_text):
     ]
     return "\n".join(meta_lines + [str(visible_text or "")])
 
-
 def text_to_canvas(b=None):
-    """Rebuild the canvas from the editable pulse-program text.
-
-    The editable text is the source of truth for this direction.  Hidden
-    NMRpaint metadata remains the canonical representation *after* the text
-    has been materialized, but it must not override edits made by the user in
-    the visible text box.
-    """
     global sequence, sequence_dirty, current_element
     try:
-        # Preserve the previous canvas state for Undo, then parse exactly what
-        # the user currently sees in the editable text box.  In particular, do
-        # not prepend the old metadata here: doing so makes parse_pulse_program_text()
-        # return the old graphical state and silently discards text edits.
         excluded = {
             int(v.split(":", 1)[0])
             for v in excluded_lines_selector.value
@@ -1488,11 +1476,6 @@ def text_to_canvas(b=None):
             excluded_lines=excluded,
         )
 
-        # The visible pulse-program text does not encode NMRpaint graphical
-        # editor attributes such as custom height/title/description.  Restore
-        # those attributes from the metadata snapshot that existed before the
-        # Text -> Canvas conversion, while keeping all visible-text edits
-        # authoritative for the actual pulse-program semantics.
         parsed = _merge_metadata_attributes(
             parsed,
             pulse_program_metadata_output.value,
@@ -1506,21 +1489,16 @@ def text_to_canvas(b=None):
         sequence_dirty = True
         current_element = None
 
-        # Text -> Canvas is an exact reconstruction operation.  Do not call
-        # rebuild_global_delays(): the delays explicitly represented in the
-        # text must not be replaced by newly generated delays.
         clear_phase_cycle_gui()
         populate_phase_rows()
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
 
-        # Now that the canvas has been reconstructed from the edited text,
-        # persist that new graphical state as metadata and refresh all other
-        # projections from it.
         sync_all_from_sequence()
         refresh_ui()
 
         generation_output.layout.display = "none"
+        
     except Exception as exc:
         generation_output.layout.display = "block"
         generation_output.clear_output(wait=True)
@@ -2638,6 +2616,39 @@ def prepare_browser_download(b):
 # ----------------------------------
 # Print pulse program next to canvas
 # ----------------------------------
+PULSE_PROGRAM_WELCOME = """\
+; Welcome to NMRpaint
+;
+; Build your pulse program by dragging elements from the palette
+; onto the canvas, or edit the pulse program directly here.
+;
+; Basic workflow:
+;  1. Place pulse, shaped-pulse, gradient, delay, and other elements on the canvas.
+;  2. Edit element properties using the Element Editor.
+;  3. Use Canvas → Text to update this pulse program.
+;  4. Edit the pulse program here if needed.
+;  5. Use Text → Canvas to apply text edits back to the canvas.
+;
+; The tabs above provide:
+;  Main     — edit the pulse program
+;  Select   — choose lines excluded from Text → Canvas
+;  Metadata — view NMRpaint's internal element metadata
+;
+; Your pulse program will appear here once you start building the sequence.
+"""
+
+pulse_program_output = Textarea(
+    value=PULSE_PROGRAM_WELCOME,
+    description="",
+    layout=Layout(
+        width="400px",
+        min_width="400px",
+        max_width="400px",
+        flex="0 0 400px",
+        height="410px",
+    )
+)
+
 pulse_program_output = Textarea(
     value="",
     description="",
