@@ -4660,8 +4660,7 @@ canvas_section = VBox(
         canvas_box,
         canvas_row,
         ctp_section
-    ],
-    layout=Layout(padding='0px 20px')
+    ]
 )
 
 canvas_section.layout.width = f"{canvas_width}px"
@@ -5012,7 +5011,8 @@ canvas_scroll_box = Box(
         width="900px",
         overflow_x="auto",
         overflow_y="hidden"
-    )
+    ),
+    layout=Layout(padding='0px 0px 0px 20px')
 )
 
 canvas_scroll_box.layout.min_width = "0px"
