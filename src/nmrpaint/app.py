@@ -2498,7 +2498,7 @@ pulse_program_metadata_output = Textarea(
 # occupy exactly the same panel.  The user switches between them with the
 # three tabs below.
 
-pulse_program_view_selector_uncentered = ToggleButtons(
+pulse_program_view_selector = ToggleButtons(
     options=[
         ("main", "main"),
         ("select", "select"),
@@ -2517,14 +2517,6 @@ pulse_program_view_selector_uncentered = ToggleButtons(
         height="32px",
     ),
     style={"button_width": "128px"},
-)
-
-pulse_program_view_selector = HBox(
-    [pulse_program_view_selector_uncentered],
-    layout=Layout(
-        width="100%",
-        justify_content="center",
-    ),
 )
 
 def _switch_pulse_program_view(change=None):
