@@ -2670,8 +2670,8 @@ pulse_program_metadata_output = Textarea(
 pulse_program_view_selector = ToggleButtons(
     options=[
         ("main", "main"),
-        ("select", "select"),
         ("metadata", "metadata"),
+        ("select", "select"),
     ],
     value="main",
     tooltips=[
@@ -2700,8 +2700,8 @@ def _switch_pulse_program_view(change=None):
     )
 
     pulse_program_output.layout.display = "block" if view == "main" else "none"
-    excluded_lines_selector.layout.display = "block" if view == "select" else "none"
     pulse_program_metadata_output.layout.display = "block" if view == "metadata" else "none"
+    excluded_lines_selector.layout.display = "block" if view == "select" else "none"
 
 pulse_program_view_selector.observe(_switch_pulse_program_view, names="value")
 
