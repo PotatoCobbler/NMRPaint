@@ -2554,6 +2554,7 @@ excluded_lines_selector = SelectMultiple(
         width="400px",
         min_width="400px",
         max_width="400px",
+        flex="0 0 400px",
         height="410px",
         display="none",
     ),
@@ -2978,7 +2979,14 @@ pulse_program_box = VBox(
         pulse_program_view_selector,
         phase_cycle_box
     ],
-    layout=Layout(padding='0px 20px')
+    layout=Layout(
+        width="440px",
+        min_width="440px",
+        max_width="440px",
+        flex="0 0 440px",
+        padding="0px 20px",
+        box_sizing="border-box",
+    )
 )
 
 pulse_program_box.layout.flex = "0 0 auto"
