@@ -2515,7 +2515,7 @@ pulse_program_view_selector = ToggleButtons(
         max_width="400px",
         height="32px",
     ),
-    style={"button_width": "132px"},
+    style={"button_width": "100px"},
 )
 
 def _switch_pulse_program_view(change):
