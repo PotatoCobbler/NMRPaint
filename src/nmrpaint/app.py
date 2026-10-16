@@ -2501,7 +2501,7 @@ pulse_program_view_selector = ToggleButtons(
     options=[
         ("main", "main"),
         ("select", "select"),
-        ("metadata", "metadata"),
+        ("meta", "meta"),
     ],
     value="main",
     tooltips=[
@@ -2515,7 +2515,7 @@ pulse_program_view_selector = ToggleButtons(
         max_width="400px",
         height="32px",
     ),
-    style={"button_width": "133px"},
+    style={"button_width": "132px"},
 )
 
 def _switch_pulse_program_view(change):
