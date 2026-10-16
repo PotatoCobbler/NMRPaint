@@ -2515,7 +2515,7 @@ pulse_program_view_selector = ToggleButtons(
         max_width="400px",
         height="32px",
     ),
-    style={"button_width": "125px"},
+    style={"button_width": "128px"},
 )
 
 def _switch_pulse_program_view(change=None):
@@ -2686,7 +2686,7 @@ phase_cycle_box = VBox([
 
 phase_cycle_box.layout = Layout(
     width="400px",
-    margin="50px 0 0 0"
+    margin="16px 0 0 0"
 )
 
 def populate_phase_rows():
@@ -2971,8 +2971,8 @@ def generate_phase_cycle():
 pulse_program_box = VBox(
     [
         pulse_program_header,
-        pulse_program_view_selector,
         pulse_program_output,
+        pulse_program_view_selector,
         excluded_lines_selector,
         pulse_program_metadata_output,
         phase_cycle_box
@@ -4973,7 +4973,18 @@ defs_section = VBox([
 # -----------------------
 canvas_to_text_button=Button(description="→",tooltip="Convert canvas to pulse-program text",layout=Layout(width="34px",height="34px",padding="0px"))
 text_to_canvas_button=Button(description="←",tooltip="Convert pulse-program text to canvas",layout=Layout(width="34px",height="34px",padding="0px"))
-conversion_buttons=VBox([canvas_to_text_button,text_to_canvas_button],layout=Layout(width="40px",align_items="center",justify_content="center",gap="6px",padding="0px"))
+
+conversion_buttons = VBox(
+    [canvas_to_text_button, text_to_canvas_button],
+    layout=Layout(
+        width="40px",
+        align_items="center",
+        justify_content="flex-start",
+        gap="6px",
+        padding="205px 0px 0px 20px"
+    )
+)
+
 canvas_to_text_button.on_click(canvas_to_text); text_to_canvas_button.on_click(text_to_canvas); pulse_program_output.observe(update_excluded_line_options,names="value")
 
 # -----------------------
