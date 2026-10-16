@@ -1208,34 +1208,49 @@ def parse_pulse_program_text(text, excluded_lines=()):
             seq.add(e)
             cursor += e.duration
 
-    # Align the final text-derived element with the FID.
+    # Text-to-canvas distributes the available sequence time equally over
+    # all explicit delay elements.  The available time depends on the current
+    # canvas width because the FID position moves when the canvas is resized.
     #
-    # - Final non-delay: its right edge must coincide with the FID. If the
-    #   preceding element is a delay, extend that delay to the pulse.
-    # - Final delay: it itself must extend all the way to the FID.
+    # In time units:
     #
-    # No synthetic delay is created after the final element.
+    #     equal_delay = (FID - reference_line - sum(non-delay durations)) / N_delays
+    #
+    # The reference line is fixed at x=40, whereas the FID position is given by
+    # get_fid_start_time().  After calculating the common delay duration, lay
+    # out the parsed elements sequentially from the reference line so that the
+    # final element ends exactly at the FID.  This also means that a final delay
+    # automatically extends all the way to the FID.
     if seq.elements:
+        dash_x = 40 / timeline_scale
         fid_start_time = get_fid_start_time()
-        final_el = seq.elements[-1]
+        delays = [el for el in seq.elements if el.kind == "delay"]
 
-        if final_el.kind == "delay":
-            final_el.duration = max(0.0, fid_start_time - final_el.start)
-            final_el.visual_width = final_el.duration * timeline_scale
+        if delays:
+            non_delay_duration = sum(
+                max(0.0, float(getattr(el, "duration", 0.0)))
+                for el in seq.elements
+                if el.kind != "delay"
+            )
+            available_time = max(0.0, fid_start_time - dash_x - non_delay_duration)
+            equal_delay = available_time / len(delays)
+
+            cursor = dash_x
+            for el in seq.elements:
+                el.start = cursor
+                el.duration = equal_delay if el.kind == "delay" else max(0.0, float(el.duration))
+                el.visual_width = el.duration * timeline_scale
+                cursor += el.duration
+
         else:
+            # If there are no delay elements, retain the previous behaviour:
+            # align the final non-delay element with the FID.
+            final_el = seq.elements[-1]
             final_el.start = max(
-                40 / timeline_scale,
+                dash_x,
                 fid_start_time - final_el.duration,
             )
             final_el.visual_width = final_el.duration * timeline_scale
-
-            if len(seq.elements) >= 2:
-                preceding = seq.elements[-2]
-                if preceding.kind == "delay":
-                    new_duration = final_el.start - preceding.start
-                    if new_duration >= 0:
-                        preceding.duration = new_duration
-                        preceding.visual_width = new_duration * timeline_scale
 
     return seq
 
