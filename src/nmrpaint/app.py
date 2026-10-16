@@ -4646,20 +4646,23 @@ ctp_section = VBox([
     ctp_box
 ])
 
-canvas_section = VBox([
-    HTML("""
-    <div style="
-        text-align:center;
-        font-size:15px;
-        font-weight:bold;
-    ">
-        &nbsp;
-    </div>
-    """),
-    canvas_box,
-    canvas_row,
-    ctp_section
-]), padding='0 20px 0 0')
+canvas_section = VBox(
+    [
+        HTML("""
+        <div style="
+            text-align:center;
+            font-size:15px;
+            font-weight:bold;
+        ">
+            &nbsp;
+        </div>
+        """),
+        canvas_box,
+        canvas_row,
+        ctp_section
+    ],
+    layout=Layout(padding='0px 20px')
+)
 
 canvas_section.layout.width = f"{canvas_width}px"
 canvas_section.layout.flex = "0 0 auto"
