@@ -2645,10 +2645,10 @@ PULSE_PROGRAM_WELCOME = r""";................................................;
 ; 6. By default, standard element definitions are
 ;    used. These can be overwritten using the 
 ;    "description" property in the element editor 
-; 7. Global definitions are used for delay names
-;    ("DELTA", "tau") and constants (cnst# = "")
-; 8. The phase cycle generator below generates a 
+; 7. The phase cycle generator below generates a 
 ;    (mod 4) phase table for selected pulses
+; 8. To use the phase cycle generator, make sure
+;    "Include phase table" has been checked
 ;.................................................
                          © 2026 Alex van der Ham"""
 
