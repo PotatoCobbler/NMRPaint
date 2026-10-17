@@ -2650,6 +2650,7 @@ PULSE_PROGRAM_WELCOME = """\
 ; 8. The phase cycle generator below generate a 
 ;    base-4 phase table for selected pulses
 ;...................................................
+"""
 
 pulse_program_output = Textarea(
     value=PULSE_PROGRAM_WELCOME,
