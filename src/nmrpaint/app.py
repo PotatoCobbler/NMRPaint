@@ -2651,7 +2651,7 @@ PULSE_PROGRAM_WELCOME = """\
 ; 8. The phase cycle generator below generates a 
 ;    (mod 4) phase table for selected pulses
 ;.................................................
-                           © 2026 Alex van der Ham
+                        © 2026 Alex van der Ham
 """
 
 pulse_program_output = Textarea(
