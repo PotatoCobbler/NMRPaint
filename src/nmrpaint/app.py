@@ -3151,7 +3151,6 @@ def generate_phase_cycle():
 
     phase_cycle_output.value = text
 
-
 # Pulse program GUI layout
 pulse_program_box = VBox(
     [
@@ -3163,16 +3162,18 @@ pulse_program_box = VBox(
         phase_cycle_box
     ],
     layout=Layout(
-        width="450px",
-        min_width="450px",
-        max_width="450px",
-        flex="0 0 450px",
+        width="440px",
+        min_width="440px",
+        max_width="440px",
+        flex="0 0 440px",
+        overflow_x="hidden",
+        overflow_y="visible",
         padding="0px 20px",
         box_sizing="border-box",
     )
 )
 
-pulse_program_box.layout.flex = "0 0 450px"
+pulse_program_box.layout.flex = "0 0 440px"
 
 # -----------------------
 # CTP logic
