@@ -3170,13 +3170,13 @@ def generate_phase_cycle():
     phase_cycle_output.value = text
 
 # Pulse program GUI layout
+#pulse_program_view_selector
 pulse_program_box = VBox(
     [
         pulse_program_header,
         pulse_program_output,
         excluded_lines_selector,
         pulse_program_metadata_output,
-        pulse_program_view_selector,
         phase_cycle_box
     ],
     layout=Layout(
