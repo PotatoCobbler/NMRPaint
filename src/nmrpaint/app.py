@@ -2625,7 +2625,7 @@ def prepare_browser_download(b):
 # ----------------------------------
 PULSE_PROGRAM_WELCOME_MARKER = ";@NMRPAINT_WELCOME"
 
-PULSE_PROGRAM_WELCOME = r"""\
+PULSE_PROGRAM_WELCOME = r"""
 ;................................................;
 ;       _  ____  ______            _      __     ;
 ;      / |/ /  |/  / _ ;___  ___ _(_)__  / /_    ;
