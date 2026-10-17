@@ -2626,25 +2626,29 @@ def prepare_browser_download(b):
 PULSE_PROGRAM_WELCOME_MARKER = ";@NMRPAINT_WELCOME"
 
 PULSE_PROGRAM_WELCOME = """\
-;@NMRPAINT_WELCOME
-; Welcome to NMRpaint
+; Welcome to NMRpaint!
 ;
-; Build your pulse program by dragging elements from the palette
-; onto the canvas, or edit the pulse program directly here.
+; To get started:
 ;
-; Basic workflow:
-;  1. Place elements on the canvas.
-;  2. Edit element properties using the Element Editor.
-;  3. Use Canvas → Text to update the pulse program.
-;  4. Edit the pulse program here if needed.
-;  5. Use Text → Canvas to apply text edits back to the canvas.
-;
-; The tabs above provide:
-;  Main     — edit the pulse program
-;  Select   — choose lines excluded from Text → Canvas
-;  Metadata — view NMRpaint's internal metadata
-;
-; Your pulse program will appear here once you start building the sequence.
+; 1. Click-and-place elements from the left hand
+;    panel onto the canvas
+; 2. Select elements and change their properties
+;    using the element editor on the right
+; 3. Use the "update element" or "canvas-to-text"
+;    (→) button to generate the pulse program
+; 4. Once an element has been updated, an orange 
+;    download button will appear on the top row
+; 5. You can also directly write the pulse program
+;    and use the "text-to-canvas" (←) button
+; 6. By default, standard element definitions are
+;    used. These can be overwritten using the 
+;    "description" property in the element editor 
+; 7. Global definitions can be used for delay names
+;    (e.g. "DELTA" or "tau"), or for constants
+;    (e.g. cnst25 = 1s/d2)
+; 8. The phase cycle generator below generate a phase
+;    table for selected pulses (currently base-4  
+;    only).
 """
 
 pulse_program_output = Textarea(
