@@ -2626,10 +2626,12 @@ def prepare_browser_download(b):
 PULSE_PROGRAM_WELCOME_MARKER = ";@NMRPAINT_WELCOME"
 
 PULSE_PROGRAM_WELCOME = """\
-; Welcome to NMRpaint!
-;
-; To get started:
-;
+;    _  ____  ______            _      __ 
+;   / |/ /  |/  / _ \___  ___ _(_)__  / /_
+;  /    / /|_/ / , _/ _ \/ _ `/ / _ \/ __/
+; /_/|_/_/  /_/_/|_/ .__/\_,_/_/_//_/\__/ 
+;                /_/   
+;.................................................
 ; 1. Click-and-place elements from the left hand
 ;    panel onto the canvas
 ; 2. Select elements and change their properties
@@ -2644,12 +2646,10 @@ PULSE_PROGRAM_WELCOME = """\
 ;    used. These can be overwritten using the 
 ;    "description" property in the element editor 
 ; 7. Global definitions can be used for delay names
-;    (e.g. "DELTA" or "tau"), or for constants
-;    (e.g. cnst25 = 1s/d2)
-; 8. The phase cycle generator below generate a phase
-;    table for selected pulses (currently base-4  
-;    only).
-"""
+;    ("DELTA", "tau") and constants (cnst# = "")
+; 8. The phase cycle generator below generate a 
+;    base-4 phase table for selected pulses
+;...................................................
 
 pulse_program_output = Textarea(
     value=PULSE_PROGRAM_WELCOME,
@@ -2689,8 +2689,8 @@ pulse_program_view_selector = ToggleButtons(
     value="main",
     tooltips=[
         "Edit the main pulse program",
+        "View the internal NMRpaint metadata",        
         "Select lines to exclude from Text → Canvas parsing",
-        "View the internal NMRpaint metadata",
     ],
     layout=Layout(
         width="400px",
@@ -2698,7 +2698,7 @@ pulse_program_view_selector = ToggleButtons(
         max_width="400px",
         height="32px",
     ),
-    style={"button_width": "128px"},
+    style={"button_width": "126px"},
 )
 
 def _switch_pulse_program_view(change=None):
