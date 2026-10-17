@@ -2626,11 +2626,12 @@ def prepare_browser_download(b):
 PULSE_PROGRAM_WELCOME_MARKER = ";@NMRPAINT_WELCOME"
 
 PULSE_PROGRAM_WELCOME = """\
-;    _  ____  ______            _      __ 
-;   / |/ /  |/  / _ \___  ___ _(_)__  / /_
-;  /    / /|_/ / , _/ _ \/ _ `/ / _ \/ __/
-; /_/|_/_/  /_/_/|_/ .__/\_,_/_/_//_/\__/ 
-;                /_/   
+;.................................................
+;        _  ____  ______            _      __ 
+;       / |/ /  |/  / _ \___  ___ _(_)__  / /_
+;      /    / /|_/ / , _/ _ \/ _ `/ / _ \/ __/
+;     /_/|_/_/  /_/_/|_/ .__/\_,_/_/_//_/\__/ 
+;                    /_/   
 ;.................................................
 ; 1. Click-and-place elements from the left hand
 ;    panel onto the canvas
@@ -2650,6 +2651,7 @@ PULSE_PROGRAM_WELCOME = """\
 ; 8. The phase cycle generator below generate a 
 ;    base-4 phase table for selected pulses
 ;...................................................
+© 2026 Alex van der Ham
 """
 
 pulse_program_output = Textarea(
