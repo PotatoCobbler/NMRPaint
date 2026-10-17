@@ -2781,6 +2781,12 @@ phase_cycle_header = HBox([
     centered_label("Use", W_USE)
 ])
 
+phase_cycle_header.layout = Layout(
+    width="400px",
+    min_width="0px",
+    max_width="400px",
+)
+
 phase_cycle_container = VBox([])
 phase_cycle_output = Textarea(
     layout=Layout(width="396px", height="160px")
@@ -2826,13 +2832,22 @@ def add_phase_row(el):
         layout=Layout(width=W_LABEL)
     )
 
-    row_widget = HBox([
-        label,
-        nominal,
-        delta,
-        disallowed,
-        include_container
-    ])
+    row_widget = HBox(
+        [
+            label,
+            nominal,
+            delta,
+            disallowed,
+            include_container
+        ],
+        layout=Layout(
+            width="400px",
+            min_width="0px",
+            max_width="400px",
+            flex_flow="row nowrap",
+            overflow_x="hidden",
+        )
+    )
 
     row_data = {
         "element": el,       # <-- identity of this particular pulse
@@ -2871,7 +2886,10 @@ phase_cycle_box = VBox([
 
 phase_cycle_box.layout = Layout(
     width="400px",
-    margin="16px 0 0 0"
+    min_width="0px",
+    max_width="400px",
+    margin="16px 0 0 0",
+    overflow_x="hidden",
 )
 
 def populate_phase_rows():
