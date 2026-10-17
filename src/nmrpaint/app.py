@@ -3170,13 +3170,13 @@ def generate_phase_cycle():
     phase_cycle_output.value = text
 
 # Pulse program GUI layout
-#pulse_program_view_selector
 pulse_program_box = VBox(
     [
         pulse_program_header,
         pulse_program_output,
         excluded_lines_selector,
         pulse_program_metadata_output,
+        pulse_program_view_selector,
         phase_cycle_box
     ],
     layout=Layout(
@@ -4104,17 +4104,19 @@ def update_selected_element(b):
         rebuild_global_delays()
 
     sequence_dirty = True
-
-    # Persist the modified live object first.  This is important because the
-    # metadata is what later Text -> Canvas conversions use to restore the
-    # editor-only properties.
-    sync_all_from_sequence()
-    refresh_ui()
-
+    
+    # Rebuild the phase-cycle GUI directly from the live sequence.
+    # This must happen immediately after the element has been updated,
+    # before any later text/program synchronization.
     populate_phase_rows()
+    
     if phase_cycle_checkbox.value:
         generate_phase_cycle()
-
+    
+    # Persist the modified live sequence and refresh the other projections.
+    sync_all_from_sequence()
+    refresh_ui()
+    
     generate_program(None)
 
 
