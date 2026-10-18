@@ -3180,10 +3180,10 @@ pulse_program_box = VBox(
         phase_cycle_box
     ],
     layout=Layout(
-        width="440px",
-        min_width="440px",
-        max_width="440px",
-        flex="0 0 440px",
+        width="445px",
+        min_width="445px",
+        max_width="445px",
+        flex="0 0 445px",
         overflow_x="hidden",
         overflow_y="visible",
         padding="0px 20px",
@@ -3191,7 +3191,7 @@ pulse_program_box = VBox(
     )
 )
 
-pulse_program_box.layout.flex = "0 0 440px"
+pulse_program_box.layout.flex = "0 0 445px"
 
 # -----------------------
 # CTP logic
