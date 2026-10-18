@@ -2782,9 +2782,9 @@ phase_cycle_header = HBox([
 ])
 
 phase_cycle_header.layout = Layout(
-    width="400px",
+    width="396px",
     min_width="0px",
-    max_width="400px",
+    max_width="396px",
 )
 
 phase_cycle_container = VBox([])
