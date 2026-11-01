@@ -1584,7 +1584,7 @@ def _line_is_graphical(line):
 
     # ;start / ;end markers are meaningful pulse-program elements
     # and must remain selectable in the exclusion selector.
-    if re.match(r"^;(?:start|end)\b", st, re.I):
+    if re.match(r"^;(?:begin|end)\b", st, re.I):
         return True
 
     if not st or st.startswith((";", "#", '"')) or st.startswith("define "):
