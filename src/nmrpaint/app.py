@@ -1580,11 +1580,28 @@ def parse_pulse_program_text(text, excluded_lines=()):
     return seq
     
 def _line_is_graphical(line):
-    st=line.strip()
-    if not st or st.startswith((";","#",'"')) or st.startswith("define "): return False
-    if re.match(r"^(?:go|mc|exit)\b",st,re.I) or re.match(r"^(?:1|2)\s+ze\b",st,re.I): return False
-    return bool(re.search(r"\(p\d+(?::[A-Za-z0-9_]+)?\s+ph\d+\):",st) or re.search(r"\(center\b",st,re.I) or re.search(r"\bp\d+:gp\d+",st,re.I) or re.search(r"\bcpd\d+:f\d+\b",st,re.I) or re.fullmatch(r"d[A-Za-z0-9_]+",st) or re.match(r"^\d+(?:\s|$)",st))
+    st = line.strip()
 
+    # ;start / ;end markers are meaningful pulse-program elements
+    # and must remain selectable in the exclusion selector.
+    if re.match(r"^;(?:start|end)\b", st, re.I):
+        return True
+
+    if not st or st.startswith((";", "#", '"')) or st.startswith("define "):
+        return False
+
+    if re.match(r"^(?:go|mc|exit)\b", st, re.I) or re.match(r"^(?:1|2)\s+ze\b", st, re.I):
+        return False
+
+    return bool(
+        re.search(r"\(p\d+(?::[A-Za-z0-9_]+)?\s+ph\d+\):", st)
+        or re.search(r"\(center\b", st, re.I)
+        or re.search(r"\bp\d+:gp\d+", st, re.I)
+        or re.search(r"\bcpd\d+:f\d+\b", st, re.I)
+        or re.fullmatch(r"d[A-Za-z0-9_]+", st)
+        or re.match(r"^\d+(?:\s|$)", st)
+    )
+    
 def update_excluded_line_options(change=None):
     if "pulse_program_output" not in globals() or "excluded_lines_selector" not in globals(): return
     old=set(excluded_lines_selector.value); opts=[]
