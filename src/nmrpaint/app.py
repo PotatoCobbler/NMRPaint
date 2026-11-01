@@ -1261,12 +1261,6 @@ def _fallback_element(
 
 
 def parse_pulse_program_text(text, excluded_lines=()):
-    """Parse text only as a fallback for programs without NMRpaint metadata.
-
-    If canonical NMRpaint metadata is present, it is the authoritative graphical
-    representation and is materialized directly. This prevents delay rebuilding
-    and positional text parsing from deleting or moving existing elements.
-    """
     metadata = _extract_nmrpaint_metadata(text)
     if metadata:
         seq = PulseSequence()
@@ -1279,115 +1273,263 @@ def parse_pulse_program_text(text, excluded_lines=()):
     seq = PulseSequence()
     cursor = 40 / timeline_scale
 
+    # Most recently encountered power/channel declaration.
+    # Default remains f1 until a pl#:f# statement is encountered.
+    current_channel = "f1"
+
     for no, raw in enumerate(lines, 1):
+
         if no in excluded:
             continue
+
         st = raw.strip()
-        if not st or st.startswith((";", "#", '"')) or st.startswith("define "):
-            continue
-        if re.match(r"^(?:go|mc|exit)\b", st, re.I) or re.match(r"^(?:1|2)\s+ze\b", st, re.I):
+
+        m = re.fullmatch(
+            r"pl\d+:(f1|f2)",
+            st,
+            re.I
+        )
+        if m:
+            current_channel = m.group(1).lower()
             continue
 
-        # ``2 30m pl1:f1`` is the standard Bruker acquisition/power setup
-        # line written by NMRpaint, not a loop/flow flag.  It starts with a
-        # number, so it must be excluded before the generic numeric-flag
-        # parser below.
-        if re.match(r"^\d+\s+30m\s+pl\d+:f\d+\s*$", st, re.I):
+        m = re.fullmatch(
+            r";\s*start\s+(.+?)\s*",
+            st,
+            re.I
+        )
+        if m:
+            block_name = m.group(1).strip()
+
+            e = _fallback_element(
+                "block",
+                block_name,
+                cursor,
+                current_channel,
+                duration=20.0,
+            )
+
+            e.title = block_name
+            e.duration = 20.0
+            e.visual_width = e.duration * timeline_scale
+            e.visual_height = 30
+
+            seq.add(e)
+
             continue
 
+        m = re.fullmatch(
+            r";\s*end\s+(.+?)\s*",
+            st,
+            re.I
+        )
+        if m:
+            continue
+
+        # ---------------------------------------------------------
+        # Ordinary comments / ignored lines
+        # ---------------------------------------------------------
+        if (
+            not st
+            or st.startswith((";", "#", '"'))
+            or st.startswith("define ")
+        ):
+            continue
+
+        if re.match(
+            r"^(?:go|mc|exit)\b",
+            st,
+            re.I
+        ) or re.match(
+            r"^(?:1|2)\s+ze\b",
+            st,
+            re.I
+        ):
+            continue
+
+        # ``2 30m pl1:f1`` is the standard Bruker acquisition/power
+        # setup line written by NMRpaint, not a loop/flow flag.
+        if re.match(
+            r"^\d+\s+30m\s+pl\d+:f\d+\s*$",
+            st,
+            re.I
+        ):
+            continue
+
+        # ---------------------------------------------------------
         # Numeric pulse-program lines are Bruker loop/flow flags.
-        # Example: ``3 loop to 2`` -> flag 3 with definition ``loop to 2``.
+        # ---------------------------------------------------------
         m = re.fullmatch(r"(\d+)(?:\s+(.*))?", st)
         if m:
             number = int(m.group(1))
             definition = (m.group(2) or "").strip()
+
             flag = SequenceElement(
-                "flag", "flag.txt", cursor, 0.0, "f1",
-                name="", definition=definition
+                "flag",
+                "flag.txt",
+                cursor,
+                0.0,
+                "f1",
+                name="",
+                definition=definition
             )
+
             flag.flag_number = number
             flag.visual_width = 30
             flag.visual_height = 120
             seq.add(flag)
             continue
 
-        m = re.search(r"\(center\s+(.+?)\s*\)$", st, re.I)
+        # ---------------------------------------------------------
+        # Centered pulse / shaped-pulse syntax
+        # ---------------------------------------------------------
+        m = re.search(
+            r"\(center\s+(.+?)\s*\)$",
+            st,
+            re.I
+        )
         if m:
             for name, shape, phase, ch in re.findall(
-                r"\((p\d+)(?::([A-Za-z0-9_]+))?\s+(ph\d+)\):([A-Za-z0-9]+)",
+                r"\((p\d+)(?::([A-Za-z0-9_]+))?\s+"
+                r"(ph\d+)\):([A-Za-z0-9]+)",
                 m.group(1),
             ):
-                seq.add(_fallback_element(
-                    "shaped" if shape else "pulse",
-                    name,
-                    cursor, ch, phase, shape
-                ))
+                seq.add(
+                    _fallback_element(
+                        "shaped" if shape else "pulse",
+                        name,
+                        cursor,
+                        ch,
+                        phase,
+                        shape
+                    )
+                )
             continue
 
+        # ---------------------------------------------------------
         # CPD statements are represented graphically as block elements.
-        m = re.search(r"\b(cpd\d+):(f\d+)\b", st, re.I)
+        # ---------------------------------------------------------
+        m = re.search(
+            r"\b(cpd\d+):(f\d+)\b",
+            st,
+            re.I
+        )
         if m:
             cpd_name, ch = m.groups()
-            e = _fallback_element("block", cpd_name, cursor, ch, duration=20.0)
+
+            e = _fallback_element(
+                "block",
+                cpd_name,
+                cursor,
+                ch,
+                duration=20.0
+            )
+
             seq.add(e)
             cursor += e.duration
             continue
 
-        m = re.search(r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)", st)
+        # ---------------------------------------------------------
+        # Shaped pulse
+        # ---------------------------------------------------------
+        m = re.search(
+            r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)",
+            st
+        )
         if m:
             n, sh, ph, ch = m.groups()
-            e = _fallback_element("shaped", n, cursor, ch, ph, sh)
+
+            e = _fallback_element(
+                "shaped",
+                n,
+                cursor,
+                ch,
+                ph,
+                sh
+            )
+
             seq.add(e)
             cursor += e.duration
             continue
 
-        m = re.search(r"\((p\d+)\s+(ph\d+)\):([A-Za-z0-9]+)", st)
+        # ---------------------------------------------------------
+        # Ordinary pulse
+        # ---------------------------------------------------------
+        m = re.search(
+            r"\((p\d+)\s+(ph\d+)\):([A-Za-z0-9]+)",
+            st
+        )
         if m:
             n, ph, ch = m.groups()
-            e = _fallback_element("pulse", n, cursor, ch, ph)
+
+            e = _fallback_element(
+                "pulse",
+                n,
+                cursor,
+                ch,
+                ph
+            )
+
             seq.add(e)
             cursor += e.duration
             continue
 
-        m = re.search(r"\b(p\d+):(gp\d+(?:\*[^\s]+)?)\b", st, re.I)
+        # ---------------------------------------------------------
+        # Gradient
+        # ---------------------------------------------------------
+        m = re.search(
+            r"\b(p\d+):(gp\d+(?:\*[^\s]+)?)\b",
+            st,
+            re.I
+        )
         if m:
             n, sh = m.groups()
+
             e = _fallback_element(
-                "grad", n + ":" + sh.split("*")[0], cursor,
-                "Gz", shape=sh.split("*")[0]
+                "grad",
+                n + ":" + sh.split("*")[0],
+                cursor,
+                "Gz",
+                shape=sh.split("*")[0]
             )
+
             seq.add(e)
             cursor += e.duration
             continue
 
-        m = re.fullmatch(r"d([A-Za-z0-9_]+)", st, re.I)
+        # ---------------------------------------------------------
+        # Delay
+        # ---------------------------------------------------------
+        m = re.fullmatch(
+            r"d([A-Za-z0-9_]+)",
+            st,
+            re.I
+        )
         if m:
             e = SequenceElement(
-                "delay", DELAY_RESOURCE_ID, cursor,
-                read_pulse_duration(DELAY_RESOURCE_ID), "f1",
+                "delay",
+                DELAY_RESOURCE_ID,
+                cursor,
+                read_pulse_duration(DELAY_RESOURCE_ID),
+                "f1",
                 name="d" + m.group(1)
             )
+
             e.manual = True
             seq.add(e)
             cursor += e.duration
 
-    # Text-to-canvas distributes the available sequence time equally over
-    # all explicit delay elements.  The available time depends on the current
-    # canvas width because the FID position moves when the canvas is resized.
-    #
-    # In time units:
-    #
-    #     equal_delay = (FID - reference_line - sum(non-delay durations)) / N_delays
-    #
-    # The reference line is fixed at x=40, whereas the FID position is given by
-    # get_fid_start_time().  After calculating the common delay duration, lay
-    # out the parsed elements sequentially from the reference line so that the
-    # final element ends exactly at the FID.  This also means that a final delay
-    # automatically extends all the way to the FID.
+    # -------------------------------------------------------------
+    # Existing delay/layout logic
+    # -------------------------------------------------------------
     if seq.elements:
         dash_x = 40 / timeline_scale
         fid_start_time = get_fid_start_time()
-        delays = [el for el in seq.elements if el.kind == "delay"]
+
+        delays = [
+            el for el in seq.elements
+            if el.kind == "delay"
+        ]
 
         if delays:
             non_delay_duration = sum(
@@ -1395,28 +1537,48 @@ def parse_pulse_program_text(text, excluded_lines=()):
                 for el in seq.elements
                 if el.kind != "delay"
             )
-            available_time = max(0.0, fid_start_time - dash_x - non_delay_duration)
+
+            available_time = max(
+                0.0,
+                fid_start_time - dash_x - non_delay_duration
+            )
+
             equal_delay = available_time / len(delays)
 
             cursor = dash_x
+
             for el in seq.elements:
                 el.start = cursor
-                el.duration = equal_delay if el.kind == "delay" else max(0.0, float(el.duration))
-                el.visual_width = el.duration * timeline_scale
+
+                el.duration = (
+                    equal_delay
+                    if el.kind == "delay"
+                    else max(
+                        0.0,
+                        float(el.duration)
+                    )
+                )
+
+                el.visual_width = (
+                    el.duration * timeline_scale
+                )
+
                 cursor += el.duration
 
         else:
-            # If there are no delay elements, retain the previous behaviour:
-            # align the final non-delay element with the FID.
             final_el = seq.elements[-1]
+
             final_el.start = max(
                 dash_x,
                 fid_start_time - final_el.duration,
             )
-            final_el.visual_width = final_el.duration * timeline_scale
+
+            final_el.visual_width = (
+                final_el.duration * timeline_scale
+            )
 
     return seq
-
+    
 def _line_is_graphical(line):
     st=line.strip()
     if not st or st.startswith((";","#",'"')) or st.startswith("define "): return False
