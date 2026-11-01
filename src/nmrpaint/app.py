@@ -1294,7 +1294,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             continue
 
         m = re.fullmatch(
-            r";\s*start\s+(.+?)\s*",
+            r";\s*begin\s+(.+?)\s*",
             st,
             re.I
         )
