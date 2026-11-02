@@ -1185,9 +1185,9 @@ def parse_pulse_program_text(text, excluded_lines=()):
             re.I,
         ):
             e = _fallback_element(
-                "block", "cpd2", get_fid_start_time(), "f2", duration=16.0
+                "", "", get_fid_start_time(), "f2", duration=16.0
             )
-            e.title = "cpd2"
+            e.title = ""
             e.duration = 16.0
             e.visual_width = 16.0 * timeline_scale
             e.visual_height = 30
