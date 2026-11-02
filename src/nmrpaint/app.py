@@ -1571,6 +1571,14 @@ cpd_phases = set()
 cpd_shapes = set()
 cpd_gradients = set()
 
+definitions_text = Textarea(
+    value="",
+    layout=Layout(
+        width="98%",
+        height="245px"
+    )
+)
+
 def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint_metadata: bool = False) -> str:
     cpd_pulses.clear()
     cpd_delays.clear()
@@ -1715,13 +1723,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     # -----------------------
     # User definitions
     # -----------------------
-    definitions_text = Textarea(
-        value="",
-        layout=Layout(
-            width="98%",
-            height="245px"
-        )
-    )
 
     if definitions_text.value.strip():
         f.write(definitions_text.value.rstrip() + "\n\n")
