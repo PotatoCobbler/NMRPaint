@@ -1167,11 +1167,33 @@ def parse_pulse_program_text(text, excluded_lines=()):
     # Default remains f1 until a pl#:f# statement is encountered.
     current_channel = "f1"
 
+    # Special CPD block associated with the FID acquisition.  It is
+    # re-anchored after the general sequence layout pass below.
+    fid_cpd_block = None
+
     for no, raw in enumerate(lines, 1):
         if no in excluded:
             continue
 
         st = raw.strip()
+
+        # This acquisition command also defines a visible CPD block. Handle
+        # it before the generic go/mc/exit-line filtering below.
+        if re.fullmatch(
+            r"go\s*=\s*2\s+ph31\s+cpd2:f2",
+            st,
+            re.I,
+        ):
+            e = _fallback_element(
+                "block", "cpd2", get_fid_start_time(), "f2", duration=16.0
+            )
+            e.title = "cpd2"
+            e.duration = 16.0
+            e.visual_width = 16.0 * timeline_scale
+            e.visual_height = 30
+            seq.add(e)
+            fid_cpd_block = e
+            continue
 
         m = re.fullmatch(
             r"pl\d+:(f1|f2)",
@@ -1451,6 +1473,14 @@ def parse_pulse_program_text(text, excluded_lines=()):
                 final_el.duration * timeline_scale
             )
 
+    # Keep this CPD block aligned with the FID after all general layout
+    # adjustments (including delay redistribution and final-element alignment).
+    if fid_cpd_block is not None:
+        fid_cpd_block.start = get_fid_start_time()
+        fid_cpd_block.duration = 16.0
+        fid_cpd_block.visual_width = 16.0 * timeline_scale
+        fid_cpd_block.visual_height = 30
+
     return seq
     
 def _line_is_graphical(line):
@@ -1462,6 +1492,11 @@ def _line_is_graphical(line):
 
     if not st or st.startswith((";", "#", '"')) or st.startswith("define "):
         return False
+
+    # Keep the FID-associated CPD command selectable/graphical even though
+    # other go commands are intentionally filtered out.
+    if re.fullmatch(r"go\s*=\s*2\s+ph31\s+cpd2:f2", st, re.I):
+        return True
 
     if re.match(r"^(?:go|mc|exit)\b", st, re.I) or re.match(r"^(?:1|2)\s+ze\b", st, re.I):
         return False
