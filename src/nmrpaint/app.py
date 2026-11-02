@@ -1185,7 +1185,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             re.I,
         ):
             e = _fallback_element(
-                "", "", get_fid_start_time(), "f2", duration=16.0
+                "block", "", get_fid_start_time(), "f2", duration=16.0
             )
             e.title = ""
             e.duration = 16.0
