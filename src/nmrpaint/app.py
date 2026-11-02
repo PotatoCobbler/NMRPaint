@@ -1913,7 +1913,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         if gp in ea_map:
             gp += ea_map[gp]
     
-        return f" {el.name}:{gp}\n d16"
+        return f" {el.name}:{gp}"
         
     def write_block(el):
     
