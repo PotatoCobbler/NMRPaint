@@ -468,8 +468,13 @@ def rebuild_global_delays(preferred_delays=None):
         sequence.add(new_delay)
 
     pulses = sorted(
-        [el for el in sequence.elements
-         if el.kind in ["pulse", "block", "grad", "shaped", "flag"]],
+        [
+            el for el in sequence.elements
+            if el.kind in ["pulse", "block", "grad", "shaped", "flag"]
+            # The CPD block attached to acquisition is an overlay at the
+            # FID boundary; it must not consume time in the pre-FID timeline.
+            and not bool(getattr(el, "fid_associated_cpd", False))
+        ],
         key=lambda e: e.start
     )
 
@@ -1439,10 +1444,19 @@ def parse_pulse_program_text(text, excluded_lines=()):
             if el.kind == "delay"
         ]
 
+        # The acquisition CPD block is drawn at the FID boundary, but it
+        # is not part of the pre-FID time sequence. Excluding it here keeps
+        # the final delay arrow flush with the FID instead of leaving a gap
+        # equal to the CPD block duration.
+        timeline_elements = [
+            el for el in seq.elements
+            if not bool(getattr(el, "fid_associated_cpd", False))
+        ]
+
         if delays:
             non_delay_duration = sum(
                 max(0.0, float(getattr(el, "duration", 0.0)))
-                for el in seq.elements
+                for el in timeline_elements
                 if el.kind != "delay"
             )
 
@@ -1455,7 +1469,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
 
             cursor = dash_x
 
-            for el in seq.elements:
+            for el in timeline_elements:
                 el.start = cursor
 
                 el.duration = (
@@ -1473,8 +1487,8 @@ def parse_pulse_program_text(text, excluded_lines=()):
 
                 cursor += el.duration
 
-        else:
-            final_el = seq.elements[-1]
+        elif timeline_elements:
+            final_el = timeline_elements[-1]
 
             final_el.start = max(
                 dash_x,
