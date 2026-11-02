@@ -791,6 +791,7 @@ def _nmrpaint_element_metadata(el, body_lines=1):
         "sweepdirection": getattr(el, "sweepdirection", ""),
         "visual_height": float(getattr(el, "visual_height", DEFAULT_HEIGHT)),
         "flag_number": getattr(el, "flag_number", None),
+        "fid_associated_cpd": bool(getattr(el, "fid_associated_cpd", False)),
     }
     return ";@NMRPAINT " + json.dumps(
         data, separators=(",", ":"), ensure_ascii=False
@@ -899,6 +900,7 @@ def _nmrpaint_element_from_metadata(data):
     el.description = data.get("description", "") or ""
     el.manual = bool(data.get("manual", False))
     el.wvm = bool(data.get("wvm", False))
+    el.fid_associated_cpd = bool(data.get("fid_associated_cpd", False))
     for a in (
         "powerindex", "subname", "length", "stepsize",
         "bandwidth", "Q", "sweepdirection"
@@ -977,6 +979,12 @@ def _merge_metadata_attributes(sequence_from_text, metadata_text):
         el.title = data.get("title", getattr(el, "title", "")) or ""
         el.description = data.get("description", getattr(el, "description", "")) or ""
         el.wvm = bool(data.get("wvm", getattr(el, "wvm", False)))
+        el.fid_associated_cpd = bool(
+            data.get(
+                "fid_associated_cpd",
+                getattr(el, "fid_associated_cpd", False),
+            )
+        )
 
         for attr in (
             "powerindex", "subname", "length", "stepsize",
@@ -1187,7 +1195,11 @@ def parse_pulse_program_text(text, excluded_lines=()):
             e = _fallback_element(
                 "block", "", get_fid_start_time(), "f2", duration=16.0
             )
+            # This is a graphical representation of the acquisition CPD
+            # specified on the go line, not a named user-defined block.
+            e.name = ""
             e.title = ""
+            e.fid_associated_cpd = True
             e.duration = 16.0
             e.visual_width = 16.0 * timeline_scale
             e.visual_height = 30
@@ -1477,6 +1489,9 @@ def parse_pulse_program_text(text, excluded_lines=()):
     # adjustments (including delay redistribution and final-element alignment).
     if fid_cpd_block is not None:
         fid_cpd_block.start = get_fid_start_time()
+        fid_cpd_block.name = ""
+        fid_cpd_block.title = ""
+        fid_cpd_block.fid_associated_cpd = True
         fid_cpd_block.duration = 16.0
         fid_cpd_block.visual_width = 16.0 * timeline_scale
         fid_cpd_block.visual_height = 30
@@ -2081,8 +2096,10 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     fid_start = get_fid_start_time()
     
     block_overlaps_fid = any(
-        el.kind.lower() == "block" and
-        (el.start + el.duration) >= fid_start
+        el.kind.lower() == "block" and (
+            bool(getattr(el, "fid_associated_cpd", False))
+            or (el.start + el.duration) >= fid_start
+        )
         for el in sequence.elements
     )
     
@@ -2108,7 +2125,13 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         # Remove blocks that start after the FID
         els = [
             e for e in els
-            if not (e.kind.lower() == "block" and e.start >= fid_start)
+            if not (
+                e.kind.lower() == "block"
+                and (
+                    bool(getattr(e, "fid_associated_cpd", False))
+                    or e.start >= fid_start
+                )
+            )
         ]
     
         if not els:
