@@ -40,10 +40,7 @@ timeline_scale = 5
 # Timeline positions
 timeline_positions = {"f1": 110, "f2": 210, "Gz": 310}
 
-# -----------------------
 # Coherence-order positions
-# -----------------------
-
 ctp_channel_positions = {
     "f1": {
          3:  60,
@@ -66,6 +63,7 @@ ctp_channel_positions = {
     }
 }
 
+# Classes
 class SequenceElement:
     def __init__(self, kind, file_path, start, duration, channel="f1",
                  title=None, name=None, definition="", power=None, phase=None, shape=None):
@@ -112,7 +110,6 @@ class SequenceElement:
                 self.visual_height = DEFAULT_HEIGHT / 2
             else:
                 self.visual_height = DEFAULT_HEIGHT
-
     
 class PulseSequence:
     def __init__(self):
@@ -127,18 +124,15 @@ class PulseSequence:
 # -----------------------
 DELAY_RESOURCE_ID = "internal/delay"
 
-
 def resource_filename(resource_id: str) -> str:
     """Return the filename component of a packaged resource identifier."""
     normalized = str(resource_id).replace("\\", "/")
     return PurePosixPath(normalized).name
 
-
 def resource_id_to_parts(resource_id: str) -> tuple[str, ...]:
     """Convert a slash-separated resource identifier to package path parts."""
     normalized = str(resource_id).replace("\\", "/").strip("/")
     return tuple(part for part in normalized.split("/") if part)
-
 
 def read_pulse_duration(resource_id: str) -> float:
     """Read an element duration from a packaged text resource."""
@@ -156,17 +150,11 @@ def read_pulse_duration(resource_id: str) -> float:
     return 10.0
 
 def apply_placement_defaults(el: 'SequenceElement'):
-    """
-    Apply default name/definition/shape rules when placing a new element.
-    - sp1.txt -> name p11, shape sp1 (any channel, for pulse or shaped)
-    - grad    -> name p16, shape gp1
-    - pulses: p0/p90/p180 rules per channel (as before)
-    """
     base = resource_filename(el.file_path).lower()
     kind = (el.kind or "").lower()
     ch   = (el.channel or "").lower()
 
-    # 1) Shaped/pulse file: sp1.txt
+    # Shaped/pulse file: sp1.txt
     if base == "sp1.txt":
         el.name = "p11"
         el.shape = "sp1"
@@ -174,7 +162,7 @@ def apply_placement_defaults(el: 'SequenceElement'):
         el.power = "pl0"
         return
 
-    # 2) Gradients: fixed defaults
+    # Gradients: fixed defaults
     if kind == "grad":
         el.name = "p16"
         el.shape = "gp1"
@@ -183,7 +171,7 @@ def apply_placement_defaults(el: 'SequenceElement'):
         el.phase = ""
         return
 
-    # 3) Pulse rules (channel-sensitive)
+    # Pulses
     if kind == "pulse":
         el.phase = "ph1" # default phase for all pulses
         
@@ -211,6 +199,7 @@ def pulse_fill_color(el):
     element_name = str(getattr(el, "name", "")).strip().lower()
     if element_name in {"p2", "p4"} or "p180" in name:
         return "black"
+        
     elif "p90" in name:
         return "white"
     elif "p0" in name:
@@ -255,9 +244,7 @@ def clear_phase_cycle_gui():
     phase_cycle_container.children = ()
     phase_cycle_output.value = ""
     
-#--------------
-#wvm attributes
-#--------------
+# wvm attributes
 field_layout = Layout(width="200px")
 label_style = {"description_width": "85px"}
 
@@ -345,10 +332,7 @@ def update_wvm_visibility(change=None):
 
 el_wvm.observe(update_wvm_visibility, names="value")
 
-# ----------------
-# Allowed channels
-# ----------------
-
+# Channel logic
 allowed_channels = {
     "pulse": ["f1", "f2"],
     "shaped": ["f1", "f2"],
@@ -356,10 +340,6 @@ allowed_channels = {
     "flag": ["f1", "f2"],
     "grad": ["Gz"]
 }
-
-#----------------------
-#Nearest channel logic
-#----------------------
 
 drag_start_y = 0
 
@@ -372,11 +352,9 @@ def get_nearest_channel(y, kind=None):
     distances = {ch: abs(y - pos) for ch, pos in candidates.items()}
     return min(distances, key=distances.get)
 
-
 #---------------------
-# Delay related logic
+# Delay logic
 #---------------------
-
 def renumber_delays():
     delays = sorted(
         [el for el in sequence.elements if el.kind == "delay"],
@@ -411,10 +389,6 @@ def has_channel_time_conflict(channel, new_start, new_duration, ignore_el=None):
     return False
     
 def remove_overlapping_delays():
-    """
-    Hard fix: if two delays occupy the same region,
-    keep the first and delete the others.
-    """
     delays = [el for el in sequence.elements if el.kind == "delay"]
     delays.sort(key=lambda e: e.start)
 
@@ -462,8 +436,6 @@ def rebuild_global_delays(preferred_delays=None):
     delay_file = DELAY_RESOURCE_ID
 
     def create_delay(start, duration):
-    
-        # Do not create delays shorter than 5
         if duration < 5:
             return
     
@@ -512,7 +484,7 @@ def rebuild_global_delays(preferred_delays=None):
     if current_time < fid_start_time:
         create_delay(current_time, fid_start_time - current_time)
     
-    # Delays during acquisition/FID are not drawable sequence elements.
+    # Delays <--> FID logic
     fid_limit = fid_start_time
     for _el in list(sequence.elements):
         if _el.kind != "delay":
@@ -543,10 +515,6 @@ drag_initial_width = 0
 drag_initial_height = 0
 drag_start_time = 0
 
-# -----------------------
-# Buttons / UI Controls
-# -----------------------
-
 def save_state():
     history.append(copy.deepcopy(sequence))
     
@@ -576,7 +544,6 @@ def toggle_delay_selection(b):
         if allow_delay_selection
         else "info"
     )
-
 
 def undo_last(b):
     global sequence_dirty
@@ -707,7 +674,6 @@ toggle_delays_btn = Button(
     tooltip="Click to allow selecting delay elements"
 )
 
-
 phase_cycle_checkbox = Checkbox(
     value=False,
     description="Include phase table",
@@ -749,7 +715,7 @@ browser_download_button = Button(
 browser_download_link = HTML()
 
 #-----------------------------------
-# Export png function (not working)
+# Export png function (defunct)
 #-----------------------------------
 def export_png(b):
 
@@ -795,24 +761,10 @@ def export_png(b):
 
 export_btn.on_click(export_png)
 
-# ------------------------
-# User-defined definitions
-# ------------------------
-
-definitions_text = Textarea(
-    value="",
-    layout=Layout(
-        width="98%",
-        height="245px"
-    )
-)
-
 # -----------------------
 # Canvas <-> text conversion
 # -----------------------
-
 def _nmrpaint_element_metadata(el, body_lines=1):
-    """Serialize one live SequenceElement into canonical NMRpaint metadata."""
     data = {
         "id": getattr(el, "element_id", None) or uuid.uuid4().hex,
         "kind": el.kind,
@@ -837,7 +789,6 @@ def _nmrpaint_element_metadata(el, body_lines=1):
         "bandwidth": getattr(el, "bandwidth", ""),
         "Q": getattr(el, "Q", ""),
         "sweepdirection": getattr(el, "sweepdirection", ""),
-        # Graphical/editor-only state is not represented by Bruker text.
         "visual_height": float(getattr(el, "visual_height", DEFAULT_HEIGHT)),
         "flag_number": getattr(el, "flag_number", None),
     }
@@ -845,9 +796,7 @@ def _nmrpaint_element_metadata(el, body_lines=1):
         data, separators=(",", ":"), ensure_ascii=False
     )
 
-
 def _delay_duration_from_definition(name, default=10.0):
-    """Return a graphical duration for a Bruker delay definition."""
     key = str(name or "").strip().lower()
     try:
         text = read_resource_text("defs", "delay_def.txt")
@@ -872,13 +821,7 @@ def _delay_duration_from_definition(name, default=10.0):
         return value
     return float(default)
 
-
 def _internal_delay_metadata(el, rendered, fid_start):
-    """Create metadata for explicit dXX statements embedded in an element definition.
-
-    A delay element is already represented by its own metadata record, so its
-    rendered ``dXX`` statement must never be emitted a second time here.
-    """
     if str(getattr(el, "kind", "")).lower() == "delay":
         return []
 
@@ -897,9 +840,6 @@ def _internal_delay_metadata(el, rendered, fid_start):
         if duration <= 0:
             continue
 
-        # Once an embedded delay has been materialized as a real sequence
-        # element, that element owns the metadata. Do not emit a second
-        # synthetic record for the same delay on the next synchronization.
         duplicate = any(
             getattr(existing, "kind", "").lower() == "delay"
             and str(getattr(existing, "name", "")).strip().lower() == name.lower()
@@ -941,7 +881,6 @@ def _internal_delay_metadata(el, rendered, fid_start):
         cursor += duration
     return out
 
-
 def _nmrpaint_element_from_metadata(data):
     el = SequenceElement(
         kind=data.get("kind", "pulse"),
@@ -966,9 +905,6 @@ def _nmrpaint_element_from_metadata(data):
     ):
         setattr(el, a, data.get(a, ""))
 
-    # Restore graphical/editor-only state that has no representation in the
-    # visible Bruker pulse-program text.  The SequenceElement constructor
-    # provides the correct defaults when older metadata lacks these fields.
     try:
         el.visual_height = float(
             data.get("visual_height", getattr(el, "visual_height", DEFAULT_HEIGHT))
@@ -986,9 +922,7 @@ def _nmrpaint_element_from_metadata(data):
         el.visual_width = el.duration * timeline_scale
     return el
 
-
 def _extract_nmrpaint_metadata(metadata_text):
-    """Return canonical metadata records in their stored order."""
     records = []
     for raw in str(metadata_text or "").splitlines():
         st = raw.strip()
@@ -1004,13 +938,6 @@ def _extract_nmrpaint_metadata(metadata_text):
 
 
 def _metadata_element_matches(el, data):
-    """Return whether a metadata record is a plausible match for *el*.
-
-    The visible pulse-program text does not contain NMRpaint element IDs, so
-    Text -> Canvas needs a structural match.  We deliberately compare only
-    fields represented by the visible text and avoid using graphical/editor
-    attributes such as title or visual_height.
-    """
     if str(getattr(el, "kind", "")).lower() != str(data.get("kind", "")).lower():
         return False
 
@@ -1019,9 +946,6 @@ def _metadata_element_matches(el, data):
     if kind != "flag" and str(getattr(el, "channel", "")).lower() != str(data.get("channel", "")).lower():
         return False
 
-    # Name is the strongest identifier for normal Bruker elements.  For
-    # elements whose visible text does not carry a meaningful name, fall back
-    # to shape/phase/start.
     el_name = str(getattr(el, "name", "") or "").strip().lower()
     md_name = str(data.get("name", "") or "").strip().lower()
     if el_name and md_name and el_name != md_name:
@@ -1041,17 +965,6 @@ def _metadata_element_matches(el, data):
 
 
 def _merge_metadata_attributes(sequence_from_text, metadata_text):
-    """Restore NMRpaint-only state after parsing editable visible text.
-
-    Visible Bruker text remains authoritative for pulse-program semantics:
-    kind, name, definition, phase, channel, shape, duration, ordering, etc.
-    Hidden NMRpaint metadata is authoritative only for state that the visible
-    text cannot represent, such as element identity, title, description,
-    visual height and Wavemaker editor fields.
-
-    Matching is first attempted structurally and then by same-kind occurrence.
-    This makes ordinary text edits survive while preserving editor formatting.
-    """
     records = _extract_nmrpaint_metadata(metadata_text)
     if not records:
         return sequence_from_text
@@ -1061,9 +974,6 @@ def _merge_metadata_attributes(sequence_from_text, metadata_text):
 
     def apply_record(el, data):
         el.element_id = data.get("id") or getattr(el, "element_id", None) or uuid.uuid4().hex
-
-        # These fields are graphical/editor-only and are intentionally restored
-        # from metadata rather than from visible Bruker text.
         el.title = data.get("title", getattr(el, "title", "")) or ""
         el.description = data.get("description", getattr(el, "description", "")) or ""
         el.wvm = bool(data.get("wvm", getattr(el, "wvm", False)))
@@ -1095,8 +1005,8 @@ def _merge_metadata_attributes(sequence_from_text, metadata_text):
         if not candidates:
             continue
 
-        # Prefer the candidate whose start time is closest to the stored
-        # position.  This handles repeated pulses/delays with the same name.
+        # Prefer the candidate whose start time is closest to the stored position
+        # This handles repeated pulses/delays with the same name
         md_start = float(data.get("start", 0.0))
         i, el = min(
             candidates,
@@ -1105,9 +1015,9 @@ def _merge_metadata_attributes(sequence_from_text, metadata_text):
         apply_record(el, data)
         used.add(i)
 
-    # Pass 2: same-kind occurrence fallback.  This covers cases where the user
+    # Pass 2: same-kind occurrence fallback. Covers cases where the user
     # deliberately changed a visible name/phase/channel in the text, while
-    # still allowing the graphical state to survive.
+    # still allowing the graphical state to survive
     remaining_records = [data for data in records if not any(
         i in used and
         str(elements[i].kind).lower() == str(data.get("kind", "")).lower()
@@ -1115,8 +1025,6 @@ def _merge_metadata_attributes(sequence_from_text, metadata_text):
         for i in range(len(elements))
     )]
 
-    # The identity test above is intentionally conservative; use record order
-    # within each kind for records not matched in pass 1.
     unmatched_by_kind = {}
     for data in records:
         kind = str(data.get("kind", "")).lower()
@@ -1140,7 +1048,6 @@ def _merge_metadata_attributes(sequence_from_text, metadata_text):
 
 
 def sequence_from_metadata(metadata_text=None):
-    """Materialize the live sequence exclusively from canonical metadata."""
     global sequence
     text = pulse_program_metadata_output.value if metadata_text is None else metadata_text
     records = _extract_nmrpaint_metadata(text)
@@ -1152,36 +1059,26 @@ def sequence_from_metadata(metadata_text=None):
         el = _nmrpaint_element_from_metadata(data)
         seq.add(el)
 
-    # Metadata is already canonical. Do not regenerate delays here.
     sequence = seq
     return sequence
 
-
 def sync_metadata_from_sequence():
-    """Persist the complete live sequence as canonical hidden metadata."""
     pulse_program_metadata_output.value = build_pulse_program_text(
         include_nmrpaint_metadata=True
     )
 
-
 def sync_text_from_sequence():
-    """Generate the user-facing pulse program from the live sequence."""
     pulse_program_output.value = build_pulse_program_text(
         include_nmrpaint_metadata=False
     )
 
-
 def sync_selector_from_text():
-    """Regenerate the selector as a projection of the current pulse text."""
     update_excluded_line_options()
 
-
 def sync_all_from_sequence():
-    """Synchronize every projection after a sequence mutation."""
     sync_metadata_from_sequence()
     sync_text_from_sequence()
     sync_selector_from_text()
-
 
 def _fallback_element(
     kind,
@@ -1193,11 +1090,6 @@ def _fallback_element(
     power="",
     duration=None,
 ):
-    """Construct a canvas element from editable Bruker text.
-
-    This fallback only populates the model. Graphical appearance is handled by
-    ``draw_element()``.
-    """
     kind = str(kind or "pulse").lower()
     channel = channel or "f1"
     name = str(name or "")
@@ -1250,7 +1142,6 @@ def _fallback_element(
         el.title = ""
         el.visual_height = DEFAULT_HEIGHT / 2
     elif kind == "pulse":
-        # Text-derived pulses have no default graphical title.
         el.title = ""
         el.visual_height = DEFAULT_HEIGHT
     elif kind == "shaped":
@@ -1258,7 +1149,6 @@ def _fallback_element(
         el.visual_height = DEFAULT_HEIGHT
 
     return el
-
 
 def parse_pulse_program_text(text, excluded_lines=()):
     metadata = _extract_nmrpaint_metadata(text)
@@ -1278,7 +1168,6 @@ def parse_pulse_program_text(text, excluded_lines=()):
     current_channel = "f1"
 
     for no, raw in enumerate(lines, 1):
-
         if no in excluded:
             continue
 
@@ -1326,9 +1215,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
         if m:
             continue
 
-        # ---------------------------------------------------------
-        # Ordinary comments / ignored lines
-        # ---------------------------------------------------------
+        # Ignore
         if (
             not st
             or st.startswith((";", "#", '"'))
@@ -1347,8 +1234,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
         ):
             continue
 
-        # ``2 30m pl1:f1`` is the standard Bruker acquisition/power
-        # setup line written by NMRpaint, not a loop/flow flag.
+        # Exception for ``2 30m pl1:f1``
         if re.match(
             r"^\d+\s+30m\s+pl\d+:f\d+\s*$",
             st,
@@ -1357,7 +1243,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             continue
 
         # ---------------------------------------------------------
-        # Numeric pulse-program lines are Bruker loop/flow flags.
+        # Numeric pulse-program lines are Bruker flags
         # ---------------------------------------------------------
         m = re.fullmatch(r"(\d+)(?:\s+(.*))?", st)
         if m:
@@ -1406,9 +1292,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
                 )
             continue
 
-        # ---------------------------------------------------------
-        # CPD statements are represented graphically as block elements.
-        # ---------------------------------------------------------
+        # CPD statements / block elements
         m = re.search(
             r"\b(cpd\d+):(f\d+)\b",
             st,
@@ -1429,9 +1313,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             cursor += e.duration
             continue
 
-        # ---------------------------------------------------------
         # Shaped pulse
-        # ---------------------------------------------------------
         m = re.search(
             r"\((p\d+):([A-Za-z0-9_]+)\s+(ph\d+)\):([A-Za-z0-9]+)",
             st
@@ -1452,9 +1334,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             cursor += e.duration
             continue
 
-        # ---------------------------------------------------------
-        # Ordinary pulse
-        # ---------------------------------------------------------
+        # Normal pulses
         m = re.search(
             r"\((p\d+)\s+(ph\d+)\):([A-Za-z0-9]+)",
             st
@@ -1474,9 +1354,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             cursor += e.duration
             continue
 
-        # ---------------------------------------------------------
-        # Gradient
-        # ---------------------------------------------------------
+        # Gradients
         m = re.search(
             r"\b(p\d+):(gp\d+(?:\*[^\s]+)?)\b",
             st,
@@ -1497,9 +1375,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             cursor += e.duration
             continue
 
-        # ---------------------------------------------------------
-        # Delay
-        # ---------------------------------------------------------
+        # Delays
         m = re.fullmatch(
             r"d([A-Za-z0-9_]+)",
             st,
@@ -1519,9 +1395,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
             seq.add(e)
             cursor += e.duration
 
-    # -------------------------------------------------------------
     # Existing delay/layout logic
-    # -------------------------------------------------------------
     if seq.elements:
         dash_x = 40 / timeline_scale
         fid_start_time = get_fid_start_time()
@@ -1582,8 +1456,7 @@ def parse_pulse_program_text(text, excluded_lines=()):
 def _line_is_graphical(line):
     st = line.strip()
 
-    # ;start / ;end markers are meaningful pulse-program elements
-    # and must remain selectable in the exclusion selector.
+    # ;start / ;end logic for cpd elements
     if re.match(r"^;(?:begin|end)\b", st, re.I):
         return True
 
@@ -1620,6 +1493,7 @@ def canvas_to_text(b=None):
         # Canvas/sequence is authoritative in this direction.
         sync_all_from_sequence()
         generation_output.layout.display = "none"
+        
     except Exception as exc:
         generation_output.layout.display = "block"
         generation_output.clear_output(wait=True)
@@ -1627,12 +1501,6 @@ def canvas_to_text(b=None):
             print(f"Canvas → Text failed: {type(exc).__name__}: {exc}")
 
 def _merge_visible_text_with_metadata(visible_text, metadata_text):
-    """Compatibility helper: prepend canonical metadata records to text.
-
-    Metadata is canonical and therefore does not depend on line-position
-    matching. The visible text is retained verbatim after the metadata block.
-    This helper is primarily useful for legacy/fallback parsing.
-    """
     records = _extract_nmrpaint_metadata(metadata_text)
     if not records:
         return visible_text
@@ -1691,6 +1559,7 @@ def text_to_canvas(b=None):
                 f"Text → Canvas failed: "
                 f"{type(exc).__name__}: {exc}"
             )
+            
 # -----------------------
 # Main Pulse Program Generator
 # -----------------------
@@ -1703,8 +1572,6 @@ cpd_shapes = set()
 cpd_gradients = set()
 
 def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint_metadata: bool = False) -> str:
-    """Build and return the Bruker pulse-program text."""
-    # Clear previous
     cpd_pulses.clear()
     cpd_delays.clear()
     cpd_powers.clear()
@@ -1714,9 +1581,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
     f = StringIO()
 
-    # -----------------------
     # Header section
-    # -----------------------
     f.write(f";{exp_title.value}\n")
     f.write(f";avance-version ({datetime.now().strftime('%Y-%m-%d')})\n")
     f.write(";\n")
@@ -1726,9 +1591,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     f.write(f";$SUBTYPE={exp_subtype.value}\n")
     f.write(f";$COMMENT={exp_comment.value}\n\n")
 
-    # -----------------------
-    # Include files
-    # -----------------------
+    # Inclusion files
     f.write("#include <Avance.incl>\n")
     
     has_gradients = any(
@@ -1768,7 +1631,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
     if has_dante:
         f.write("#include <Daz.incl>\n")
-    
+
+    # Allowed special delay names
     delay_keywords = ["delta", "tau", "Delta", "Tau", "epsilon", "δ", "Δ", "τ", "ε", "☺"]
 
     if any(
@@ -1817,7 +1681,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     # -----------------------
     # vdlist logic
     # -----------------------
-
     vdlist_used = any(
     el.kind.lower() == "delay" and getattr(el, "name", "").lower() == "vd"
     for el in sequence.elements
@@ -1852,6 +1715,14 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     # -----------------------
     # User definitions
     # -----------------------
+    definitions_text = Textarea(
+        value="",
+        layout=Layout(
+            width="98%",
+            height="245px"
+        )
+    )
+
     if definitions_text.value.strip():
         f.write(definitions_text.value.rstrip() + "\n\n")
             
@@ -2084,7 +1955,6 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     def write_pulse(el):
         return f" ({el.name} {el.phase}):{el.channel}"
     
-    
     def write_center_element(el):
     
         kind = el.kind.lower()
@@ -2136,46 +2006,39 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
                 v = "$" + v
             return v
     
-        # powerIndex
         v = format_value(el.powerindex)
         if v:
             args.append(f"powerIndex={v}")
     
-        # name (subname)
         v = format_value(el.subname)
         if v:
             args.append(f"name={v}")
     
-        # length (ms)
         v = format_value(el.length)
         if v:
             args.append(f"length={v} ms")
     
-        # stepSize (us)
         v = format_value(el.stepsize)
         if v:
             args.append(f"stepSize={v} us")
     
-        # bandwidth (Hz)
         v = format_value(el.bandwidth)
         if v:
             args.append(f"bandwidth={v} Hz")
     
-        # Q
         v = format_value(el.Q)
         if v:
             args.append(f"Q={v}")
     
-        # sweepDirection
         v = format_value(el.sweepdirection)
         if v:
             args.append(f"sweepDirection={v}")
     
         f.write(f"create_shape({', '.join(args)})\n\n")
         
-#------
-#
-#------
+#------------------------------
+# Start writing pulse program
+#------------------------------
     
     f.write("1 ze\n")
     f.write("2 30m pl1:f1\n")
@@ -2196,17 +2059,17 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     if any(el.channel.lower() == "f2" for el in sequence.elements):
         f.write(" 30m pl2:f2\n")
     
-    # group elements by start time
+    # Group elements by start time
     for el in sequence.elements:
         start_key = round(el.start, 6)
         elements_by_start.setdefault(start_key, []).append(el)
     
-    # write elements in chronological order
+    # Write elements in chronological order
     for start in sorted(elements_by_start.keys()):
 
         els = elements_by_start[start]
     
-        # remove blocks that start after the FID
+        # Remove blocks that start after the FID
         els = [
             e for e in els
             if not (e.kind.lower() == "block" and e.start >= fid_start)
@@ -2215,9 +2078,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         if not els:
             continue
             
-        # -----------------------
-        # single element
-        # -----------------------   
+        # Single element
         if len(els) == 1:
         
             el = els[0]
@@ -2235,9 +2096,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
             else:
                 f.write(f"; unknown element type: {kind}\n")
                 
-        # -----------------------
-        # multiple elements
-        # -----------------------        
+        # Multiple elements  
         else:
             centerable = {"pulse", "shaped"}
         
@@ -2273,22 +2132,18 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
                         f.write(_nmrpaint_element_metadata(ce, 1) + "\n")
                 f.write(" (center " + " ".join(center_parts) + " )\n")
 
-    # -----------------------
-    # Acquisition logic
-    # -----------------------    
+    # Acquisition logic 
     if any(el.kind.lower() == "grad" for el in sequence.elements):
         f.write(" 4u BLKGRAD\n")
 
-    # GO line
+    # Go line
     if block_overlaps_fid:
         f.write(" 10u pl12:f2\n")
         f.write(" go=2 ph31 cpd2:f2\n")
     else:
         f.write(" go=2 ph31\n")
     
-    # -----------------------
-    # vdlist experiments
-    # -----------------------    
+    # vdlist experiments 
     if vdlist_used:    
         f.write(" d11 wr #0 if #0 vd.inc\n")
         f.write(" lo to 1 times td1\n")
@@ -2296,9 +2151,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         if block_overlaps_fid:
             f.write(" d11 do:f2\n")
             
-    # -----------------------
     # vclist experiments
-    # -----------------------    
     elif vclist_used:    
         f.write(" d11 wr #0 if #0 vclist.inc\n")
         f.write(" lo to 1 times td1\n")
@@ -2306,9 +2159,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         if block_overlaps_fid:
             f.write(" d11 do:f2\n")
             
-    # -----------------------
     # c logic
-    # -----------------------    
     elif clogic_used:
         f.write(" d11 wr #0 if #0 ivc\n")
         f.write(" lo to 1 times td1\n")
@@ -2316,9 +2167,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         if block_overlaps_fid:
             f.write(" d11 do:f2\n")
         
-    # -----------------------
     # Normal acquisition
-    # -----------------------
     else:
     
         if exp_dim.value == "1D":
@@ -2424,14 +2273,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
             f.write(" 30m do:f2\n")
     
     f.write("exit\n\n")    
-    # -----------------------
-    # Post pulse sequence entries (phase table and definitions)
-    # -----------------------
-    
-    # -----------------------
+
     # Phase tables
-    # -----------------------
-    
     if phase_cycle_checkbox.value:
     
         f.write(phase_cycle_output.value + "\n\n")
@@ -2452,9 +2295,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         f.write("ph31=0\n\n")
         f.write("\n")
         
-    # -----------------------
     # Power / Pulse / Delay / Shape Definitions
-    # -----------------------
     def load_definitions(filename: str) -> dict[str, str]:
         """Load definition mappings from packaged resources."""
         try:
@@ -2471,13 +2312,11 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
         return definitions
     
-    
     # Load definition dictionaries
     power_defs = load_definitions("power_def.txt")
     pulse_defs = load_definitions("pulse_def.txt")
     delay_defs = load_definitions("delay_def.txt")
     shape_defs = load_definitions("shaped_def.txt")
-    
     
     # Collect unique identifiers from the sequence
     unique_power = sorted(
@@ -2511,9 +2350,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         if getattr(el, "shape", None)
     } | cpd_shapes)
     
-    # -----------------------
     # Custom descriptions
-    # -----------------------
     pulse_descriptions = {}
     delay_descriptions = {}
     shape_descriptions = {}
@@ -2545,19 +2382,14 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
                 description,
             )
             
-    # -----------------------
     # Power definitions
-    # -----------------------
     for pl in unique_power:
         explanation = power_defs.get(pl, "undefined")
         f.write(f";{pl}: {explanation}\n")
     
     f.write("\n")
     
-    # -----------------------
     # Shape definitions
-    # -----------------------
-    
     for s in unique_shapes:
         explanation = shape_descriptions.get(
             s,
@@ -2568,11 +2400,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
     f.write("\n")
     
-    
-    # -----------------------
     # Pulse definitions
-    # -----------------------
-    
     for p in unique_pulses:
         explanation = pulse_descriptions.get(
             p,
@@ -2583,11 +2411,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
     f.write("\n")
     
-    
-    # -----------------------
     # Delay definitions
-    # -----------------------
-    
     for d in unique_delays:
         explanation = delay_descriptions.get(
             d,
@@ -2598,9 +2422,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
     f.write("\n")
     
-    # -----------------------
     # User scan parameters
-    # -----------------------
     f.write(f";ns: {ns_text.value} * n, total number of scans: NS * TD0\n")
     f.write(f";ds: {ds_text.value}\n\n")
 
@@ -2608,7 +2430,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         f.write(";td1: number of experiments in list\n")
             
     # -----------------------
-    # 2D parameter explanation
+    # 2D parameters
     # -----------------------
     if exp_dim.value == "2D":
     
@@ -2618,7 +2440,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
         else:
     
-            # automatically count delays named d0
+            # Automatically count delays named d0
             nd0 = sum(
                 1 for el in sequence.elements
                 if el.kind.lower() == "delay" and el.name.strip() == "d0"
@@ -2630,9 +2452,8 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
             f.write(";td1: number of experiments\n\n")
     
             f.write(f";FnMODE: {exp_2d_option.value}\n\n")
-    # -----------------------
+            
     # CPD related logic
-    # -----------------------
     block_overlaps_fid = any(
         el.kind.lower() == "block" and
         (el.start + el.duration) >= fid_start
@@ -2645,9 +2466,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     else:
         f.write(";\n")
         
-    # -----------------------
     # Gradient related logic
-    # -----------------------
     gradients = sorted(
         [el for el in sequence.elements if el.kind.lower() == "grad"],
         key=lambda e: e.start
@@ -2679,10 +2498,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
     
         f.write("\n")
 
-    # -----------------------
     # Wavemaker statement
-    # -----------------------
-    
     if any(
         el.kind.lower() == "shaped" and getattr(el, "wvm", False)
         for el in sequence.elements
@@ -2690,21 +2506,14 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         f.write(";use AU-program proc_reset to process data\n")
         f.write(";run wvm -q before zg or launch with xaua\n\n")
         
-    # -----------------------
     # Footer
-    # -----------------------
     f.write(f";$Id: Generated using NMRpaint v{VERSION}$\n")
 
     return f.getvalue()
-    
-    # ------------------------------------------
-    # ----- End of Pulse Program Generator -----
-    # ------------------------------------------
 
-# -----------------------------------------------#
-# Print pulse program and generate download link #
-# -----------------------------------------------#
-
+# -----------------------------------------------
+# Print pulse program and generate download link
+# -----------------------------------------------
 def save_pulse_program(
     filename: str | Path,
     content: str,
@@ -2716,8 +2525,6 @@ def save_pulse_program(
     )
 
 def generate_current_pulse_program():
-    """Generate the current pulse program text and filename."""
-
     populate_phase_rows()
 
     if phase_cycle_checkbox.value:
@@ -2763,9 +2570,7 @@ def generate_program(b):
            Download
         </a>
         """
-        
-        #print(f"Saved to: {output_path.resolve()}")
-    
+
     except Exception as exc:
         generation_output.layout.display = "block"
         generation_output.clear_output(wait=True)
@@ -2776,7 +2581,6 @@ def generate_program(b):
     draw_ctp()
 
 def prepare_browser_download(b):
-
     populate_phase_rows()
 
     if phase_cycle_checkbox.value:
@@ -2830,7 +2634,7 @@ PULSE_PROGRAM_WELCOME = r""";................................................;
 ;    "Include phase table" has been checked
 ;.................................................
                          © 2026 Alex van der Ham"""
-
+                         
 pulse_program_output = Textarea(
     value=PULSE_PROGRAM_WELCOME,
     description="",
@@ -2856,10 +2660,7 @@ pulse_program_metadata_output = Textarea(
     )
 )
 
-# The pulse-program text, exclusion selector, and canonical NMRpaint metadata
-# occupy exactly the same panel.  The user switches between them with the
-# three tabs below.
-
+# Pulse program UI (main, meta, selector)
 pulse_program_view_selector = ToggleButtons(
     options=[
         ("main", "main"),
@@ -2882,9 +2683,6 @@ pulse_program_view_selector = ToggleButtons(
 )
 
 def _switch_pulse_program_view(change=None):
-    # Explicitly control visibility of all three widgets.  In particular,
-    # do not rely on the metadata Textarea's initial ``display=none`` state
-    # being reset by ToggleButtons/CSS.
     view = (
         pulse_program_view_selector.value
         if change is None
@@ -2923,7 +2721,6 @@ excluded_lines_selector = SelectMultiple(
     style={"description_width": "0px"},
 )
 
-# Apply the initial view after all three widgets exist.
 _switch_pulse_program_view()
 
 # -----------------------
@@ -2939,7 +2736,6 @@ PHASE_MAP = {
     "-y": 3
 }
 
-# Column widths — use these everywhere
 W_LABEL = "120px"
 W_DROPDOWN = "60px"
 W_TEXT = "60px"
@@ -2949,7 +2745,6 @@ def centered_label(text, width):
     return HTML(
         f'<div style="width:{width}; text-align:center;">{text}</div>'
     )
-
 
 phase_cycle_header = HBox([
     HTML(f'<div style="width:{W_LABEL};"></div>'),
@@ -3029,7 +2824,7 @@ def add_phase_row(el):
     )
 
     row_data = {
-        "element": el,       # <-- identity of this particular pulse
+        "element": el,
         "include": include,
         "pulse": pulse,
         "phase": phase,
@@ -3072,8 +2867,6 @@ phase_cycle_box.layout = Layout(
 )
 
 def populate_phase_rows():
-
-    # All phase-cycling elements, in their order of appearance
     sequence_elements = [
         el for el in sequence.elements
         if el.phase and el.phase.startswith("ph")
@@ -3093,7 +2886,7 @@ def populate_phase_rows():
 
         if key in existing_rows:
 
-            # Existing row: update its information
+            # Update existing row
             row = existing_rows[key]
 
             row["element"] = el
@@ -3105,10 +2898,7 @@ def populate_phase_rows():
             new_phase_rows.append(row)
 
         else:
-
-            # New element: create a new row
             add_phase_row(el)
-
             new_phase_rows.append(phase_rows[-1])
 
     # Replace phase_rows with the rows that still exist
@@ -3170,10 +2960,6 @@ def nested_cycles(bases):
 
     return cycles
     
-#------------------------------------------------
-# Make sure the requested phase cycle is physical
-#------------------------------------------------
-
 def validate_phase_cycle():
 
     phase_deltas = {}
@@ -3216,14 +3002,11 @@ def validate_phase_cycle():
 
     return True, ""
 
-
 #----------------------
 # Generate phase cycle
 #----------------------
-
 def generate_phase_cycle():
 
-    # Validate BEFORE doing anything else
     valid, message = validate_phase_cycle()
 
     if not valid:
@@ -3249,7 +3032,6 @@ def generate_phase_cycle():
         else:
             excluded.append(row)
 
-    # sort phases numerically (ph1, ph2, ph3, ...)
     included.sort(
         key=lambda r: int(r["phase"][2:])
     )
@@ -3290,10 +3072,10 @@ def generate_phase_cycle():
 
         cols = len(cycles[0])
 
-        # ---- Table C
+        # Table C
         tableC = {}
 
-        # included phases
+        # Included phases
         for r, row in enumerate(included):
 
             vals = tableA[row["phase"]]
@@ -3304,14 +3086,14 @@ def generate_phase_cycle():
                 for v in vals
             ]
 
-        # phases excluded from the nested cycle
+        # Phases excluded from the nested cycle
         for row in excluded:
 
             tableC[row["phase"]] = [
                 row["nominal"]
             ] * cols
 
-        # ---- Table B (receiver)
+        # Table B (receiver)
         ph31 = []
 
         for c in range(cols):
@@ -3476,9 +3258,7 @@ def draw_ctp():
                 levels[current]
             )
 
-        # ----------------------------
-        # delay
-        # ----------------------------
+        # Delays
         if el.kind == "delay":
 
             xpos[channel] = (
@@ -3494,9 +3274,7 @@ def draw_ctp():
 
             continue
 
-        # ----------------------------
-        # pulse
-        # ----------------------------
+        # Pulse
         if el.kind in ("pulse", "shaped"):
 
             delta = phase_delta_map.get(id(el), 0)
@@ -3520,10 +3298,7 @@ def draw_ctp():
 
             continue
 
-    # ---------------------------------------
     # Extend channels after the last pulse
-    # ---------------------------------------
-    
     fid_x = get_fid_start_time() * timeline_scale
     
     # ---------- F1 ----------
@@ -3552,10 +3327,7 @@ def draw_ctp():
         levels[coherence["f2"]]
     )
     
-    # ---------------------------------------
     # Draw acquisition (-1 coherence)
-    # ---------------------------------------
-    
     c.stroke_style = channel_color["f1"]
     
     levels = ctp_channel_positions["f1"]
@@ -3567,6 +3339,9 @@ def draw_ctp():
         levels[-1]
     )
 
+# -----------------------
+# GUI layout/formatting
+# -----------------------
 # -----------------------
 # Register Handlers
 # -----------------------
@@ -3712,27 +3487,20 @@ def update_2d_dropdowns(change=None):
 
     phase_sensitive = ["States", "TPPI", "States-TPPI"]
 
-    # -----------------------------
-    # Clear everything
-    # -----------------------------
     pulse_dropdowns.clear()
     shape_dropdowns.clear()
-
     pulse_dropdowns_container.children = ()
     shape_dropdowns_container.children = ()
-
     pulse_section.layout.display = "none"
     shape_section.layout.display = "none"
 
-    #---------------
     # Echo-Antiecho
-    #---------------
     if exp_2d_option.value == "Echo-Antiecho":
 
         pulse_section.layout.display = "flex"
         shape_section.layout.display = "flex"
 
-        # ----------------- Pulses -----------------
+        # Pulses
         phase_names = sorted({
             el.phase for el in sequence.elements
             if el.kind.lower() in ["pulse", "shaped"] and el.phase
@@ -3777,7 +3545,7 @@ def update_2d_dropdowns(change=None):
 
         add_pulse_dropdown()
 
-        # ----------------- Gradients -----------------
+        # Gradients
         gradients = sorted(
             [el for el in sequence.elements if el.kind.lower() == "grad"],
             key=lambda el: el.start
@@ -3822,9 +3590,7 @@ def update_2d_dropdowns(change=None):
 
         return
 
-    # ======================================================
     # States / TPPI / States-TPPI
-    # ======================================================
     if exp_2d_option.value in phase_sensitive:
 
         pulse_section.layout.display = "flex"
@@ -3914,16 +3680,11 @@ def on_dim_change(change):
 
 exp_dim.observe(on_dim_change, names="value")
 
-
-# -----------------------
 # Packaged element resources
-# -----------------------
-
 element_types = ["pulse", "shaped", "grad", "block", "flag"]
 element_files: dict[str, list[str]] = {}
 
 def load_element_files() -> None:
-    """Load element resource identifiers from the installed package."""
     element_files.clear()
 
     for element_type in element_types:
@@ -4071,22 +3832,12 @@ property_editor_content.children = (
 )
 
 def show_property_editor(el: SequenceElement):
-    """Display the properties of the currently selected live element.
-
-    The editor intentionally does not install a callback here.  Installing a
-    closure over ``el`` is unsafe because some operations (most importantly
-    Text -> Canvas) can reconstruct the SequenceElement objects.  The single
-    permanent Update callback below resolves the currently selected element by
-    its persistent ``element_id`` each time it is clicked.
-    """
     global current_element
     current_element = el
 
     kind = str(getattr(el, "kind", "")).lower()
 
-    # ---------------------------
     # Populate widget values
-    # ---------------------------
     el_title.value = getattr(el, "title", "") or ""
     el_name.value = getattr(el, "name", "") or ""
     el_definition.value = getattr(el, "definition", "") or ""
@@ -4112,9 +3863,7 @@ def show_property_editor(el: SequenceElement):
 
     update_wvm_visibility(None)
 
-    # ---------------------------
-    # Build editor layout
-    # ---------------------------
+    # Editor layout
     if kind == "pulse":
         visible_widgets = [
             el_title,
@@ -4201,12 +3950,6 @@ def show_property_editor(el: SequenceElement):
 
 
 def _get_current_editor_element():
-    """Return the live sequence element represented by the editor selection.
-
-    ``current_element`` may be an object from an earlier version of the
-    sequence if the sequence was reconstructed.  Therefore the persistent
-    element ID is used whenever possible instead of relying on object identity.
-    """
     global current_element
 
     if current_element is None:
@@ -4226,12 +3969,6 @@ def _get_current_editor_element():
 
 
 def update_selected_element(b):
-    """Commit the current element-editor values to the live sequence.
-
-    This is a single permanent callback.  It deliberately resolves the live
-    element at click time, preventing the editor from retaining a stale
-    SequenceElement after synchronization or reconstruction.
-    """
     global sequence_dirty, current_element
 
     el = _get_current_editor_element()
@@ -4277,38 +4014,26 @@ def update_selected_element(b):
     if kind == "delay":
         el.manual = True
     else:
-        # Recalculate only derived automatic delays.  The edited element
-        # itself is not reconstructed, so its object identity and element_id
-        # remain valid.
         rebuild_global_delays()
 
     sequence_dirty = True
-    
-    # Rebuild the phase-cycle GUI directly from the live sequence.
-    # This must happen immediately after the element has been updated,
-    # before any later text/program synchronization.
+
     populate_phase_rows()
     
     if phase_cycle_checkbox.value:
         generate_phase_cycle()
     
-    # Persist the modified live sequence and refresh the other projections.
     sync_all_from_sequence()
     refresh_ui()
     
     generate_program(None)
 
-
-# Install exactly one Update callback.  Do not clear/re-register it from
-# show_property_editor(); doing so can leave the button bound to an obsolete
-# SequenceElement object after the sequence has been reconstructed.
 update_button._click_handlers.callbacks.clear()
 update_button.on_click(update_selected_element)
 
 # -----------------------
 # Main canvas Setup
 # -----------------------
-
 canvas_width = 880
 canvas_height = 410
 
@@ -4555,17 +4280,12 @@ def draw_preview(preview_canvas, kind, file_path):
 
     
 # -----------------------
-# Element Button
+# Element Buttons
 # -----------------------
 def create_element_button(kind, file_path):
 
     base = resource_filename(file_path).lower()
 
-    # Mark previews explicitly so draw_element() can preserve the historical
-    # palette for the element selector without changing text-derived pulses.
-    # The actual sequence elements remain governed by their normal rendering.
-    #
-    # --- Display names ---
     display_names = {
         "p0.txt": "var",
         "p90.txt": "90",
@@ -4715,7 +4435,7 @@ def draw_element(c, el, _ignored=None):
         horizontal_radius = width / 2
         vertical_radius = height
     
-        # --- Draw filled semi-ellipse using scaling ---
+        # Gradients = semi-ellipse
         c.save()
         c.translate(center_x, baseline_y)
         c.scale(1, vertical_radius / horizontal_radius)
@@ -4769,7 +4489,7 @@ def draw_element(c, el, _ignored=None):
         horizontal_radius = width / 2
         vertical_radius = height
     
-        # --- Draw filled semi-ellipse using scaling ---
+        # Shaped = semi-ellipse
         c.save()
         c.translate(center_x, baseline_y)
         c.scale(1, vertical_radius / horizontal_radius)
@@ -4822,8 +4542,8 @@ def draw_element(c, el, _ignored=None):
         c.stroke_style = "black"
         c.line_width = 2
 
-        # Text-derived fallback pulses: p2/p4 are filled; every other p# is
-        # open. Selector previews retain the historical var/90/180 fills.
+        # Text-derived fallback pulses: p2/p4 are filled; every other p# is open.
+        # Selector previews retain the historical var/90/180 fills.
         element_name = str(getattr(el, "name", "")).strip().lower()
         if getattr(el, "_preview", False):
             base = resource_filename(el.file_path).lower()
@@ -4880,8 +4600,8 @@ def draw_static_background():
     canvas.line_width = 2
     canvas.stroke()
 
-    # Assign numbers only to newly placed flags that do not already have one.
-    # Explicit numbers parsed from pulse-program text are preserved.
+    # Assign numbers only to newly placed flags that do not already have one
+    # Explicit numbers parsed from pulse-program text are preserved
     flags = [el for el in sequence.elements if el.kind == "flag"]
     flags.sort(key=lambda e: e.start)
     used_numbers = {
@@ -4925,7 +4645,7 @@ def refresh_ui():
 # -----------------------
 def build_elements_panel():
 
-    # --- Pulses row (var, 90, 180) ---
+    # Pulses row (var, 90, 180)
     pulse_buttons = [
         create_element_button("pulse", f)
         for f in element_files.get("pulse", [])
@@ -4942,7 +4662,7 @@ def build_elements_panel():
         )
     )
     
-    # --- Shaped + Gradient row (sp1, grad) ---
+    # Shaped / Gradient row
     shaped_grad_buttons = []
 
     for f in element_files.get("shaped", []):
@@ -4960,7 +4680,7 @@ def build_elements_panel():
         )
     )
 
-    # --- Block + Flag row (CPD, flag) ---
+    # Block + Flag row (CPD, flag)
     block_flag_buttons = []
 
     for f in element_files.get("block", []):
@@ -5016,7 +4736,6 @@ property_editor_box.layout.flex = "0 0 250px"
 # -----------------------
 # Canvas + Coherence
 # -----------------------
-
 # Canvas size controls
 canvas_width_input = IntText(
     description="Canvas width:",
@@ -5055,7 +4774,6 @@ canvas_row = HBox(
 )
 
 #export_btn
-
 ctp_section = VBox([
     HTML("""
     <div style="
@@ -5208,8 +4926,8 @@ def on_canvas_mouse_down(x, y):
     # Apply unified defaults for any kind (pulse/shaped/grad/...)
     apply_placement_defaults(new_el)
 
-    # Give newly placed flags their Bruker number immediately, rather than
-    # waiting for the next redraw/synchronization cycle.
+    # Give newly placed flags their number immediately, rather than
+    # waiting for the next redraw/synchronization cycle
     if kind == "flag":
         used_numbers = {
             int(el.flag_number)
@@ -5320,7 +5038,6 @@ canvas.on_mouse_up(on_canvas_mouse_up)
 # -----------------------
 # Buttons row
 # -----------------------
-
 buttons_row = HBox(
     [
         clear_button,
@@ -5336,12 +5053,7 @@ buttons_row = HBox(
     )
 )
 
-
-        
-# -----------------------
 # Definitions tabs
-# -----------------------
-
 def load_defs(filename: str):
     """Load a definition file from packaged resources for display."""
     try:
@@ -5417,9 +5129,8 @@ conversion_buttons = VBox(
 canvas_to_text_button.on_click(canvas_to_text); text_to_canvas_button.on_click(text_to_canvas); pulse_program_output.observe(update_excluded_line_options,names="value")
 
 # -----------------------
-# Layout
+# Row layout
 # -----------------------
-
 top_bar = HBox(
     [
         buttons_row
