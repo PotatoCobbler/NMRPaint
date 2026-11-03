@@ -1401,10 +1401,9 @@ def parse_pulse_program_text(text, excluded_lines=()):
         )
         if m:
             n, sh = m.groups()
-
             e = _fallback_element(
                 "grad",
-                n + ":" + sh.split("*")[0],
+                n,
                 cursor,
                 "Gz",
                 shape=sh.split("*")[0]
@@ -1554,7 +1553,6 @@ def canvas_to_text(b=None):
         if phase_cycle_checkbox.value:
             generate_phase_cycle()
 
-        # Canvas/sequence is authoritative in this direction.
         sync_all_from_sequence()
         generation_output.layout.display = "none"
         
@@ -1913,7 +1911,16 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
         if gp in ea_map:
             gp += ea_map[gp]
     
-        return f" {el.name}:{gp}"
+        # A gradient from an already-converted program may have its
+        # :gpN suffix embedded in the name. Strip it before serialization.
+        grad_name = re.sub(
+            r":gp\d+(?:\*[^\s:]+)*$",
+            "",
+            str(el.name or ""),
+            flags=re.I,
+        )
+
+        return f" {grad_name}:{gp}\n d16"
         
     def write_block(el):
     
