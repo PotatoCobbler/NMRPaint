@@ -1920,7 +1920,7 @@ def build_pulse_program_text(include_phase_cycle: bool = False, include_nmrpaint
             flags=re.I,
         )
 
-        return f" {grad_name}:{gp}\n d16"
+        return f" {grad_name}:{gp}"
         
     def write_block(el):
     
